@@ -42,7 +42,6 @@
     /* Left column */
     .brand-col {
       flex: 1;
-      background: linear-gradient(160deg, #1e293b 0%, #334155 100%);
       padding: 56px 40px;
       display: flex;
       flex-direction: column;
@@ -65,12 +64,10 @@
       position: absolute;
       width: 180px; height: 180px;
       border-radius: 50%;
-      background: rgba(59, 130, 246, 0.1);
       bottom: -40px; left: -40px;
     }
 
     .logo-wrap {
-      width: 72px; height: 72px;
       border-radius: 18px;
       display: flex;
       align-items: center;
@@ -232,9 +229,8 @@
  <body>
   <div class="login-card" role="main"><!-- Left: Branding -->
    <div class="brand-col">
-    <div class="logo-wrap" id="logoWrap" style="background: linear-gradient(135deg, #8b5cf6, #6366f1);">
-     <svg viewbox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 6L33 14V26L20 34L7 26V14L20 6Z" stroke="#fff" stroke-width="2.2" stroke-linejoin="round" /> <path d="M20 14L26 18V24L20 28L14 24V18L20 14Z" fill="rgba(255,255,255,0.9)" />
-     </svg>
+    <div class="logo-wrap" id="logoWrap">
+<img src="/assets/gambar/logo-sti.png" alt="">
     </div>
     <div class="brand-name" id="brandName">
      PT. SISTEM TEKNOLOGI INTEGRATOR 
