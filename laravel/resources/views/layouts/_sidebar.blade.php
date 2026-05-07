@@ -55,14 +55,14 @@ $menuItems = [
         'href'  => '/produksi',
         'route' => 'produksi',
     ],
-    // ── Delovery Order
+    // ── Delivery Order
     [
         'type'  => 'single',
-        'id'    => 'menu-delovery-order',
-        'label' => 'Delovery Order',
+        'id'    => 'menu-delivery-order',
+        'label' => 'Delivery Order',
         'icon'  => 'bi bi-truck',
-        'href'  => '/delovery-order',
-        'route' => 'delovery-order',
+        'href'  => '/delivery-order',
+        'route' => 'delivery-order',
     ],
     // ── Invoice
     [
