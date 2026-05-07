@@ -14,7 +14,7 @@ class LoginController extends Controller
     {
         // Jika sudah login, redirect ke dashboard
         if (Auth::check()) {
-            return redirect()->route('dashboard');
+            return redirect()->route('admin.dashboard');
         }
 
         // GET: tampilkan halaman login
@@ -40,7 +40,7 @@ class LoginController extends Controller
             $request->session()->regenerate();
 
             return redirect()
-                ->intended(route('dashboard'))
+                ->intended(route('admin.dashboard'))
                 ->with('success', 'Selamat datang, ' . Auth::user()->name . '!');
         }
 
