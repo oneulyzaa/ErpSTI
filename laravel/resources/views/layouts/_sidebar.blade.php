@@ -112,15 +112,15 @@ $menuItems = [
         'id'         => 'menu-master',
         'label'      => 'Master Data',
         'icon'       => 'bi bi-database',
-        'routes'     => ['clients*', 'products*'],
+        'routes'     => ['admin.master-clients*', 'admin.master-assets*'],
         'submenu_id' => 'submenu-master',
         'children'   => [
             [
                 'id'    => 'menu-clients',
                 'label' => 'Data Klien',
                 'icon'  => 'bi bi-people',
-                'href'  => '/admin/clients',
-                'route' => 'admin.clients*',
+                'href'  => '/admin/master-clients',
+                'route' => 'admin.master-clients*',
             ],
             [
                 'id'    => 'menu-products',

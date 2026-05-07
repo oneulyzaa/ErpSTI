@@ -4,36 +4,77 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\AsetModel;
+use App\Models\ClientModel;
 
 class MasterClientController extends Controller
 {
-    function index(){
-        return view('admin.master-aset.index');
+    public function index()
+    {
+        $title = 'Data Client';
+        $description = 'Kelola data client perusahaan Anda.';
+        $clients = ClientModel::all();
+        return view('admin.master-client.index', compact('clients', 'title', 'description'));
     }
-    function create(){
-        return view('admin.master-aset.create');
+
+    public function create()
+    {
+        $title = 'Tambah Data Client';
+        $description = 'Tambahkan data client baru ke dalam sistem.';
+        return view('admin.master-client.create', compact('title', 'description'));
     }
-    function edit($id){
-        return view('admin.master-aset.edit', compact('id'));
-    }
-    function show($id){
-        return view('admin.master-aset.show', compact('id'));
-    }
-    function store(Request $request){
-        // Validasi data
+
+    public function store(Request $request)
+    {
         $validated = $request->validate([
-            'nama_aset' => 'required|string|max:255',
-            'kategori' => 'required|string|max:255',
-            'lokasi' => 'required|string|max:255',
-            'kondisi' => 'required|string|max:255',
-            'tanggal_perolehan' => 'required|date',
-            'nilai_perolehan' => 'required|numeric',
+            'id_perusahaan' => 'required|string|unique:clients,id_perusahaan',
+            'nama_perusahaan' => 'required|string',
+            'email_perusahaan' => 'nullable|email',
+            'nama_kontak_perusahaan' => 'nullable|string',
+            'npwp_perusahaan' => 'nullable|string',
+            'alamat_pengiriman_perusahaah' => 'nullable|string',
+            'nomor_telepon_pengiriman' => 'nullable|string',
+            'alamat_faktur_perusahaan' => 'nullable|string',
+            'nomor_telepon_faktur' => 'nullable|string',
+            'alamat_efaktur_perusahaan' => 'nullable|string',
+            'nomor_rekening_perusahaan' => 'nullable|string',
         ]);
+        $validated['created_by'] = 'System';
+        ClientModel::create($validated);
+        return redirect()->route('admin.master-client.index')->with('success', 'Data client berhasil ditambahkan.');
+    }
 
-        // Simpan data ke database (ganti dengan model yang sesuai)
-        // Contoh: Aset::create($validated);
+    public function edit($id)
+    {
+        $title = 'Edit Data Client';
+        $description = 'Edit data client.';
+        $client = ClientModel::findOrFail($id);
+        return view('admin.master-client.edit', compact('client', 'title', 'description'));
+    }
 
-        return redirect()->route('admin.master-aset.index')->with('success', 'Aset berhasil ditambahkan.');
+    public function update(Request $request, $id)
+    {
+        $client = ClientModel::findOrFail($id);
+        $validated = $request->validate([
+            'id_perusahaan' => 'required|string|unique:clients,id_perusahaan,' . $id,
+            'nama_perusahaan' => 'required|string',
+            'email_perusahaan' => 'nullable|email',
+            'nama_kontak_perusahaan' => 'nullable|string',
+            'npwp_perusahaan' => 'nullable|string',
+            'alamat_pengiriman_perusahaah' => 'nullable|string',
+            'nomor_telepon_pengiriman' => 'nullable|string',
+            'alamat_faktur_perusahaan' => 'nullable|string',
+            'nomor_telepon_faktur' => 'nullable|string',
+            'alamat_efaktur_perusahaan' => 'nullable|string',
+            'nomor_rekening_perusahaan' => 'nullable|string',
+        ]);
+        $client->update($validated);
+        return redirect()->route('admin.master-client.index')->with('success', 'Data client berhasil diupdate.');
+    }
+
+    public function destroy($id)
+    {
+        $client = ClientModel::findOrFail($id);
+        $client->delete();
+        return redirect()->route('admin.master-client.index')->with('success', 'Data client berhasil dihapus.');
     }
 }
