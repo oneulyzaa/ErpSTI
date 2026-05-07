@@ -22,8 +22,8 @@ Route::middleware('auth')->prefix('admin')->as('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // master data aset using MasterAsetController
-    Route::resource('master-asset', MasterAssetController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
+    Route::resource('master-assets', MasterAssetController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
     
     // master data aset using MasterClientController
-    Route::resource('master-client', MasterClientController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
+    Route::resource('master-clients', MasterClientController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
 });

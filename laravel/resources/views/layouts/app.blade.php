@@ -125,6 +125,10 @@
             display: grid; place-items: center;
             font-weight: 700; font-size: 13px; color: #fff;
         }
+        table>tbody>tr>td {
+            vertical-align: middle; 
+            font-size:14px
+        }
     </style>
     @stack('styles')
 </head>
