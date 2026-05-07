@@ -227,6 +227,11 @@
   <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
  </head>
  <body>
+  @if(session('error'))
+    <div class="toast-msg" id="toast" style="background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; display: block;">
+      {{ session('error') }}
+    </div>
+  @endif
   <div class="login-card" role="main"><!-- Left: Branding -->
    <div class="brand-col">
     <div class="logo-wrap" id="logoWrap">
@@ -250,20 +255,19 @@
     <div class="form-subtitle" id="formSubtitle" style="color: #64748b;">
      Masuk ke akun Anda untuk melanjutkan
     </div>
-    <form id="loginForm" onsubmit="return false;">
+    <form id="loginForm" method="POST" action="/login">
      <div class="field-group"><label id="emailLabel" style="color: #64748b;">Username / Email</label>
-      <div class="field-wrap"><i data-lucide="mail" style="color: #94a3b8;"></i> <input type="text" placeholder="nama@email.com" autocomplete="off" aria-label="Username atau Email">
+      <div class="field-wrap"><i data-lucide="mail" style="color: #94a3b8;"></i> <input type="text" name="email" placeholder="nama@email.com" autocomplete="off" aria-label="Username atau Email">
       </div>
      </div>
      <div class="field-group"><label id="pwLabel" style="color: #64748b;">Password</label>
-      <div class="field-wrap"><i data-lucide="lock" style="color: #94a3b8;"></i> <input type="password" id="pwInput" placeholder="••••••••" autocomplete="off" aria-label="Password"> <button type="button" class="toggle-pw" onclick="togglePw()" aria-label="Toggle password visibility"> <i data-lucide="eye" id="eyeIcon"></i> </button>
+      <div class="field-wrap"><i data-lucide="lock" style="color: #94a3b8;"></i> <input type="password" name="password" id="pwInput" placeholder="••••••••" autocomplete="off" aria-label="Password"> <button type="button" class="toggle-pw" onclick="togglePw()" aria-label="Toggle password visibility"> <i data-lucide="eye" id="eyeIcon"></i> </button>
       </div>
-     </div>
-     <div class="remember-row"><label><input type="checkbox"> <span style="color: #475569;">Ingat saya</span></label> <a href="#" id="forgotLink" onclick="event.preventDefault()" style="color: #8b5cf6;">Lupa password?</a>
      </div><button type="submit" class="btn-login" id="btnLogin" style="background: linear-gradient(135deg, #8b5cf6, #6366f1); box-shadow: 0 4px 14px rgba(139,92,246,0.35);"> <span id="btnText">Masuk</span> <i data-lucide="arrow-right"></i> </button>
-     <div class="toast-msg" id="toast" style="background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0;">
+     {{-- <div class="toast-msg" id="toast" style="background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0;">
       ⚠ Ini adalah halaman demo. Login tidak diproses.
-     </div>
+     </div> --}}
+     @csrf 
     </form>
    </div>
   </div>
@@ -281,12 +285,7 @@
     lucide.createIcons();
   }
 
-  document.getElementById('loginForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const toast = document.getElementById('toast');
-    toast.style.display = 'block';
-    setTimeout(() => { toast.style.display = 'none'; }, 3000);
-  });
+  
 
   // --- Element SDK ---
   const defaultConfig = {

@@ -10,18 +10,18 @@ class MasterAssetController extends Controller
 {
     function index(){
         $assets = AsetModel::all(); // Ambil semua data aset dari database
-        return view('admin.master-aset.index', compact('assets')); // Kirim data aset
+        return view('admin.master-asset.index', compact('assets')); // Kirim data aset
     }
     function create(){
-        return view('admin.master-aset.create');
+        return view('admin.master-asset.create');
     }
     function edit($id){
         $asset = AsetModel::findOrFail($id);
-        return view('admin.master-aset.edit', compact('asset'));
+        return view('admin.master-asset.edit', compact('asset'));
     }
     function show($id){
         $asset = AsetModel::findOrFail($id);
-        return view('admin.master-aset.show', compact('asset'));
+        return view('admin.master-asset.show', compact('asset'));
     }
     function store(Request $request){
         
@@ -43,6 +43,6 @@ class MasterAssetController extends Controller
         $model->supplier_from = $request->supplier_from ?? null;
         $model->save();
 
-        return redirect()->route('admin.master-aset.index')->with('success', 'Data berhasil ditambahkan.');
+        return redirect()->route('admin.master-asset.index')->with('success', 'Data berhasil ditambahkan.');
     }
 }
