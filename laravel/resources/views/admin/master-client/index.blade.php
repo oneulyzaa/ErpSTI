@@ -55,10 +55,10 @@
                         <td>{{ $client->alamat_efaktur_perusahaan }}</td>
                         <td>{{ $client->nomor_rekening_perusahaan }}</td>
                         <td>
-                            <a href="{{ route('admin.master-client.edit', $client->id) }}" class="btn btn-sm btn-primary">
+                            <a href="{{ route('admin.master-clients.edit', $client->id) }}" class="btn btn-sm btn-primary">
                                 <i class="bi-pencil"></i> Ubah
                             </a>
-                            <form action="{{ route('admin.master-client.destroy', $client->id) }}" method="POST" class="d-inline">
+                            <form action="{{ route('admin.master-clients.destroy', $client->id) }}" method="POST" class="d-inline">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">

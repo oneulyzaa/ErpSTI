@@ -40,7 +40,7 @@ class MasterClientController extends Controller
         ]);
         $validated['created_by'] = 'System';
         ClientModel::create($validated);
-        return redirect()->route('admin.master-client.index')->with('success', 'Data client berhasil ditambahkan.');
+        return redirect()->route('admin.master-clients.index')->with('success', 'Data client berhasil ditambahkan.');
     }
 
     public function edit($id)
@@ -68,13 +68,13 @@ class MasterClientController extends Controller
             'nomor_rekening_perusahaan' => 'nullable|string',
         ]);
         $client->update($validated);
-        return redirect()->route('admin.master-client.index')->with('success', 'Data client berhasil diupdate.');
+        return redirect()->route('admin.master-clients.index')->with('success', 'Data client berhasil diupdate.');
     }
 
     public function destroy($id)
     {
         $client = ClientModel::findOrFail($id);
         $client->delete();
-        return redirect()->route('admin.master-client.index')->with('success', 'Data client berhasil dihapus.');
+        return redirect()->route('admin.master-clients.index')->with('success', 'Data client berhasil dihapus.');
     }
 }

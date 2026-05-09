@@ -18,7 +18,7 @@
 </div>
 <div class="row g-3 mb-4">
     <div class="col-lg-8 col-md-12 bg-white p-3 rounded">
-        <form action="{{ route('admin.master-client.update', $client->id) }}" method="POST">
+        <form action="{{ route('admin.master-clients.update', $client->id) }}" method="POST">
             @csrf
             @method('PUT')
             <div class="form-group mb-3">
