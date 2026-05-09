@@ -29,14 +29,14 @@ class QuotationController extends Controller
 
         $quotations = $query->paginate(15)->withQueryString();
 
-        return view('quotations.index', compact('quotations'));
+        return view('admin.quotations.index', compact('quotations'));
     }
 
     // ─── Create Form ─────────────────────────────────────────────────────────
     public function create()
     {
         $quoteNumber = Quotation::generateQuoteNumber();
-        return view('quotations.create', compact('quoteNumber'));
+        return view('admin.quotations.create', compact('quoteNumber'));
     }
 
     // ─── Store ────────────────────────────────────────────────────────────────
@@ -92,14 +92,14 @@ class QuotationController extends Controller
     public function show(Quotation $quotation)
     {
         $quotation->load('items');
-        return view('quotations.show', compact('quotation'));
+        return view('admin.quotations.show', compact('quotation'));
     }
 
     // ─── Edit Form ────────────────────────────────────────────────────────────
     public function edit(Quotation $quotation)
     {
         $quotation->load('items');
-        return view('quotations.edit', compact('quotation'));
+        return view('admin.quotations.edit', compact('quotation'));
     }
 
     // ─── Update ───────────────────────────────────────────────────────────────
