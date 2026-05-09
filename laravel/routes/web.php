@@ -5,6 +5,8 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MasterAssetController;
 use App\Http\Controllers\Admin\MasterClientController;
+use App\Http\Controllers\QuotationController;
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -26,4 +28,7 @@ Route::middleware('auth')->prefix('admin')->as('admin.')->group(function () {
     
     // master data aset using MasterClientController
     Route::resource('master-clients', MasterClientController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
+
+    //quotation
+    Route::resource('quotations', QuotationController::class);
 });
