@@ -51,7 +51,7 @@ class QuotationController extends Controller
     {
         $quoteNumber   = Quotation::generateQuoteNumber();
         $defaultLabors = $this->defaultLabors;
-        return view('quotations.create', compact('quoteNumber', 'defaultLabors'));
+        return view('admin.quotations.create', compact('quoteNumber', 'defaultLabors'));
     }
 
     // ─── Store ────────────────────────────────────────────────────────────────
@@ -93,7 +93,7 @@ class QuotationController extends Controller
         $quotation->load('items', 'labors');
         $quoteNumber   = $quotation->quote_number;
         $defaultLabors = $this->defaultLabors;
-        return view('quotations.edit', compact('quotation', 'quoteNumber', 'defaultLabors'));
+        return view('admin.quotations.edit', compact('quotation', 'quoteNumber', 'defaultLabors'));
     }
 
     // ─── Update ───────────────────────────────────────────────────────────────
@@ -142,7 +142,7 @@ class QuotationController extends Controller
             $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
         }
 
-        $pdf = Pdf::loadView('quotations.pdf', compact('quotation', 'logoBase64'))
+        $pdf = Pdf::loadView('admin.quotations.pdf', compact('quotation', 'logoBase64'))
             ->setPaper('a4', 'portrait')
             ->setOption('defaultFont', 'DejaVu Sans')
             ->setOption('isHtml5ParserEnabled', true)

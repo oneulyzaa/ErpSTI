@@ -2,7 +2,7 @@
 
 @php
     $isEdit      = isset($quotation);
-    $action      = $isEdit ? route('quotations.update', $quotation) : route('quotations.store');
+    $action      = $isEdit ? route('admin.quotations.update', $quotation) : route('admin.quotations.store');
     $oldItems    = old('items',  $isEdit ? $quotation->items->toArray()  : []);
     $oldLabors   = old('labors', $isEdit ? $quotation->labors->toArray() : $defaultLabors);
 @endphp
@@ -50,7 +50,7 @@
         <h4 class="fw-bold mb-1">{{ $isEdit ? 'Edit Quotation' : 'Buat Quotation Baru' }}</h4>
         <p class="text-muted mb-0" style="font-size:13px">PT. Sistem Teknologi Integrator</p>
     </div>
-    <a href="{{ route('quotations.index') }}" class="btn btn-outline-secondary d-flex align-items-center gap-2">
+    <a href="{{ route('admin.quotations.index') }}" class="btn btn-outline-secondary d-flex align-items-center gap-2">
         <i class="bi bi-arrow-left"></i> Kembali
     </a>
 </div>
@@ -267,7 +267,7 @@
                     <i class="bi bi-check-lg"></i>
                     {{ $isEdit ? 'Simpan Perubahan' : 'Simpan Quotation' }}
                 </button>
-                <a href="{{ route('quotations.index') }}" class="btn btn-outline-secondary text-center">Batal</a>
+                <a href="{{ route('admin.quotations.index') }}" class="btn btn-outline-secondary text-center">Batal</a>
             </div>
 
         </div>{{-- end right --}}
