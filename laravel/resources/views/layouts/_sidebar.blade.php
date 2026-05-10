@@ -34,8 +34,8 @@ $menuItems = [
         'id'    => 'menu-quotation',
         'label' => 'Quotation',
         'icon'  => 'bi bi-receipt',
-        'href'  => '/quotations',
-        'route' => 'quotations',
+        'href'  => '/admin/quotations',
+        'route' => 'admin/quotations',
     ],
     // ── Sales Order ──────────────────────────────────────────────────
     [
@@ -149,8 +149,8 @@ $menuItems = [
     //             'id'    => 'menu-quotations',
     //             'label' => 'Penawaran',
     //             'icon'  => 'bi bi-file-earmark-text',
-    //             'href'  => '/quotations',
-    //             'route' => 'quotations*',
+    //             'href'  => 'admin/quotations',
+    //             'route' => 'admin/quotations*',
     //         ],
     //         [
     //             'id'    => 'menu-sales',
