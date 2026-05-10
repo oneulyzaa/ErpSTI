@@ -43,7 +43,7 @@ class QuotationController extends Controller
         }
 
         $quotations = $query->paginate(15)->withQueryString();
-        return view('quotations.index', compact('quotations'));
+        return view('admin.quotations.index', compact('quotations'));
     }
 
     // ─── Create ───────────────────────────────────────────────────────────────
@@ -76,7 +76,7 @@ class QuotationController extends Controller
             $this->syncLabors($quotation, $request->labors ?? []);
         });
 
-        return redirect()->route('quotations.index')
+        return redirect()->route('admin.quotations.index')
             ->with('success', 'Quotation berhasil dibuat.');
     }
 
@@ -84,7 +84,7 @@ class QuotationController extends Controller
     public function show(Quotation $quotation)
     {
         $quotation->load('items', 'labors');
-        return view('quotations.show', compact('quotation'));
+        return view('admin.quotations.show', compact('quotation'));
     }
 
     // ─── Edit ─────────────────────────────────────────────────────────────────
@@ -118,7 +118,7 @@ class QuotationController extends Controller
             $this->syncLabors($quotation, $request->labors ?? []);
         });
 
-        return redirect()->route('quotations.show', $quotation)
+        return redirect()->route('admin.quotations.show', $quotation)
             ->with('success', 'Quotation berhasil diperbarui.');
     }
 
@@ -126,7 +126,7 @@ class QuotationController extends Controller
     public function destroy(Quotation $quotation)
     {
         $quotation->delete();
-        return redirect()->route('quotations.index')
+        return redirect()->route('admin.quotations.index')
             ->with('success', 'Quotation berhasil dihapus.');
     }
 
