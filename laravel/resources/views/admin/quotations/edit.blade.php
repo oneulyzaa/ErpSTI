@@ -1,1 +1,1 @@
-@include('admin.quotations.form', ['isEdit' => true])
+@include('quotations.create')

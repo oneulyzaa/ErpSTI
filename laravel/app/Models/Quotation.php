@@ -20,6 +20,8 @@ class Quotation extends Model
         'client_cc',
         'client_email',
         'description_of_work',
+        'subtotal_material',
+        'subtotal_labor',
         'subtotal',
         'tax_percentage',
         'tax_amount',
@@ -29,12 +31,14 @@ class Quotation extends Model
     ];
 
     protected $casts = [
-        'date'           => 'date',
-        'valid_until'    => 'date',
-        'subtotal'       => 'decimal:2',
-        'tax_percentage' => 'decimal:2',
-        'tax_amount'     => 'decimal:2',
-        'total'          => 'decimal:2',
+        'date'             => 'date',
+        'valid_until'      => 'date',
+        'subtotal_material'=> 'decimal:2',
+        'subtotal_labor'   => 'decimal:2',
+        'subtotal'         => 'decimal:2',
+        'tax_percentage'   => 'decimal:2',
+        'tax_amount'       => 'decimal:2',
+        'total'            => 'decimal:2',
     ];
 
     public function items()
@@ -42,9 +46,11 @@ class Quotation extends Model
         return $this->hasMany(QuotationItem::class)->orderBy('sort_order');
     }
 
-    /**
-     * Auto-generate quote number: QUO-YYYYMM-XXXX
-     */
+    public function labors()
+    {
+        return $this->hasMany(QuotationLabor::class)->orderBy('sort_order');
+    }
+
     public static function generateQuoteNumber(): string
     {
         $prefix = 'QUO-' . now()->format('Ym') . '-';
@@ -53,19 +59,6 @@ class Quotation extends Model
             ->value('quote_number');
 
         $next = $last ? (int) substr($last, -4) + 1 : 1;
-
         return $prefix . str_pad($next, 4, '0', STR_PAD_LEFT);
-    }
-
-    public function getStatusBadgeAttribute(): string
-    {
-        return match ($this->status) {
-            'draft'    => '<span class="badge badge-secondary">Draft</span>',
-            'sent'     => '<span class="badge badge-info">Terkirim</span>',
-            'approved' => '<span class="badge badge-success">Disetujui</span>',
-            'rejected' => '<span class="badge badge-danger">Ditolak</span>',
-            'expired'  => '<span class="badge badge-warning">Kadaluarsa</span>',
-            default    => '<span class="badge badge-secondary">-</span>',
-        };
     }
 }

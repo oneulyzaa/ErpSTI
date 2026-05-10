@@ -29,6 +29,12 @@ Route::middleware('auth')->prefix('admin')->as('admin.')->group(function () {
     // master data aset using MasterClientController
     Route::resource('master-clients', MasterClientController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
 
+    // Generate PDF for a specific quotation
+    Route::get('quotations/{quotation}/pdf', [QuotationController::class, 'pdf'])
+    ->name('quotations.pdf');
+    
     //quotation
     Route::resource('quotations', QuotationController::class);
+
+    
 });
