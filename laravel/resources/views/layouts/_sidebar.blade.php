@@ -15,12 +15,12 @@ $menuItems = [
         'id'    => 'menu-quotation',
         'label' => 'Quotation',
         'icon'  => 'bi bi-receipt',
-<<<<<<< HEAD
-        'href'  => '/admin/quotations',
+
+        'href'  => 'admin/quotations',
         'route' => 'admin/quotations',
-=======
+
         'route' => 'admin.quotations.index',        // TODO: daftarkan route
->>>>>>> 2c019428bf39d22c3f77197578d9cb3d0a2611f3
+
     ],
     // ── Sales Order ──────────────────────────────────────────────────
     [
@@ -111,7 +111,7 @@ $menuItems = [
         ],
     ],
 
-<<<<<<< HEAD
+
     // // ── Transaksi ──────────────────────────────────────────────────
     // [
     //     'type'  => 'group',
@@ -158,8 +158,7 @@ $menuItems = [
 
     
 
-=======
->>>>>>> 2c019428bf39d22c3f77197578d9cb3d0a2611f3
+
 ];
 @endphp
 

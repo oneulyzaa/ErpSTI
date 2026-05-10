@@ -84,7 +84,7 @@ class QuotationController extends Controller
             $this->syncItems($quotation, $request->items);
         });
 
-        return redirect()->route('quotations.index')
+        return redirect()->route('admin.quotations.index')
             ->with('success', 'Quotation berhasil dibuat.');
     }
 
@@ -141,7 +141,7 @@ class QuotationController extends Controller
             $this->syncItems($quotation, $request->items);
         });
 
-        return redirect()->route('quotations.show', $quotation)
+        return redirect()->route('admin.quotations.show', $quotation)
             ->with('success', 'Quotation berhasil diperbarui.');
     }
 
@@ -149,7 +149,7 @@ class QuotationController extends Controller
     public function destroy(Quotation $quotation)
     {
         $quotation->delete();
-        return redirect()->route('quotations.index')
+        return redirect()->route('admin.quotations.index')
             ->with('success', 'Quotation berhasil dihapus.');
     }
 
