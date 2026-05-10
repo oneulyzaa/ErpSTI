@@ -16,9 +16,6 @@ $menuItems = [
         'label' => 'Quotation',
         'icon'  => 'bi bi-receipt',
 
-        'href'  => 'admin/quotations',
-        'route' => 'admin/quotations',
-
         'route' => 'admin.quotations.index',        // TODO: daftarkan route
 
     ],
