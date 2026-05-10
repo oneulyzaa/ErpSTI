@@ -42,7 +42,7 @@
                         <td>{{ \App\Http\Controllers\Controller::rupiah($asset->harga) }}</td>
                         <td>{{ $asset->satuan }}</td>
                         <td>{{ $asset->stok }}</td>
-                        <td>{{ $asset->supplier }}</td>
+                        <td>{{ $asset->supplier_from }}</td>
                         <td>
                             @if($asset->is_active == 1)
                                 <span class="badge bg-success">Aktif</span>
