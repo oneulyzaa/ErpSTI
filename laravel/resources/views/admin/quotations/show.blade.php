@@ -35,17 +35,17 @@
         </p>
     </div>
     <div class="d-flex gap-2 flex-wrap">
-        <a href="{{ route('quotations.pdf', $quotation) }}" target="_blank"
+        <a href="{{ route('admin.quotations.pdf', $quotation) }}" target="_blank"
            class="btn btn-success btn-sm d-flex align-items-center gap-2 px-3">
             <i class="bi bi-file-earmark-pdf-fill"></i> Cetak PDF
         </a>
-        <a href="{{ route('quotations.edit', $quotation) }}" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+        <a href="{{ route('admin.quotations.edit', $quotation) }}" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
             <i class="bi bi-pencil"></i> Edit
         </a>
-        <a href="{{ route('quotations.index') }}" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1">
+        <a href="{{ route('admin.quotations.index') }}" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1">
             <i class="bi bi-arrow-left"></i> Kembali
         </a>
-        <form action="{{ route('quotations.destroy', $quotation) }}" method="POST"
+        <form action="{{ route('admin.quotations.destroy', $quotation) }}" method="POST"
               onsubmit="return confirm('Hapus quotation ini?')">
             @csrf @method('DELETE')
             <button type="submit" class="btn btn-outline-danger btn-sm">
@@ -187,7 +187,7 @@
                 <div class="summary-row total-row"><span>TOTAL</span><span class="summary-val">Rp {{ number_format($quotation->total, 0, ',', '.') }}</span></div>
             </div>
             <div class="card-footer bg-white border-top">
-                <a href="{{ route('quotations.pdf', $quotation) }}" target="_blank"
+                <a href="{{ route('admin.quotations.pdf', $quotation) }}" target="_blank"
                    class="btn btn-success w-100 d-flex align-items-center justify-content-center gap-2">
                     <i class="bi bi-file-earmark-pdf-fill"></i> Cetak / Download PDF
                 </a>
