@@ -40,11 +40,11 @@
             <div class="form-group mb-3">
                 <label for="satuan">Satuan</label>
                 <select class="form-select" id="satuan" name="satuan" required>
-                    <option value="" disabled selected>Pilih Satuan</option>
-                    <option value="pcs">Pcs</option>
-                    <option value="box">Box</option>
-                    <option value="kg">Kg</option>
-                    <option value="liter">Liter</option>
+                    <option value="" disabled selected>- Pilih Satuan -</option>
+                    <option value="pcs" >Pcs</option>
+                    <option value="meter" >Meter</option>
+                    <option value="box" >Box</option>
+                    <option value="kg" >Kg</option>
                 </select>
             </div>
             <div class="form-group mb-3">
@@ -58,7 +58,7 @@
             <div class="form-group mb-3">
                 <label for="status">Status</label>
                 <select class="form-select" id="status" name="status" required>
-                    <option value="" disabled >Pilih Status</option>
+                    <option value="" disabled selected>- Pilih Status -</option>
                     <option value="1" selected>Aktif</option>
                     <option value="0">Tidak Aktif</option>
                 </select>

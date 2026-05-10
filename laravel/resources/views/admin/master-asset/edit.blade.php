@@ -43,9 +43,9 @@
                 <select class="form-select" id="satuan" name="satuan" required>
                     {{-- <option value="" disabled selected>Pilih Satuan</option> --}}
                     <option value="pcs" {{ $asset->satuan == 'pcs' ? 'selected' : '' }}>Pcs</option>
+                    <option value="meter" {{ $asset->satuan == 'meter' ? 'selected' : '' }}>Meter</option>
                     <option value="box" {{ $asset->satuan == 'box' ? 'selected' : '' }}>Box</option>
                     <option value="kg" {{ $asset->satuan == 'kg' ? 'selected' : '' }}>Kg</option>
-                    <option value="liter" {{ $asset->satuan == 'liter' ? 'selected' : '' }}>Liter</option>
                 </select>
             </div>
             <div class="form-group mb-3">
