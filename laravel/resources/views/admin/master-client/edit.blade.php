@@ -25,41 +25,59 @@
                 <label for="id_perusahaan">ID Perusahaan</label>
                 <input type="text" class="form-control" id="id_perusahaan" name="id_perusahaan" value="{{ $client->id_perusahaan }}" required>
             </div>
-            <div class="form-group mb-3">
-                <label for="nama_perusahaan">Nama Perusahaan</label>
-                <input type="text" class="form-control" id="nama_perusahaan" name="nama_perusahaan" value="{{ $client->nama_perusahaan }}" required>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-lg-6 col-md-12 mb-3">
+                        <label for="nama_perusahaan">Nama Perusahaan</label>
+                        <input type="text" class="form-control" id="nama_perusahaan" name="nama_perusahaan" value="{{ $client->nama_perusahaan }}" required>
+                    </div>
+                    <div class="col-lg-6 col-md-12 mb-3">
+                        <label for="email_perusahaan">Email Perusahaan</label>
+                        <input type="email" class="form-control" id="email_perusahaan" name="email_perusahaan" value="{{ $client->email_perusahaan }}">
+                    </div>
+                </div>
             </div>
-            <div class="form-group mb-3">
-                <label for="email_perusahaan">Email Perusahaan</label>
-                <input type="email" class="form-control" id="email_perusahaan" name="email_perusahaan" value="{{ $client->email_perusahaan }}">
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-lg-6 col-md-12 mb-3">
+                        <label for="nama_kontak_perusahaan">Nama Kontak Perusahaan</label>
+                        <input type="text" class="form-control" id="nama_kontak_perusahaan" name="nama_kontak_perusahaan" value="{{ $client->nama_kontak_perusahaan }}" required>
+                    </div>
+                    <div class="col-lg-6 col-md-12 mb-3">
+                        <label for="npwp_perusahaan">NPWP Perusahaan</label>
+                        <input type="text" class="form-control" id="npwp_perusahaan" name="npwp_perusahaan" value="{{ $client->npwp_perusahaan }}">
+                    </div>
+                </div>
             </div>
-            <div class="form-group mb-3">
-                <label for="nama_kontak_perusahaan">Nama Kontak</label>
-                <input type="text" class="form-control" id="nama_kontak_perusahaan" name="nama_kontak_perusahaan" value="{{ $client->nama_kontak_perusahaan }}">
-            </div>
-            <div class="form-group mb-3">
-                <label for="npwp_perusahaan">NPWP</label>
-                <input type="text" class="form-control" id="npwp_perusahaan" name="npwp_perusahaan" value="{{ $client->npwp_perusahaan }}">
-            </div>
-            <div class="form-group mb-3">
-                <label for="alamat_pengiriman_perusahaah">Alamat Pengiriman</label>
-                <textarea class="form-control" id="alamat_pengiriman_perusahaah" name="alamat_pengiriman_perusahaah">{{ $client->alamat_pengiriman_perusahaah }}</textarea>
-            </div>
-            <div class="form-group mb-3">
-                <label for="nomor_telepon_pengiriman">Telepon Pengiriman</label>
-                <input type="text" class="form-control" id="nomor_telepon_pengiriman" name="nomor_telepon_pengiriman" value="{{ $client->nomor_telepon_pengiriman }}">
-            </div>
-            <div class="form-group mb-3">
-                <label for="alamat_faktur_perusahaan">Alamat Faktur</label>
-                <textarea class="form-control" id="alamat_faktur_perusahaan" name="alamat_faktur_perusahaan">{{ $client->alamat_faktur_perusahaan }}</textarea>
-            </div>
-            <div class="form-group mb-3">
-                <label for="nomor_telepon_faktur">Telepon Faktur</label>
-                <input type="text" class="form-control" id="nomor_telepon_faktur" name="nomor_telepon_faktur" value="{{ $client->nomor_telepon_faktur }}">
-            </div>
-            <div class="form-group mb-3">
-                <label for="alamat_efaktur_perusahaan">Alamat Efaktur</label>
-                <textarea class="form-control" id="alamat_efaktur_perusahaan" name="alamat_efaktur_perusahaan">{{ $client->alamat_efaktur_perusahaan }}</textarea>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-lg-4 col-md-12">
+                        <div class="mb-3">
+                            <label for="alamat_pengiriman">Alamat Pengiriman</label>
+                            <textarea class="form-control" id="alamat_pengiriman" name="alamat_pengiriman" rows="3" required>{{ $client->alamat_pengiriman }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="telepon_pengiriman">Telepon Pengiriman</label>
+                            <input type="text" class="form-control" id="telepon_pengiriman" name="telepon_pengiriman" value="{{ $client->telepon_pengiriman }}" required>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-12">
+                        <div class="mb-3">
+                            <label for="alamat_faktur">Alamat Faktur</label>
+                            <textarea class="form-control" id="alamat_faktur" name="alamat_faktur" rows="3" required>{{ $client->alamat_faktur }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="telepon_faktur">Telepon Faktur</label>
+                            <input type="text" class="form-control" id="telepon_faktur" name="telepon_faktur" value="{{ $client->telepon_faktur }}" required>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-12">
+                        <div class="mb-3">
+                            <label for="alamat_efaktur">Alamat E-Faktur</label>
+                            <textarea class="form-control" id="alamat_efaktur" name="alamat_efaktur" rows="3" required>{{ $client->alamat_efaktur }}</textarea>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="form-group mb-3">
                 <label for="nomor_rekening_perusahaan">Nomor Rekening</label>
