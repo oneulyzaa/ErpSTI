@@ -22,18 +22,20 @@ class LoginController extends Controller
             return view('auth.login');
         }
 
-        // POST: validasi input
-        $credentials = $request->validate([
-            'email'    => ['required', 'email', 'max:255'],
-            'password' => ['required', 'string', 'min:6'],
+        // POST: validasi input (hanya cek tidak kosong)
+        $request->validate([
+            'email'    => ['required', 'string'],
+            'password' => ['required', 'string'],
         ], [
             'email.required'    => 'Email wajib diisi.',
-            'email.email'       => 'Format email tidak valid.',
             'password.required' => 'Password wajib diisi.',
-            'password.min'      => 'Password minimal 6 karakter.',
         ]);
 
         $remember = $request->boolean('remember');
+        $credentials = [
+            'email'    => $request->input('email'),
+            'password' => $request->input('password'),
+        ];
 
         // Coba autentikasi
         if (Auth::attempt($credentials, $remember)) {

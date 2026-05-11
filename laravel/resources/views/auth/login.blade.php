@@ -227,11 +227,6 @@
   <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
  </head>
  <body>
-  @if(session('error'))
-    <div class="toast-msg" id="toast" style="background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; display: block;">
-      {{ session('error') }}
-    </div>
-  @endif
   <div class="login-card" role="main"><!-- Left: Branding -->
    <div class="brand-col">
     <div class="logo-wrap" id="logoWrap">
@@ -255,6 +250,16 @@
     <div class="form-subtitle" id="formSubtitle" style="color: #64748b;">
      Masuk ke akun Anda untuk melanjutkan
     </div>
+    @if(session('error') || $errors->any())
+    <div style="background:#fee2e2;color:#991b1b;border:1px solid #fecaca;border-radius:10px;padding:12px 16px;font-size:13px;text-align:center;margin-bottom:20px;">
+      &#9888;&nbsp;
+      @if(session('error'))
+        {{ session('error') }}
+      @else
+        {{ $errors->first() }}
+      @endif
+    </div>
+    @endif
     <form id="loginForm" method="POST" action="/login">
      <div class="field-group"><label id="emailLabel" style="color: #64748b;">Username / Email</label>
       <div class="field-wrap"><i data-lucide="mail" style="color: #94a3b8;"></i> <input type="text" name="email" placeholder="nama@email.com" autocomplete="off" aria-label="Username atau Email">
