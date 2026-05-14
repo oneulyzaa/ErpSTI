@@ -33,7 +33,7 @@ $menuItems = [
         'id'    => 'menu-produksi',
         'label' => 'Produksi',
         'icon'  => 'bi bi-gear-fill',
-        'route' => null,                      // TODO: daftarkan route
+        'route' => 'admin.productions.index',
     ],
     // ── Delivery Order ────────────────────────────────────────────
     [

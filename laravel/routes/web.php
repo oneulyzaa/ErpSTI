@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\MasterAssetController;
 use App\Http\Controllers\Admin\MasterClientController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\SalesOrderController;
+use App\Http\Controllers\ProductionController;
 
 
 Route::get('/', function () {
@@ -47,6 +48,11 @@ Route::middleware('auth')->prefix('admin')->as('admin.')->group(function () {
     Route::get('sales-orders/quotation-data/{quotation}', [SalesOrderController::class, 'getQuotationData'])->name('sales-orders.quotation-data');
     // CRUD
     Route::resource('sales-orders', SalesOrderController::class);
+
+    // ─── Production Plan ─────────────────────────────────────────
+    Route::get('productions/{production}/pdf', [ProductionController::class, 'pdf'])->name('productions.pdf');
+    Route::get('productions/sales-order-items/{salesOrder}', [ProductionController::class, 'getSoItems'])->name('productions.so-items');
+    Route::resource('productions', ProductionController::class);
 
     
 });
