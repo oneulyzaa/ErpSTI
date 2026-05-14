@@ -1,14 +1,15 @@
 @extends('layouts.app')
 
 @php
-    $isEdit      = isset($quotation);
-    $action      = $isEdit ? route('admin.quotations.update', $quotation) : route('admin.quotations.store');
-    $oldItems    = old('items',  $isEdit ? $quotation->items->toArray()  : []);
-    $oldLabors   = old('labors', $isEdit ? $quotation->labors->toArray() : $defaultLabors);
+    $isEdit      = isset($salesOrder);
+    $action      = $isEdit ? route('admin.sales-orders.update', $salesOrder) : route('admin.sales-orders.store');
+    $oldItems    = old('items',  $isEdit ? $salesOrder->items->toArray()  : []);
+    $oldLabors   = old('labors', $isEdit ? $salesOrder->labors->toArray() : $defaultLabors);
+    $copyQuote  = isset($quotation);
 @endphp
 
-@section('title', $isEdit ? 'Edit Quotation' : 'Buat Quotation Baru')
-@section('breadcrumb', $isEdit ? 'Edit Quotation' : 'Buat Quotation')
+@section('title', $isEdit ? 'Edit Sales Order' : 'Buat Sales Order Baru')
+@section('breadcrumb', $isEdit ? 'Edit Sales Order' : 'Buat Sales Order')
 
 @push('styles')
 <style>
@@ -40,8 +41,6 @@
     .summary-row.total-row .summary-val { font-size: 17px; color: #1B5DBC; }
     .table-section-header th { background: #1e3a5f !important; color: #fff !important; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
     .labor-header th { background: #1B5DBC !important; color: #fff !important; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
-    .client-field-group { background: #f8fafc; border-radius: 8px; padding: 14px; border: 1px solid #e2e8f0; }
-    .modal-client-field { margin-bottom: 8px; }
 </style>
 @endpush
 
@@ -49,15 +48,15 @@
 
 <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
-        <h4 class="fw-bold mb-1">{{ $isEdit ? 'Edit Quotation' : 'Buat Quotation Baru' }}</h4>
+        <h4 class="fw-bold mb-1">{{ $isEdit ? 'Edit Sales Order' : 'Buat Sales Order Baru' }}</h4>
         <p class="text-muted mb-0" style="font-size:13px">PT. Sistem Teknologi Integrator</p>
     </div>
-    <a href="{{ route('admin.quotations.index') }}" class="btn btn-outline-secondary d-flex align-items-center gap-2">
+    <a href="{{ route('admin.sales-orders.index') }}" class="btn btn-outline-secondary d-flex align-items-center gap-2">
         <i class="bi bi-arrow-left"></i> Kembali
     </a>
 </div>
 
-<form method="POST" action="{{ $action }}" id="quotation-form">
+<form method="POST" action="{{ $action }}" id="so-form">
     @csrf
     @if($isEdit) @method('PUT') @endif
 
@@ -65,66 +64,63 @@
         {{-- ── LEFT COLUMN ── --}}
         <div class="col-12 col-xl-8 d-flex flex-column gap-3">
 
-            {{-- Info Quotation --}}
+            {{-- Info Sales Order --}}
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-bottom py-3">
-                    <span class="fw-semibold">Informasi Quotation</span>
+                    <span class="fw-semibold">Informasi Sales Order</span>
                 </div>
                 <div class="card-body">
-                    <div class="section-label">Nomor Quotation</div>
+                    <div class="section-label">Nomor & Referensi</div>
                     <div class="row g-3 mb-3">
                         <div class="col-12 col-sm-4">
-                            <label class="form-label fw-semibold" style="font-size:13px">No. Quotation <span class="text-danger">*</span></label>
-                            <input type="text" name="quote_number"
-                                   class="form-control form-control-sm @error('quote_number') is-invalid @enderror"
-                                   value="{{ old('quote_number', $isEdit ? $quotation->quote_number : $quoteNumber) }}" required>
-                            @error('quote_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <label class="form-label fw-semibold" style="font-size:13px">No. SO <span class="text-danger">*</span></label>
+                            <input type="text" name="so_number"
+                                   class="form-control form-control-sm @error('so_number') is-invalid @enderror"
+                                   value="{{ old('so_number', $isEdit ? $salesOrder->so_number : $soNumber) }}" required>
+                            @error('so_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
-                        <div class="col-12 col-sm-5">
-                            <label class="form-label fw-semibold" style="font-size:13px">
-                                Nama Perusahaan yang Dituju <span class="text-danger">*</span>
-                            </label>
-                            <div class="d-flex gap-2">
-                                <select name="client_id" id="client-select" class="form-select form-select-sm" style="flex:1;">
-                                    <option value="">-- Pilih Perusahaan (dari Master Client) --</option>
-                                    @foreach($clients as $c)
-                                        <option value="{{ $c->id }}"
-                                            data-nama="{{ $c->nama_perusahaan }}"
-                                            data-kontak="{{ $c->nama_kontak_perusahaan }}"
-                                            data-email="{{ $c->email_perusahaan }}"
-                                            data-alamat="{{ $c->alamat_pengiriman_perusahaah ?: $c->alamat_faktur_perusahaan }}"
-                                            {{ old('client_id', $isEdit ? $quotation->client_id : '') == $c->id ? 'selected' : '' }}>
-                                            {{ $c->id_perusahaan }} — {{ $c->nama_perusahaan }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#quickAddClientModal" title="Tambah Client Baru">
-                                    <i class="bi bi-plus-lg"></i>
-                                </button>
-                            </div>
+                        <div class="col-12 col-sm-4">
+                            <label class="form-label fw-semibold" style="font-size:13px">Referensi Quotation</label>
+                            <select name="quotation_id" id="quotation_id" class="form-select form-select-sm">
+                                <option value="">-- Pilih Quotation (opsional) --</option>
+                                @foreach($quotations as $q)
+                                    <option value="{{ $q->id }}"
+                                        data-quote-number="{{ $q->quote_number }}"
+                                        data-project="{{ $q->project_name }}"
+                                        data-client="{{ $q->client_name }}"
+                                        data-company="{{ $q->client_company }}"
+                                        data-attention="{{ $q->client_attention }}"
+                                        data-cc="{{ $q->client_cc }}"
+                                        data-email="{{ $q->client_email }}"
+                                        data-desc="{{ $q->description_of_work }}"
+                                        {{ old('quotation_id', ($isEdit ? $salesOrder->quotation_id : ($copyQuote ? $quotation->id : ''))) == $q->id ? 'selected' : '' }}>
+                                        {{ $q->quote_number }} — {{ $q->project_name ?: $q->client_company }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <input type="hidden" name="quote_number" id="quote_number"
+                                   value="{{ old('quote_number', $isEdit ? $salesOrder->quote_number : ($copyQuote ? $quotation->quote_number : '')) }}">
                         </div>
-                        <div class="col-12 col-sm-3">
+                        <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">Status <span class="text-danger">*</span></label>
                             <select name="status" class="form-select form-select-sm" required>
-                                @foreach(['draft'=>'Draft','sent'=>'Terkirim','approved'=>'Disetujui','rejected'=>'Ditolak','expired'=>'Kadaluarsa'] as $v=>$l)
-                                    <option value="{{ $v }}" {{ old('status', $isEdit ? $quotation->status : 'draft') === $v ? 'selected' : '' }}>{{ $l }}</option>
+                                @foreach(['draft'=>'Draft','confirmed'=>'Confirmed','in_progress'=>'In Progress','completed'=>'Completed','cancelled'=>'Cancelled'] as $v=>$l)
+                                    <option value="{{ $v }}" {{ old('status', $isEdit ? $salesOrder->status : 'draft') === $v ? 'selected' : '' }}>{{ $l }}</option>
                                 @endforeach
                             </select>
                         </div>
                     </div>
-
                     <div class="row g-3 mb-4">
                         <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold" style="font-size:13px">Tanggal Dibuat <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold" style="font-size:13px">Tanggal SO <span class="text-danger">*</span></label>
                             <input type="date" name="date" class="form-control form-control-sm @error('date') is-invalid @enderror"
-                                   value="{{ old('date', $isEdit ? $quotation->date->format('Y-m-d') : now()->format('Y-m-d')) }}" required>
+                                   value="{{ old('date', $isEdit ? $salesOrder->date->format('Y-m-d') : now()->format('Y-m-d')) }}" required>
                             @error('date')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold" style="font-size:13px">Tanggal Masa Berlaku <span class="text-danger">*</span></label>
-                            <input type="date" name="valid_until" class="form-control form-control-sm @error('valid_until') is-invalid @enderror"
-                                   value="{{ old('valid_until', $isEdit ? $quotation->valid_until->format('Y-m-d') : now()->addDays(30)->format('Y-m-d')) }}" required>
-                            @error('valid_until')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <label class="form-label fw-semibold" style="font-size:13px">Tanggal Pengiriman</label>
+                            <input type="date" name="delivery_date" class="form-control form-control-sm"
+                                   value="{{ old('delivery_date', $isEdit && $salesOrder->delivery_date ? $salesOrder->delivery_date->format('Y-m-d') : '') }}">
                         </div>
                     </div>
 
@@ -132,52 +128,57 @@
                     <div class="row g-3 mb-4">
                         <div class="col-12">
                             <label class="form-label fw-semibold" style="font-size:13px">Nama Project</label>
-                            <input type="text" name="project_name" class="form-control form-control-sm"
-                                   value="{{ old('project_name', $isEdit ? $quotation->project_name : '') }}"
+                            <input type="text" name="project_name" id="project_name" class="form-control form-control-sm"
+                                   value="{{ old('project_name', $isEdit ? $salesOrder->project_name : ($copyQuote ? $quotation->project_name : '')) }}"
                                    placeholder="Contoh: Automation Line for PT ABC">
                         </div>
                     </div>
 
-
-                    <input type="hidden" name="client_name" id="client_name" value="{{ old('client_name', $isEdit ? $quotation->client_name : '') }}">
-                    <input type="hidden" name="client_company" id="client_company" value="{{ old('client_company', $isEdit ? $quotation->client_company : '') }}">
-                    <input type="hidden" name="client_email" id="client_email" value="{{ old('client_email', $isEdit ? $quotation->client_email : '') }}">
-                    <input type="hidden" name="client_address" id="client_address" value="{{ old('client_address', $isEdit ? $quotation->client_address : '') }}">
-                    <input type="hidden" name="client_attention" id="client_attention" value="{{ old('client_attention', $isEdit ? $quotation->client_attention : '') }}">
-                    <input type="hidden" name="client_cc" id="client_cc" value="{{ old('client_cc', $isEdit ? $quotation->client_cc : '') }}">
-                    <input type="hidden" name="description_of_work" id="description_of_work" value="{{ old('description_of_work', $isEdit ? $quotation->description_of_work : '') }}">
-
-
-                    <div id="client-preview" class="client-field-group {{ old('client_id', $isEdit ? $quotation->client_id : '') ? '' : 'd-none' }}">
-                        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:8px;">Data Perusahaan Tujuan</div>
-                        <div class="row g-2">
-                            <div class="col-12 col-sm-6">
-                                <div style="font-size:12px;color:#64748b;">Nama Perusahaan</div>
-                                <div style="font-size:14px;font-weight:600;" id="preview-company">-</div>
-                            </div>
-                            <div class="col-12 col-sm-6">
-                                <div style="font-size:12px;color:#64748b;">Kontak</div>
-                                <div style="font-size:14px;" id="preview-contact">-</div>
-                            </div>
-                            <div class="col-12">
-                                <div style="font-size:12px;color:#64748b;">Email</div>
-                                <div style="font-size:14px;" id="preview-email">-</div>
-                            </div>
-                            <div class="col-12">
-                                <div style="font-size:12px;color:#64748b;">Alamat</div>
-                                <div style="font-size:14px;white-space:pre-line;" id="preview-address">-</div>
-                            </div>
+                    <div class="section-label">Data Klien</div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label fw-semibold" style="font-size:13px">Nama Kontak <span class="text-danger">*</span></label>
+                            <input type="text" name="client_name" id="client_name" class="form-control form-control-sm @error('client_name') is-invalid @enderror"
+                                   value="{{ old('client_name', $isEdit ? $salesOrder->client_name : ($copyQuote ? $quotation->client_name : '')) }}" required>
+                            @error('client_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label fw-semibold" style="font-size:13px">Perusahaan <span class="text-danger">*</span></label>
+                            <input type="text" name="client_company" id="client_company" class="form-control form-control-sm @error('client_company') is-invalid @enderror"
+                                   value="{{ old('client_company', $isEdit ? $salesOrder->client_company : ($copyQuote ? $quotation->client_company : '')) }}" required>
+                            @error('client_company')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-12 col-sm-4">
+                            <label class="form-label fw-semibold" style="font-size:13px">Attn</label>
+                            <input type="text" name="client_attention" id="client_attention" class="form-control form-control-sm"
+                                   value="{{ old('client_attention', $isEdit ? $salesOrder->client_attention : ($copyQuote ? $quotation->client_attention : '')) }}">
+                        </div>
+                        <div class="col-12 col-sm-4">
+                            <label class="form-label fw-semibold" style="font-size:13px">CC</label>
+                            <input type="text" name="client_cc" id="client_cc" class="form-control form-control-sm"
+                                   value="{{ old('client_cc', $isEdit ? $salesOrder->client_cc : ($copyQuote ? $quotation->client_cc : '')) }}">
+                        </div>
+                        <div class="col-12 col-sm-4">
+                            <label class="form-label fw-semibold" style="font-size:13px">Email</label>
+                            <input type="email" name="client_email" id="client_email" class="form-control form-control-sm"
+                                   value="{{ old('client_email', $isEdit ? $salesOrder->client_email : ($copyQuote ? $quotation->client_email : '')) }}">
                         </div>
                     </div>
 
+                    <div>
+                        <label class="form-label fw-semibold" style="font-size:13px">Description of Work</label>
+                        <textarea name="description_of_work" id="description_of_work" class="form-control form-control-sm" rows="2"
+                                  placeholder="Jelaskan lingkup pekerjaan...">{{ old('description_of_work', $isEdit ? $salesOrder->description_of_work : ($copyQuote ? $quotation->description_of_work : '')) }}</textarea>
+                    </div>
                 </div>
             </div>
 
+            {{-- ── MATERIAL ITEMS ── --}}
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
-                    <span class="fw-semibold">Produksi</span>
+                    <span class="fw-semibold">Material</span>
                     <button type="button" class="btn btn-primary btn-sm d-flex align-items-center gap-1" id="btn-add-item">
-                        <i class="bi bi-plus-lg"></i> Tambah Produk
+                        <i class="bi bi-plus-lg"></i> Tambah Material
                     </button>
                 </div>
                 <div class="table-responsive">
@@ -185,7 +186,7 @@
                         <thead>
                             <tr class="table-section-header">
                                 <th style="width:36px;">#</th>
-                                <th style="min-width:180px;">Nama Produk <span class="text-warning">*</span></th>
+                                <th style="min-width:180px;">Nama Material / Jasa <span class="text-warning">*</span></th>
                                 <th style="min-width:140px;">Deskripsi</th>
                                 <th style="width:80px;text-align:center;">Satuan</th>
                                 <th style="width:80px;text-align:right;">Qty</th>
@@ -199,17 +200,18 @@
                 </div>
                 <div class="card-footer bg-white d-flex align-items-center justify-content-between py-2">
                     <button type="button" class="btn btn-outline-primary btn-sm" id="btn-add-item-2">
-                        <i class="bi bi-plus-lg"></i> Tambah Produk
+                        <i class="bi bi-plus-lg"></i> Tambah Material
                     </button>
                     <div class="fw-semibold" style="font-size:13px;">
-                        Total Produksi: <span class="text-primary ms-2" id="disp-mat" style="font-family:monospace;">Rp 0</span>
+                        Total Material: <span class="text-primary ms-2" id="disp-mat" style="font-family:monospace;">Rp 0</span>
                     </div>
                 </div>
             </div>
 
+            {{-- ── LABOR ── --}}
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
-                    <span class="fw-semibold">Biaya Labor</span>
+                    <span class="fw-semibold">Labor</span>
                     <button type="button" class="btn btn-sm d-flex align-items-center gap-1"
                             style="background:#1B5DBC;color:#fff;" id="btn-add-labor">
                         <i class="bi bi-plus-lg"></i> Tambah Labor
@@ -220,7 +222,7 @@
                         <thead>
                             <tr class="labor-header">
                                 <th style="width:36px;">#</th>
-                                <th style="min-width:180px;">Pekerjaan <span class="text-warning">*</span></th>
+                                <th style="min-width:180px;">Labor / Pekerjaan <span class="text-warning">*</span></th>
                                 <th style="width:70px;text-align:center;">MP</th>
                                 <th style="width:70px;text-align:center;">Days</th>
                                 <th style="width:140px;text-align:right;">Rate / Hari</th>
@@ -243,6 +245,7 @@
 
         </div>{{-- end left --}}
 
+        {{-- ── RIGHT COLUMN ── --}}
         <div class="col-12 col-xl-4 d-flex flex-column gap-3">
 
             <div class="card border-0 shadow-sm">
@@ -250,7 +253,7 @@
                     <span class="fw-semibold">Ringkasan</span>
                 </div>
                 <div class="card-body">
-                    <div class="summary-row"><span>Total Produksi</span><span class="summary-val" id="sum-mat">Rp 0</span></div>
+                    <div class="summary-row"><span>Total Material</span><span class="summary-val" id="sum-mat">Rp 0</span></div>
                     <div class="summary-row"><span>Total Labor</span><span class="summary-val" id="sum-lab">Rp 0</span></div>
                     <div class="summary-row"><span>Subtotal</span><span class="summary-val" id="sum-sub">Rp 0</span></div>
                     <div class="summary-row align-items-start gap-2" style="flex-wrap:wrap;">
@@ -258,7 +261,7 @@
                             <div style="font-size:13px;margin-bottom:4px;">PPN (%)</div>
                             <input type="number" name="tax_percentage" id="tax_percentage"
                                    class="form-control form-control-sm" min="0" max="100" step="0.01"
-                                   value="{{ old('tax_percentage', $isEdit ? $quotation->tax_percentage : 12) }}"
+                                   value="{{ old('tax_percentage', $isEdit ? $salesOrder->tax_percentage : 12) }}"
                                    style="width:80px;">
                         </div>
                         <span class="summary-val mt-4" id="sum-tax">Rp 0</span>
@@ -281,165 +284,70 @@
                 </div>
                 <div class="card-body">
                     <textarea name="notes" class="form-control form-control-sm" rows="6"
-                              placeholder="1. This quotation is only valid through date above.&#10;2. Term of payment: ...&#10;3. Price exclude Tax 12%">{{ old('notes', $isEdit ? $quotation->notes : "1. This quotation is only valid through date above.\n2. To accept the quote, sign and return quoted sheet to the address above.\n3. Term of payment :\n   - 30%  After PO + TT 14 calendar days\n   - 40%  After delivery\n   - 30%  After 8 AST\n4. Price exclude Tax 12%\n5. Warranty : 12 months") }}</textarea>
+                              placeholder="Syarat & ketentuan...">{{ old('notes', $isEdit ? $salesOrder->notes : '') }}</textarea>
                 </div>
             </div>
 
             <div class="d-grid gap-2">
                 <button type="submit" class="btn btn-primary d-flex align-items-center justify-content-center gap-2">
                     <i class="bi bi-check-lg"></i>
-                    {{ $isEdit ? 'Simpan Perubahan' : 'Simpan Quotation' }}
+                    {{ $isEdit ? 'Simpan Perubahan' : 'Simpan Sales Order' }}
                 </button>
-                <a href="{{ route('admin.quotations.index') }}" class="btn btn-outline-secondary text-center">Batal</a>
+                <a href="{{ route('admin.sales-orders.index') }}" class="btn btn-outline-secondary text-center">Batal</a>
             </div>
 
         </div>{{-- end right --}}
     </div>
 </form>
 
-<div class="modal fade" id="quickAddClientModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Tambah Client Baru</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form id="quick-client-form">
-                @csrf
-                <div class="modal-body">
-                    <div class="row g-3">
-                        <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold" style="font-size:13px">ID Perusahaan <span class="text-danger">*</span></label>
-                            <input type="text" name="id_perusahaan" class="item-input" required placeholder="CUST-001">
-                        </div>
-                        <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold" style="font-size:13px">Nama Perusahaan <span class="text-danger">*</span></label>
-                            <input type="text" name="nama_perusahaan" class="item-input" required placeholder="PT. Maju Bersama">
-                        </div>
-                        <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold" style="font-size:13px">Nama Kontak</label>
-                            <input type="text" name="nama_kontak_perusahaan" class="item-input" placeholder="Bpk. Budi">
-                        </div>
-                        <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold" style="font-size:13px">Email</label>
-                            <input type="email" name="email_perusahaan" class="item-input" placeholder="email@perusahaan.com">
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label fw-semibold" style="font-size:13px">Alamat Pengiriman</label>
-                            <textarea name="alamat_pengiriman_perusahaah" class="item-input" rows="2" placeholder="Alamat lengkap pengiriman"></textarea>
-                        </div>
-                        <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold" style="font-size:13px">Telepon Pengiriman</label>
-                            <input type="text" name="nomor_telepon_pengiriman" class="item-input" placeholder="021-XXXX">
-                        </div>
-                        <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold" style="font-size:13px">NPWP</label>
-                            <input type="text" name="npwp_perusahaan" class="item-input" placeholder="XX.XXX.XXX.X-XXX.XXX">
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary" id="btn-save-client">
-                        <i class="bi bi-check-lg"></i> Simpan Client
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+@if($copyQuote)
+@php
+    $copyItems  = $quotation->items->toArray();
+    $copyLabors = $quotation->labors->toArray();
+@endphp
+@endif
 
 @endsection
 
 @push('scripts')
 <script>
 /* ── seed data ── */
+@if($copyQuote)
+const initItems  = @json($copyItems);
+const initLabors = @json($copyLabors);
+@else
 const initItems  = @json($oldItems);
 const initLabors = @json($oldLabors);
+@endif
 let iIdx = 0, lIdx = 0;
 
 const fmt = n => 'Rp ' + Math.round(n).toLocaleString('id-ID');
 const esc = s => String(s ?? '').replace(/"/g,'"').replace(/</g,'<');
 
-/* ══ Client Select Auto-fill ═══════════════════════════ */
-document.getElementById('client-select')?.addEventListener('change', function() {
+/* ══ Auto-fill from Quotation ═══════════════════════════ */
+document.getElementById('quotation_id')?.addEventListener('change', function() {
     const opt = this.options[this.selectedIndex];
-    const preview = document.getElementById('client-preview');
+    if (!opt.value) return;
+    const qn  = opt.dataset.quoteNumber || '';
+    const proj = opt.dataset.project || '';
+    const cl  = opt.dataset.client || '';
+    const co  = opt.dataset.company || '';
+    const att = opt.dataset.attention || '';
+    const cc  = opt.dataset.cc || '';
+    const em  = opt.dataset.email || '';
+    const desc = opt.dataset.desc || '';
 
-    if (!opt.value) {
-        preview.classList.add('d-none');
-        document.getElementById('client_name').value = '';
-        document.getElementById('client_company').value = '';
-        document.getElementById('client_email').value = '';
-        document.getElementById('client_address').value = '';
-        return;
-    }
-
-    const nama  = opt.dataset.nama || '';
-    const kontak = opt.dataset.kontak || '';
-    const email = opt.dataset.email || '';
-    const alamat = opt.dataset.alamat || '';
-
-    document.getElementById('client_name').value = kontak || nama;
-    document.getElementById('client_company').value = nama;
-    document.getElementById('client_email').value = email;
-    document.getElementById('client_address').value = alamat;
-
-    document.getElementById('preview-company').textContent = nama;
-    document.getElementById('preview-contact').textContent = kontak || '-';
-    document.getElementById('preview-email').textContent = email || '-';
-    document.getElementById('preview-address').textContent = alamat || '-';
-
-    preview.classList.remove('d-none');
+    document.getElementById('quote_number').value      = qn;
+    document.getElementById('project_name').value       = proj;
+    document.getElementById('client_name').value        = cl;
+    document.getElementById('client_company').value     = co;
+    document.getElementById('client_attention').value   = att;
+    document.getElementById('client_cc').value          = cc;
+    document.getElementById('client_email').value       = em;
+    document.getElementById('description_of_work').value = desc;
 });
 
-/* ══ Modal: Quick Add Client ═══════════════════════════ */
-document.getElementById('quick-client-form')?.addEventListener('submit', function(e) {
-    e.preventDefault();
-    const btn = document.getElementById('btn-save-client');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Menyimpan...';
-
-    const formData = new FormData(this);
-    fetch('{{ route("admin.quotations.quick-add-client") }}', {
-        method: 'POST',
-        headers: { 'X-Requested-With': 'XMLHttpRequest' },
-        body: formData
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            // Add new option to select
-            const sel = document.getElementById('client-select');
-            const opt = document.createElement('option');
-            opt.value = data.client.id;
-            opt.dataset.nama   = data.client.nama_perusahaan || '';
-            opt.dataset.kontak = data.client.nama_kontak_perusahaan || '';
-            opt.dataset.email  = data.client.email_perusahaan || '';
-            opt.dataset.alamat = data.client.alamat_pengiriman_perusahaah || data.client.alamat_faktur_perusahaan || '';
-            opt.textContent = (data.client.id_perusahaan || '') + ' — ' + (data.client.nama_perusahaan || '');
-            sel.appendChild(opt);
-            sel.value = data.client.id;
-            sel.dispatchEvent(new Event('change'));
-
-            // Close modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('quickAddClientModal'));
-            modal.hide();
-            this.reset();
-        } else {
-            alert('Gagal menyimpan client: ' + (data.message || 'Unknown error'));
-        }
-    })
-    .catch(err => {
-        alert('Terjadi kesalahan: ' + err.message);
-    })
-    .finally(() => {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-check-lg"></i> Simpan Client';
-    });
-});
-
-/* ══ PRODUKSI (ITEM/MATERIAL) rows ══════════════════════ */
+/* ══ MATERIAL rows ══════════════════════════════════════ */
 function createItemRow(item = {}) {
     const idx   = iIdx++;
     const qty   = parseFloat(item.qty ?? 1) || 0;
@@ -450,7 +358,7 @@ function createItemRow(item = {}) {
     tr.dataset.idx = idx;
     tr.innerHTML = `
         <td class="item-no" id="ino-${idx}"></td>
-        <td><input type="text"   name="items[${idx}][material_name]" class="item-input" required value="${esc(item.material_name)}" placeholder="Nama produk"></td>
+        <td><input type="text"   name="items[${idx}][material_name]" class="item-input" required value="${esc(item.material_name)}" placeholder="Nama material / jasa"></td>
         <td><input type="text"   name="items[${idx}][description]"   class="item-input" value="${esc(item.description)}" placeholder="Keterangan"></td>
         <td><input type="text"   name="items[${idx}][unit]"          class="item-input" value="${esc(item.unit ?? 'Unit')}" style="text-align:center;" required></td>
         <td><input type="number" name="items[${idx}][qty]"           class="item-input item-qty"   min="0" step="any" value="${qty}"  style="text-align:right;" required></td>
@@ -576,10 +484,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-add-labor').addEventListener('click',  () => addLaborRow());
     document.getElementById('btn-add-labor-2').addEventListener('click',() => addLaborRow());
     document.getElementById('tax_percentage').addEventListener('input', recalc);
-
-    // Trigger client preview on load if client_id is preselected
-    const sel = document.getElementById('client-select');
-    if (sel.value) sel.dispatchEvent(new Event('change'));
 });
 </script>
 @endpush

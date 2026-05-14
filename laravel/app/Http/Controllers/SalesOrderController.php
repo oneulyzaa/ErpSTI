@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SalesOrder;
+use App\Models\SalesOrderItem;
+use App\Models\SalesOrderLabor;
 use App\Models\Quotation;
-use App\Models\QuotationItem;
-use App\Models\QuotationLabor;
-use App\Models\ClientModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 
-class QuotationController extends Controller
+class SalesOrderController extends Controller
 {
     // ─── Default labor list ───────────────────────────────────────────────────
     private array $defaultLabors = [
@@ -29,12 +29,12 @@ class QuotationController extends Controller
     // ─── List ────────────────────────────────────────────────────────────────
     public function index(Request $request)
     {
-        $query = Quotation::with('items', 'labors', 'client')->latest();
+        $query = SalesOrder::with('items', 'labors')->latest();
 
         if ($request->filled('search')) {
             $s = $request->search;
             $query->where(function ($q) use ($s) {
-                $q->where('quote_number', 'like', "%$s%")
+                $q->where('so_number', 'like', "%$s%")
                   ->orWhere('client_name', 'like', "%$s%")
                   ->orWhere('client_company', 'like', "%$s%")
                   ->orWhere('project_name', 'like', "%$s%");
@@ -44,33 +44,30 @@ class QuotationController extends Controller
             $query->where('status', $request->status);
         }
 
-        $quotations = $query->paginate(15)->withQueryString();
-        return view('admin.quotations.index', compact('quotations'));
+        $salesOrders = $query->paginate(15)->withQueryString();
+        return view('admin.sales-orders.index', compact('salesOrders'));
     }
 
     // ─── Create ───────────────────────────────────────────────────────────────
     public function create()
     {
-        $quoteNumber   = Quotation::generateQuoteNumber();
+        $soNumber     = SalesOrder::generateSONumber();
         $defaultLabors = $this->defaultLabors;
-        $clients       = ClientModel::all();
-        return view('admin.quotations.create', compact('quoteNumber', 'defaultLabors', 'clients'));
+        $quotations   = Quotation::whereIn('status', ['approved', 'sent'])->latest()->get();
+        return view('admin.sales-orders.create', compact('soNumber', 'defaultLabors', 'quotations'));
     }
 
     // ─── Store ────────────────────────────────────────────────────────────────
     public function store(Request $request)
     {
-        $validated = $this->validateQuotation($request);
-
-        // Auto-fill client fields if client_id is provided
-        $validated = $this->resolveClientData($validated);
+        $validated = $this->validateSalesOrder($request);
 
         DB::transaction(function () use ($validated, $request) {
             [$subMat, $subLab, $subtotal, $taxAmount, $total] = $this->calculateTotals(
                 $request->items ?? [], $request->labors ?? [], $validated['tax_percentage']
             );
 
-            $quotation = Quotation::create(array_merge($validated, [
+            $salesOrder = SalesOrder::create(array_merge($validated, [
                 'subtotal_material' => $subMat,
                 'subtotal_labor'    => $subLab,
                 'subtotal'          => $subtotal,
@@ -78,43 +75,42 @@ class QuotationController extends Controller
                 'total'             => $total,
             ]));
 
-            $this->syncItems($quotation, $request->items ?? []);
-            $this->syncLabors($quotation, $request->labors ?? []);
+            $this->syncItems($salesOrder, $request->items ?? []);
+            $this->syncLabors($salesOrder, $request->labors ?? []);
         });
 
-        return redirect()->route('admin.quotations.index')
-            ->with('success', 'Quotation berhasil dibuat.');
+        return redirect()->route('admin.sales-orders.index')
+            ->with('success', 'Sales Order berhasil dibuat.');
     }
 
     // ─── Show ─────────────────────────────────────────────────────────────────
-    public function show(Quotation $quotation)
+    public function show(SalesOrder $salesOrder)
     {
-        $quotation->load('items', 'labors', 'client');
-        return view('admin.quotations.show', compact('quotation'));
+        $salesOrder->load('items', 'labors', 'quotation');
+        return view('admin.sales-orders.show', compact('salesOrder'));
     }
 
     // ─── Edit ─────────────────────────────────────────────────────────────────
-    public function edit(Quotation $quotation)
+    public function edit(SalesOrder $salesOrder)
     {
-        $quotation->load('items', 'labors');
-        $quoteNumber   = $quotation->quote_number;
+        $salesOrder->load('items', 'labors');
+        $soNumber     = $salesOrder->so_number;
         $defaultLabors = $this->defaultLabors;
-        $clients       = ClientModel::all();
-        return view('admin.quotations.edit', compact('quotation', 'quoteNumber', 'defaultLabors', 'clients'));
+        $quotations   = Quotation::whereIn('status', ['approved', 'sent'])->latest()->get();
+        return view('admin.sales-orders.edit', compact('salesOrder', 'soNumber', 'defaultLabors', 'quotations'));
     }
 
     // ─── Update ───────────────────────────────────────────────────────────────
-    public function update(Request $request, Quotation $quotation)
+    public function update(Request $request, SalesOrder $salesOrder)
     {
-        $validated = $this->validateQuotation($request, $quotation->id);
-        $validated = $this->resolveClientData($validated);
+        $validated = $this->validateSalesOrder($request, $salesOrder->id);
 
-        DB::transaction(function () use ($validated, $request, $quotation) {
+        DB::transaction(function () use ($validated, $request, $salesOrder) {
             [$subMat, $subLab, $subtotal, $taxAmount, $total] = $this->calculateTotals(
                 $request->items ?? [], $request->labors ?? [], $validated['tax_percentage']
             );
 
-            $quotation->update(array_merge($validated, [
+            $salesOrder->update(array_merge($validated, [
                 'subtotal_material' => $subMat,
                 'subtotal_labor'    => $subLab,
                 'subtotal'          => $subtotal,
@@ -122,113 +118,75 @@ class QuotationController extends Controller
                 'total'             => $total,
             ]));
 
-            $this->syncItems($quotation, $request->items ?? []);
-            $this->syncLabors($quotation, $request->labors ?? []);
+            $this->syncItems($salesOrder, $request->items ?? []);
+            $this->syncLabors($salesOrder, $request->labors ?? []);
         });
 
-        return redirect()->route('admin.quotations.show', $quotation)
-            ->with('success', 'Quotation berhasil diperbarui.');
+        return redirect()->route('admin.sales-orders.show', $salesOrder)
+            ->with('success', 'Sales Order berhasil diperbarui.');
     }
 
     // ─── Delete ───────────────────────────────────────────────────────────────
-    public function destroy(Quotation $quotation)
+    public function destroy(SalesOrder $salesOrder)
     {
-        $quotation->delete();
-        return redirect()->route('admin.quotations.index')
-            ->with('success', 'Quotation berhasil dihapus.');
+        $salesOrder->delete();
+        return redirect()->route('admin.sales-orders.index')
+            ->with('success', 'Sales Order berhasil dihapus.');
     }
 
     // ─── PDF ──────────────────────────────────────────────────────────────────
-    public function pdf(Quotation $quotation)
+    public function pdf(SalesOrder $salesOrder)
     {
-        $quotation->load('items', 'labors', 'client');
+        $salesOrder->load('items', 'labors');
 
-        // Base64 encode logo agar bisa dipakai di DomPDF (tidak butuh remote)
         $logoPath = public_path('assets/gambar/logo-sti.png');
         $logoBase64 = '';
         if (file_exists($logoPath)) {
             $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
         }
 
-        $pdf = Pdf::loadView('admin.quotations.pdf', compact('quotation', 'logoBase64'))
+        $pdf = Pdf::loadView('admin.sales-orders.pdf', compact('salesOrder', 'logoBase64'))
             ->setPaper('a4', 'portrait')
             ->setOption('defaultFont', 'DejaVu Sans')
             ->setOption('isHtml5ParserEnabled', true)
             ->setOption('isRemoteEnabled', false);
 
-        $filename = 'ProjectQuote-' . $quotation->quote_number . '.pdf';
+        $filename = 'SalesOrder-' . $salesOrder->so_number . '.pdf';
         return $pdf->stream($filename);
     }
 
-    // ─── Quick-add client via modal ──────────────────────────────────────────
-    public function quickAddClient(Request $request)
+    // ─── Copy from Quotation ────────────────────────────────────────────────
+    public function copyFromQuotation(Quotation $quotation)
     {
-        $validated = $request->validate([
-            'id_perusahaan'            => 'required|string|unique:clients,id_perusahaan',
-            'nama_perusahaan'          => 'required|string|max:255',
-            'email_perusahaan'         => 'nullable|email|max:255',
-            'nama_kontak_perusahaan'   => 'nullable|string|max:255',
-            'npwp_perusahaan'          => 'nullable|string|max:50',
-            'alamat_pengiriman_perusahaah' => 'nullable|string',
-            'nomor_telepon_pengiriman' => 'nullable|string|max:50',
-            'alamat_faktur_perusahaan' => 'nullable|string',
-            'nomor_telepon_faktur'     => 'nullable|string|max:50',
-            'alamat_efaktur_perusahaan'=> 'nullable|string',
-            'nomor_rekening_perusahaan'=> 'nullable|string|max:100',
-        ]);
+        $quotation->load('items', 'labors');
+        $soNumber     = SalesOrder::generateSONumber();
+        $defaultLabors = $this->defaultLabors;
+        $quotations   = Quotation::whereIn('status', ['approved', 'sent'])->latest()->get();
 
-        $validated['created_by'] = 'System';
-        $client = ClientModel::create($validated);
-
-        if ($request->ajax()) {
-            return response()->json([
-                'success' => true,
-                'client'  => $client,
-            ]);
-        }
-
-        return redirect()->back()->with('success', 'Client berhasil ditambahkan.');
+        return view('admin.sales-orders.create', compact(
+            'soNumber', 'defaultLabors', 'quotations', 'quotation'
+        ));
     }
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
-    private function resolveClientData(array $data): array
-    {
-        if (!empty($data['client_id'])) {
-            $client = ClientModel::find($data['client_id']);
-            if ($client) {
-                // Only fill if manual fields are empty
-                $data['client_name']    = $data['client_name']    ?: ($client->nama_kontak_perusahaan ?: $client->nama_perusahaan);
-                $data['client_company'] = $data['client_company'] ?: $client->nama_perusahaan;
-                $data['client_email']   = $data['client_email']   ?: $client->email_perusahaan;
-                // Concatenate addresses as client_address
-                $addressParts = array_filter([
-                    $client->alamat_pengiriman_perusahaah,
-                    $client->alamat_faktur_perusahaan,
-                ]);
-                $data['client_address'] = !empty($addressParts) ? implode("\n", $addressParts) : null;
-            }
-        }
-        return $data;
-    }
-
-    private function validateQuotation(Request $request, ?int $ignoreId = null): array
+    private function validateSalesOrder(Request $request, ?int $ignoreId = null): array
     {
         return $request->validate([
-            'quote_number'        => 'required|string|unique:quotations,quote_number' . ($ignoreId ? ",$ignoreId" : ''),
+            'so_number'           => 'required|string|unique:sales_orders,so_number' . ($ignoreId ? ",$ignoreId" : ''),
             'project_name'        => 'nullable|string|max:255',
-            'client_id'           => 'nullable|exists:clients,id',
+            'quotation_id'        => 'nullable|exists:quotations,id',
+            'quote_number'        => 'nullable|string|max:255',
             'date'                => 'required|date',
-            'valid_until'         => 'required|date|after_or_equal:date',
+            'delivery_date'       => 'nullable|date|after_or_equal:date',
             'customer_id'         => 'nullable|string|max:100',
-            'client_name'         => 'nullable|string|max:255',
-            'client_company'      => 'nullable|string|max:255',
+            'client_name'         => 'required|string|max:255',
+            'client_company'      => 'required|string|max:255',
             'client_attention'    => 'nullable|string|max:255',
             'client_cc'           => 'nullable|string|max:255',
             'client_email'        => 'nullable|email|max:255',
-            'client_address'      => 'nullable|string',
             'description_of_work' => 'nullable|string',
             'tax_percentage'      => 'required|numeric|min:0|max:100',
-            'status'              => 'required|in:draft,sent,approved,rejected,expired',
+            'status'              => 'required|in:draft,confirmed,in_progress,completed,cancelled',
             'notes'               => 'nullable|string',
             'items'               => 'nullable|array',
             'items.*.material_name' => 'required_with:items|string|max:255',
@@ -253,38 +211,38 @@ class QuotationController extends Controller
         return [$subMat, $subLab, $subtotal, $taxAmount, $total];
     }
 
-    private function syncItems(Quotation $quotation, array $items): void
+    private function syncItems(SalesOrder $salesOrder, array $items): void
     {
-        $quotation->items()->delete();
+        $salesOrder->items()->delete();
         foreach ($items as $i => $item) {
             if (empty($item['material_name'])) continue;
-            QuotationItem::create([
-                'quotation_id'  => $quotation->id,
-                'sort_order'    => $i + 1,
-                'material_name' => $item['material_name'],
-                'description'   => $item['description'] ?? null,
-                'unit'          => $item['unit'] ?? 'Unit',
-                'qty'           => $item['qty'],
-                'unit_price'    => $item['unit_price'],
-                'subtotal'      => ($item['qty'] ?? 0) * ($item['unit_price'] ?? 0),
+            SalesOrderItem::create([
+                'sales_order_id' => $salesOrder->id,
+                'sort_order'     => $i + 1,
+                'material_name'  => $item['material_name'],
+                'description'    => $item['description'] ?? null,
+                'unit'           => $item['unit'] ?? 'Unit',
+                'qty'            => $item['qty'],
+                'unit_price'     => $item['unit_price'],
+                'subtotal'       => ($item['qty'] ?? 0) * ($item['unit_price'] ?? 0),
             ]);
         }
     }
 
-    private function syncLabors(Quotation $quotation, array $labors): void
+    private function syncLabors(SalesOrder $salesOrder, array $labors): void
     {
-        $quotation->labors()->delete();
+        $salesOrder->labors()->delete();
         foreach ($labors as $i => $labor) {
             if (empty($labor['labor_name'])) continue;
             $sub = ($labor['mp'] ?? 0) * ($labor['days'] ?? 0) * ($labor['rate'] ?? 0);
-            QuotationLabor::create([
-                'quotation_id' => $quotation->id,
-                'sort_order'   => $i + 1,
-                'labor_name'   => $labor['labor_name'],
-                'mp'           => $labor['mp'] ?? 1,
-                'days'         => $labor['days'] ?? 1,
-                'rate'         => $labor['rate'] ?? 0,
-                'subtotal'     => $sub,
+            SalesOrderLabor::create([
+                'sales_order_id' => $salesOrder->id,
+                'sort_order'     => $i + 1,
+                'labor_name'     => $labor['labor_name'],
+                'mp'             => $labor['mp'] ?? 1,
+                'days'           => $labor['days'] ?? 1,
+                'rate'           => $labor['rate'] ?? 0,
+                'subtotal'       => $sub,
             ]);
         }
     }

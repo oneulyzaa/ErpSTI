@@ -5,23 +5,23 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Quotation extends Model
+class SalesOrder extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'quote_number',
+        'so_number',
         'project_name',
-        'client_id',
+        'quotation_id',
+        'quote_number',
         'date',
-        'valid_until',
+        'delivery_date',
         'customer_id',
         'client_name',
         'client_company',
         'client_attention',
         'client_cc',
         'client_email',
-        'client_address',
         'description_of_work',
         'subtotal_material',
         'subtotal_labor',
@@ -35,7 +35,7 @@ class Quotation extends Model
 
     protected $casts = [
         'date'             => 'date',
-        'valid_until'      => 'date',
+        'delivery_date'    => 'date',
         'subtotal_material'=> 'decimal:2',
         'subtotal_labor'   => 'decimal:2',
         'subtotal'         => 'decimal:2',
@@ -44,27 +44,27 @@ class Quotation extends Model
         'total'            => 'decimal:2',
     ];
 
-    public function client()
-    {
-        return $this->belongsTo(ClientModel::class, 'client_id');
-    }
-
     public function items()
     {
-        return $this->hasMany(QuotationItem::class)->orderBy('sort_order');
+        return $this->hasMany(SalesOrderItem::class)->orderBy('sort_order');
     }
 
     public function labors()
     {
-        return $this->hasMany(QuotationLabor::class)->orderBy('sort_order');
+        return $this->hasMany(SalesOrderLabor::class)->orderBy('sort_order');
     }
 
-    public static function generateQuoteNumber(): string
+    public function quotation()
     {
-        $prefix = 'QUO-' . now()->format('Ym') . '-';
-        $last   = static::where('quote_number', 'like', $prefix . '%')
-            ->orderByDesc('quote_number')
-            ->value('quote_number');
+        return $this->belongsTo(Quotation::class);
+    }
+
+    public static function generateSONumber(): string
+    {
+        $prefix = 'SO-' . now()->format('Ym') . '-';
+        $last   = static::where('so_number', 'like', $prefix . '%')
+            ->orderByDesc('so_number')
+            ->value('so_number');
 
         $next = $last ? (int) substr($last, -4) + 1 : 1;
         return $prefix . str_pad($next, 4, '0', STR_PAD_LEFT);

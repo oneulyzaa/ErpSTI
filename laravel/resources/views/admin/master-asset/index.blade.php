@@ -18,7 +18,7 @@
 <div class="row g-3 mb-4">
     <div class="col-12 bg-white p-3 rounded">
         <div class="d-flex mb-3">
-            <a href="{{ route('admin.master-assets.create') }}" class="btn btn-primary">+ Tambah Data Aset</a>
+            <a href="{{ route('admin.master-assets.create') }}" class="btn btn-primary">+ Tambah Data Material</a>
         </div>
         <div class="table-responsive">
             <table class="table table-bordered table-hover align-middle mb-0">
@@ -65,7 +65,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="text-center">Tidak ada data aset tersedia.</td>
+                        <td colspan="6" class="text-center">Tidak ada data material tersedia.</td>
                     </tr>
                 @endforelse
                 </tbody>

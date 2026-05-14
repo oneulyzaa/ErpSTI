@@ -390,15 +390,21 @@
     {{-- ══════════════════════════════
          CLIENT BLOCK — dedicated rows (no coupling with item rows)
     ══════════════════════════════ --}}
+    @php
+        $clCompany = $quotation->client?->nama_perusahaan ?? $quotation->client_company;
+        $clName    = $quotation->client?->nama_kontak_perusahaan ?? $quotation->client_name;
+        $clEmail   = $quotation->client?->email_perusahaan ?? $quotation->client_email;
+        $clAddr    = $quotation->client_address ?? ($quotation->client?->alamat_pengiriman_perusahaah ?? '');
+    @endphp
     <table class="client-block">
         <tr>
             <td class="client-divider" style="width:30%;">
                 <div class="client-lbl">Attention</div>
-                <div class="client-val">{{ $quotation->client_attention ?? $quotation->client_name }}</div>
+                <div class="client-val">{{ $quotation->client_attention ?? $clName }}</div>
             </td>
             <td class="client-divider" style="width:30%;">
                 <div class="client-lbl">Company</div>
-                <div class="client-val">{{ $quotation->client_company }}</div>
+                <div class="client-val">{{ $clCompany }}</div>
             </td>
             <td style="width:40%;">
                 <div class="client-lbl">Cc</div>
@@ -408,17 +414,33 @@
         <tr class="client-sep">
             <td class="client-divider">
                 <div class="client-lbl">Contact Name</div>
-                <div class="client-sub">{{ $quotation->client_name }}</div>
+                <div class="client-sub">{{ $clName }}</div>
             </td>
             <td class="client-divider">
                 <div class="client-lbl">Email</div>
-                <div class="client-sub">{{ $quotation->client_email ?? '-' }}</div>
+                <div class="client-sub">{{ $clEmail ?? '-' }}</div>
             </td>
             <td>
                 <div class="client-lbl">Description of Work</div>
                 <div class="client-sub">{{ $quotation->description_of_work ?? '-' }}</div>
             </td>
         </tr>
+        @if($quotation->project_name)
+        <tr class="client-sep">
+            <td colspan="3">
+                <div class="client-lbl">Project Name</div>
+                <div class="client-val">{{ $quotation->project_name }}</div>
+            </td>
+        </tr>
+        @endif
+        @if($clAddr)
+        <tr class="client-sep">
+            <td colspan="3">
+                <div class="client-lbl">Address</div>
+                <div class="client-sub">{{ $clAddr }}</div>
+            </td>
+        </tr>
+        @endif
     </table>
 
     {{-- ══════════════════════════════
@@ -431,12 +453,12 @@
         $padCount = max(0, 15 - $items->count());
     @endphp
 
-    <div class="section-bar">Materials</div>
+    <div class="section-bar">Produksi</div>
     <table class="mat-table">
         <thead>
             <tr>
                 <th class="col-no th-center">#</th>
-                <th class="th-left">Description / Material</th>
+                <th class="th-left">Produk / Jasa</th>
                 <th class="th-center" style="width:38px;">Qty</th>
                 <th class="th-right" style="width:82px;">Unit Price</th>
                 <th class="th-right" style="width:82px;">Subtotal</th>
@@ -468,7 +490,7 @@
             {{-- Total Material --}}
             <tr class="total-mat-row">
                 <td colspan="4" class="tr" style="font-size:8px;letter-spacing:.5px;color:#2c4f8a;">
-                    TOTAL MATERIALS
+                    TOTAL PRODUKSI
                 </td>
                 <td class="tr mono">Rp&nbsp;{{ number_format($totalMat, 0, ',', '.') }}</td>
             </tr>
@@ -542,7 +564,7 @@
             <td style="width:42%;">
                 <table class="grand-inner">
                     <tr>
-                        <td class="grand-lbl">Total Material</td>
+                        <td class="grand-lbl">Total Produksi</td>
                         <td class="grand-val mono">Rp&nbsp;{{ number_format($totalMat, 0, ',', '.') }}</td>
                     </tr>
                     <tr>

@@ -25,7 +25,7 @@ $menuItems = [
         'id'    => 'menu-sales-order',
         'label' => 'Sales Order',
         'icon'  => 'bi bi-cart-check-fill',
-        'route' => null,                      // TODO: daftarkan route
+        'route' => 'admin.sales-orders.index',
     ],
     // ── Produksi ──────────────────────────────────────────────────
     [
@@ -51,7 +51,15 @@ $menuItems = [
         'icon'  => 'bi bi-file-earmark-text-fill',
         'route' => null,                      // TODO: daftarkan route
     ],
-
+    // -- Tanda Terima
+    [
+        'type'  => 'single',
+        'id'    => 'menu-tanda-terima',
+        'label' => 'Tanda Terima',
+        'icon'  => 'bi bi-journal-check',
+        'route' => null,                      // TODO: daftarkan route
+    ],
+    
     // ── Laporan ────────────────────────────────────────────────────
     [
         'type'  => 'group',
@@ -101,7 +109,7 @@ $menuItems = [
             ],
             [
                 'id'    => 'menu-products',
-                'label' => 'Data Aset',
+                'label' => 'Data Material',
                 'icon'  => 'bi bi-x-diamond',
                 'route' => 'admin.master-assets.index',
             ],

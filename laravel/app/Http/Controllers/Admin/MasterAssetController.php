@@ -9,19 +9,19 @@ use App\Models\AsetModel;
 class MasterAssetController extends Controller
 {
     function index(){
-        $title = 'Data Asset';
-        $description = 'Kelola data aset perusahaan Anda dengan mudah dan efisien.';
-        $assets = AsetModel::all(); // Ambil semua data aset dari database
-        return view('admin.master-asset.index', compact('assets','title','description')); // Kirim data aset
+        $title = 'Data Material';
+        $description = 'Kelola data material perusahaan Anda dengan mudah dan efisien.';
+        $assets = AsetModel::all(); // Ambil semua data material dari database
+        return view('admin.master-asset.index', compact('assets','title','description')); // Kirim data material
     }
     function create(){
-        $title = 'Tambah Data Asset';
-        $description = 'Tambahkan data aset baru ke dalam sistem.';
+        $title = 'Tambah Data Material';
+        $description = 'Tambahkan data material baru ke dalam sistem.';
         return view('admin.master-asset.create', compact('title', 'description'));
     }
     function edit($id){
-        $title = 'Perbarui Data Asset';
-        $description = 'Perbarui data aset yang sudah ada.';
+        $title = 'Perbarui Data Material';
+        $description = 'Perbarui data material yang sudah ada.';
         $asset = AsetModel::findOrFail($id);
         return view('admin.master-asset.edit', compact('asset', 'title', 'description'));
     }

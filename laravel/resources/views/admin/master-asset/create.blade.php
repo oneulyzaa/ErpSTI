@@ -27,7 +27,7 @@
         <form action="{{ route('admin.master-assets.store') }}" method="POST">
             @csrf
             <div class="form-group mb-3">
-                <label for="nama_aset">Nama Aset</label>
+                <label for="nama_aset">Nama Material</label>
                 <input type="text" class="form-control" id="nama_aset" name="nama_aset" required>
             </div>
             <div class="form-group mb-3">
