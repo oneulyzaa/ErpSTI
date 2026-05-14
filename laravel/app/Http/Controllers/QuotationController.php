@@ -66,15 +66,14 @@ class QuotationController extends Controller
         $validated = $this->resolveClientData($validated);
 
         DB::transaction(function () use ($validated, $request) {
-            [$subMat, $subLab, $subtotal, $taxAmount, $total] = $this->calculateTotals(
-                $request->items ?? [], $request->labors ?? [], $validated['tax_percentage']
+            [$subMat, $subLab, $total] = $this->calculateTotals(
+                $request->items ?? [], $request->labors ?? []
             );
 
             $quotation = Quotation::create(array_merge($validated, [
                 'subtotal_material' => $subMat,
                 'subtotal_labor'    => $subLab,
-                'subtotal'          => $subtotal,
-                'tax_amount'        => $taxAmount,
+                'subtotal'          => $subMat + $subLab,
                 'total'             => $total,
             ]));
 
@@ -110,15 +109,14 @@ class QuotationController extends Controller
         $validated = $this->resolveClientData($validated);
 
         DB::transaction(function () use ($validated, $request, $quotation) {
-            [$subMat, $subLab, $subtotal, $taxAmount, $total] = $this->calculateTotals(
-                $request->items ?? [], $request->labors ?? [], $validated['tax_percentage']
+            [$subMat, $subLab, $total] = $this->calculateTotals(
+                $request->items ?? [], $request->labors ?? []
             );
 
             $quotation->update(array_merge($validated, [
                 'subtotal_material' => $subMat,
                 'subtotal_labor'    => $subLab,
-                'subtotal'          => $subtotal,
-                'tax_amount'        => $taxAmount,
+                'subtotal'          => $subMat + $subLab,
                 'total'             => $total,
             ]));
 
@@ -227,7 +225,6 @@ class QuotationController extends Controller
             'client_email'        => 'nullable|email|max:255',
             'client_address'      => 'nullable|string',
             'description_of_work' => 'nullable|string',
-            'tax_percentage'      => 'required|numeric|min:0|max:100',
             'status'              => 'required|in:draft,sent,approved,rejected,expired',
             'notes'               => 'nullable|string',
             'items'               => 'nullable|array',
@@ -243,14 +240,12 @@ class QuotationController extends Controller
         ]);
     }
 
-    private function calculateTotals(array $items, array $labors, float $taxPct): array
+    private function calculateTotals(array $items, array $labors): array
     {
         $subMat = collect($items)->sum(fn($i) => ($i['qty'] ?? 0) * ($i['unit_price'] ?? 0));
         $subLab = collect($labors)->sum(fn($l) => ($l['mp'] ?? 0) * ($l['days'] ?? 0) * ($l['rate'] ?? 0));
-        $subtotal  = $subMat + $subLab;
-        $taxAmount = $subtotal * ($taxPct / 100);
-        $total     = $subtotal + $taxAmount;
-        return [$subMat, $subLab, $subtotal, $taxAmount, $total];
+        $total  = $subMat + $subLab;
+        return [$subMat, $subLab, $total];
     }
 
     private function syncItems(Quotation $quotation, array $items): void

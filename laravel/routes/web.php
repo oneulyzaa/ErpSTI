@@ -43,6 +43,8 @@ Route::middleware('auth')->prefix('admin')->as('admin.')->group(function () {
     Route::get('sales-orders/{salesOrder}/pdf', [SalesOrderController::class, 'pdf'])->name('sales-orders.pdf');
     // Copy from quotation
     Route::get('sales-orders/copy-from-quotation/{quotation}', [SalesOrderController::class, 'copyFromQuotation'])->name('sales-orders.copy-from-quotation');
+    // AJAX: get quotation data (items + labors) for auto-load
+    Route::get('sales-orders/quotation-data/{quotation}', [SalesOrderController::class, 'getQuotationData'])->name('sales-orders.quotation-data');
     // CRUD
     Route::resource('sales-orders', SalesOrderController::class);
 

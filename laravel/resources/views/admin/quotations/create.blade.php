@@ -252,25 +252,13 @@
                 <div class="card-body">
                     <div class="summary-row"><span>Total Produksi</span><span class="summary-val" id="sum-mat">Rp 0</span></div>
                     <div class="summary-row"><span>Total Labor</span><span class="summary-val" id="sum-lab">Rp 0</span></div>
-                    <div class="summary-row"><span>Subtotal</span><span class="summary-val" id="sum-sub">Rp 0</span></div>
-                    <div class="summary-row align-items-start gap-2" style="flex-wrap:wrap;">
-                        <div>
-                            <div style="font-size:13px;margin-bottom:4px;">PPN (%)</div>
-                            <input type="number" name="tax_percentage" id="tax_percentage"
-                                   class="form-control form-control-sm" min="0" max="100" step="0.01"
-                                   value="{{ old('tax_percentage', $isEdit ? $quotation->tax_percentage : 12) }}"
-                                   style="width:80px;">
-                        </div>
-                        <span class="summary-val mt-4" id="sum-tax">Rp 0</span>
-                    </div>
-                    <div class="summary-row total-row">
-                        <span>TOTAL</span>
-                        <span class="summary-val" id="sum-total">Rp 0</span>
+                    <div class="summary-row total-row" style="border-top:2px solid #e2e8f0;margin-top:4px;padding-top:12px;">
+                        <span style="font-size:17px;font-weight:700;color:#1e293b;">GRAND TOTAL</span>
+                        <span class="summary-val" id="sum-total" style="font-size:17px;color:#1B5DBC;">Rp 0</span>
                     </div>
                     <input type="hidden" name="_subtotal_material" id="h-mat">
                     <input type="hidden" name="_subtotal_labor"    id="h-lab">
                     <input type="hidden" name="_subtotal"          id="h-sub">
-                    <input type="hidden" name="_tax_amount"        id="h-tax">
                     <input type="hidden" name="_total"             id="h-total">
                 </div>
             </div>
@@ -281,7 +269,7 @@
                 </div>
                 <div class="card-body">
                     <textarea name="notes" class="form-control form-control-sm" rows="6"
-                              placeholder="1. This quotation is only valid through date above.&#10;2. Term of payment: ...&#10;3. Price exclude Tax 12%">{{ old('notes', $isEdit ? $quotation->notes : "1. This quotation is only valid through date above.\n2. To accept the quote, sign and return quoted sheet to the address above.\n3. Term of payment :\n   - 30%  After PO + TT 14 calendar days\n   - 40%  After delivery\n   - 30%  After 8 AST\n4. Price exclude Tax 12%\n5. Warranty : 12 months") }}</textarea>
+                              placeholder="1. This quotation is only valid through date above.&#10;2. Term of payment: ...">{{ old('notes', $isEdit ? $quotation->notes : "1. This quotation is only valid through date above.\n2. To accept the quote, sign and return quoted sheet to the address above.\n3. Term of payment :\n   - 30%  After PO + TT 14 calendar days\n   - 40%  After delivery\n   - 30%  After 8 AST\n4. Warranty : 12 months") }}</textarea>
                 </div>
             </div>
 
@@ -547,22 +535,17 @@ function recalc() {
              * (parseFloat(tr.querySelector('.labor-days')?.value) || 0)
              * (parseFloat(tr.querySelector('.labor-rate')?.value) || 0);
     });
-    const sub   = mat + lab;
-    const tax   = sub * ((parseFloat(document.getElementById('tax_percentage').value) || 0) / 100);
-    const total = sub + tax;
+    const total = mat + lab;
 
     document.getElementById('disp-mat').textContent = fmt(mat);
     document.getElementById('disp-lab').textContent = fmt(lab);
     document.getElementById('sum-mat').textContent  = fmt(mat);
     document.getElementById('sum-lab').textContent  = fmt(lab);
-    document.getElementById('sum-sub').textContent  = fmt(sub);
-    document.getElementById('sum-tax').textContent  = fmt(tax);
-    document.getElementById('sum-total').textContent= fmt(total);
+    document.getElementById('sum-total').textContent = fmt(total);
 
     document.getElementById('h-mat').value   = mat.toFixed(2);
     document.getElementById('h-lab').value   = lab.toFixed(2);
-    document.getElementById('h-sub').value   = sub.toFixed(2);
-    document.getElementById('h-tax').value   = tax.toFixed(2);
+    document.getElementById('h-sub').value   = total.toFixed(2);
     document.getElementById('h-total').value = total.toFixed(2);
 }
 
@@ -575,7 +558,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-add-item-2').addEventListener('click', () => addItemRow());
     document.getElementById('btn-add-labor').addEventListener('click',  () => addLaborRow());
     document.getElementById('btn-add-labor-2').addEventListener('click',() => addLaborRow());
-    document.getElementById('tax_percentage').addEventListener('input', recalc);
 
     // Trigger client preview on load if client_id is preselected
     const sel = document.getElementById('client-select');

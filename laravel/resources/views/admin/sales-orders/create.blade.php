@@ -4,7 +4,7 @@
     $isEdit      = isset($salesOrder);
     $action      = $isEdit ? route('admin.sales-orders.update', $salesOrder) : route('admin.sales-orders.store');
     $oldItems    = old('items',  $isEdit ? $salesOrder->items->toArray()  : []);
-    $oldLabors   = old('labors', $isEdit ? $salesOrder->labors->toArray() : $defaultLabors);
+    $oldLabors   = old('labors', $isEdit ? $salesOrder->labors->toArray() : []);
     $copyQuote  = isset($quotation);
 @endphp
 
@@ -41,6 +41,10 @@
     .summary-row.total-row .summary-val { font-size: 17px; color: #1B5DBC; }
     .table-section-header th { background: #1e3a5f !important; color: #fff !important; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
     .labor-header th { background: #1B5DBC !important; color: #fff !important; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
+    .info-readonly {
+        background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 6px;
+        padding: 10px 14px; font-size: 13px; min-height: 36px;
+    }
 </style>
 @endpush
 
@@ -81,18 +85,11 @@
                         </div>
                         <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">Referensi Quotation</label>
-                            <select name="quotation_id" id="quotation_id" class="form-select form-select-sm">
+                            <select name="quotation_id" id="quotation_id" class="form-select form-select-sm"
+                                    data-url-template="{{ route('admin.sales-orders.quotation-data', ['quotation' => '__ID__']) }}">
                                 <option value="">-- Pilih Quotation (opsional) --</option>
                                 @foreach($quotations as $q)
                                     <option value="{{ $q->id }}"
-                                        data-quote-number="{{ $q->quote_number }}"
-                                        data-project="{{ $q->project_name }}"
-                                        data-client="{{ $q->client_name }}"
-                                        data-company="{{ $q->client_company }}"
-                                        data-attention="{{ $q->client_attention }}"
-                                        data-cc="{{ $q->client_cc }}"
-                                        data-email="{{ $q->client_email }}"
-                                        data-desc="{{ $q->description_of_work }}"
                                         {{ old('quotation_id', ($isEdit ? $salesOrder->quotation_id : ($copyQuote ? $quotation->id : ''))) == $q->id ? 'selected' : '' }}>
                                         {{ $q->quote_number }} — {{ $q->project_name ?: $q->client_company }}
                                     </option>
@@ -124,29 +121,29 @@
                         </div>
                     </div>
 
-                    <div class="section-label">Nama Project</div>
-                    <div class="row g-3 mb-4">
-                        <div class="col-12">
+                    <div class="section-label">Info Perusahaan & Project</div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 col-sm-6">
                             <label class="form-label fw-semibold" style="font-size:13px">Nama Project</label>
                             <input type="text" name="project_name" id="project_name" class="form-control form-control-sm"
                                    value="{{ old('project_name', $isEdit ? $salesOrder->project_name : ($copyQuote ? $quotation->project_name : '')) }}"
-                                   placeholder="Contoh: Automation Line for PT ABC">
-                        </div>
-                    </div>
-
-                    <div class="section-label">Data Klien</div>
-                    <div class="row g-3 mb-3">
-                        <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold" style="font-size:13px">Nama Kontak <span class="text-danger">*</span></label>
-                            <input type="text" name="client_name" id="client_name" class="form-control form-control-sm @error('client_name') is-invalid @enderror"
-                                   value="{{ old('client_name', $isEdit ? $salesOrder->client_name : ($copyQuote ? $quotation->client_name : '')) }}" required>
-                            @error('client_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                   placeholder="Auto-load dari Quotation">
                         </div>
                         <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold" style="font-size:13px">Perusahaan <span class="text-danger">*</span></label>
-                            <input type="text" name="client_company" id="client_company" class="form-control form-control-sm @error('client_company') is-invalid @enderror"
-                                   value="{{ old('client_company', $isEdit ? $salesOrder->client_company : ($copyQuote ? $quotation->client_company : '')) }}" required>
-                            @error('client_company')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <label class="form-label fw-semibold" style="font-size:13px">Perusahaan</label>
+                            <input type="text" name="client_company" id="client_company" class="form-control form-control-sm"
+                                   value="{{ old('client_company', $isEdit ? $salesOrder->client_company : ($copyQuote ? $quotation->client_company : '')) }}"
+                                   placeholder="Auto-load dari Quotation">
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label fw-semibold" style="font-size:13px">Nama Kontak</label>
+                            <input type="text" name="client_name" id="client_name" class="form-control form-control-sm"
+                                   value="{{ old('client_name', $isEdit ? $salesOrder->client_name : ($copyQuote ? $quotation->client_name : '')) }}">
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label fw-semibold" style="font-size:13px">Email</label>
+                            <input type="email" name="client_email" id="client_email" class="form-control form-control-sm"
+                                   value="{{ old('client_email', $isEdit ? $salesOrder->client_email : ($copyQuote ? $quotation->client_email : '')) }}">
                         </div>
                         <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">Attn</label>
@@ -159,9 +156,9 @@
                                    value="{{ old('client_cc', $isEdit ? $salesOrder->client_cc : ($copyQuote ? $quotation->client_cc : '')) }}">
                         </div>
                         <div class="col-12 col-sm-4">
-                            <label class="form-label fw-semibold" style="font-size:13px">Email</label>
-                            <input type="email" name="client_email" id="client_email" class="form-control form-control-sm"
-                                   value="{{ old('client_email', $isEdit ? $salesOrder->client_email : ($copyQuote ? $quotation->client_email : '')) }}">
+                            <label class="form-label fw-semibold" style="font-size:13px">Customer ID</label>
+                            <input type="text" name="customer_id" id="customer_id" class="form-control form-control-sm"
+                                   value="{{ old('customer_id', $isEdit ? $salesOrder->customer_id : '') }}">
                         </div>
                     </div>
 
@@ -173,12 +170,12 @@
                 </div>
             </div>
 
-            {{-- ── MATERIAL ITEMS ── --}}
+            {{-- ── PRODUKSI ITEMS ── --}}
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
-                    <span class="fw-semibold">Material</span>
+                    <span class="fw-semibold">Produksi</span>
                     <button type="button" class="btn btn-primary btn-sm d-flex align-items-center gap-1" id="btn-add-item">
-                        <i class="bi bi-plus-lg"></i> Tambah Material
+                        <i class="bi bi-plus-lg"></i> Tambah Produk
                     </button>
                 </div>
                 <div class="table-responsive">
@@ -186,7 +183,7 @@
                         <thead>
                             <tr class="table-section-header">
                                 <th style="width:36px;">#</th>
-                                <th style="min-width:180px;">Nama Material / Jasa <span class="text-warning">*</span></th>
+                                <th style="min-width:180px;">Nama Produk / Jasa <span class="text-warning">*</span></th>
                                 <th style="min-width:140px;">Deskripsi</th>
                                 <th style="width:80px;text-align:center;">Satuan</th>
                                 <th style="width:80px;text-align:right;">Qty</th>
@@ -200,10 +197,10 @@
                 </div>
                 <div class="card-footer bg-white d-flex align-items-center justify-content-between py-2">
                     <button type="button" class="btn btn-outline-primary btn-sm" id="btn-add-item-2">
-                        <i class="bi bi-plus-lg"></i> Tambah Material
+                        <i class="bi bi-plus-lg"></i> Tambah Produk
                     </button>
                     <div class="fw-semibold" style="font-size:13px;">
-                        Total Material: <span class="text-primary ms-2" id="disp-mat" style="font-family:monospace;">Rp 0</span>
+                        Total Produksi: <span class="text-primary ms-2" id="disp-mat" style="font-family:monospace;">Rp 0</span>
                     </div>
                 </div>
             </div>
@@ -253,7 +250,7 @@
                     <span class="fw-semibold">Ringkasan</span>
                 </div>
                 <div class="card-body">
-                    <div class="summary-row"><span>Total Material</span><span class="summary-val" id="sum-mat">Rp 0</span></div>
+                    <div class="summary-row"><span>Total Produksi</span><span class="summary-val" id="sum-mat">Rp 0</span></div>
                     <div class="summary-row"><span>Total Labor</span><span class="summary-val" id="sum-lab">Rp 0</span></div>
                     <div class="summary-row"><span>Subtotal</span><span class="summary-val" id="sum-sub">Rp 0</span></div>
                     <div class="summary-row align-items-start gap-2" style="flex-wrap:wrap;">
@@ -261,7 +258,7 @@
                             <div style="font-size:13px;margin-bottom:4px;">PPN (%)</div>
                             <input type="number" name="tax_percentage" id="tax_percentage"
                                    class="form-control form-control-sm" min="0" max="100" step="0.01"
-                                   value="{{ old('tax_percentage', $isEdit ? $salesOrder->tax_percentage : 12) }}"
+                                   value="{{ old('tax_percentage', $isEdit ? $salesOrder->tax_percentage : 11) }}"
                                    style="width:80px;">
                         </div>
                         <span class="summary-val mt-4" id="sum-tax">Rp 0</span>
@@ -324,27 +321,58 @@ let iIdx = 0, lIdx = 0;
 const fmt = n => 'Rp ' + Math.round(n).toLocaleString('id-ID');
 const esc = s => String(s ?? '').replace(/"/g,'"').replace(/</g,'<');
 
-/* ══ Auto-fill from Quotation ═══════════════════════════ */
-document.getElementById('quotation_id')?.addEventListener('change', function() {
+/* ══ Auto-load from Quotation via AJAX ═══════════════════ */
+document.getElementById('quotation_id')?.addEventListener('change', async function() {
     const opt = this.options[this.selectedIndex];
     if (!opt.value) return;
-    const qn  = opt.dataset.quoteNumber || '';
-    const proj = opt.dataset.project || '';
-    const cl  = opt.dataset.client || '';
-    const co  = opt.dataset.company || '';
-    const att = opt.dataset.attention || '';
-    const cc  = opt.dataset.cc || '';
-    const em  = opt.dataset.email || '';
-    const desc = opt.dataset.desc || '';
 
-    document.getElementById('quote_number').value      = qn;
-    document.getElementById('project_name').value       = proj;
-    document.getElementById('client_name').value        = cl;
-    document.getElementById('client_company').value     = co;
-    document.getElementById('client_attention').value   = att;
-    document.getElementById('client_cc').value          = cc;
-    document.getElementById('client_email').value       = em;
-    document.getElementById('description_of_work').value = desc;
+    const url = this.dataset.urlTemplate.replace('__ID__', opt.value);
+
+    try {
+        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        if (!res.ok) throw new Error('Failed to load quotation data');
+        const data = await res.json();
+
+        // Fill info fields
+        document.getElementById('quote_number').value        = data.quote_number || '';
+        document.getElementById('project_name').value       = data.project_name || '';
+        document.getElementById('client_name').value        = data.client_name || '';
+        document.getElementById('client_company').value     = data.client_company || '';
+        document.getElementById('client_attention').value   = data.client_attention || '';
+        document.getElementById('client_cc').value          = data.client_cc || '';
+        document.getElementById('client_email').value       = data.client_email || '';
+        document.getElementById('description_of_work').value = data.description_of_work || '';
+
+        // Clear & load items
+        document.getElementById('items-tbody').innerHTML = '';
+        iIdx = 0;
+        if (data.items && data.items.length) {
+            data.items.forEach(it => addItemRow({
+                material_name: it.material_name ?? '',
+                description: it.description ?? '',
+                unit: it.unit ?? 'Unit',
+                qty: it.qty ?? 1,
+                unit_price: it.unit_price ?? 0,
+            }));
+        }
+
+        // Clear & load labors
+        document.getElementById('labors-tbody').innerHTML = '';
+        lIdx = 0;
+        if (data.labors && data.labors.length) {
+            data.labors.forEach(lb => addLaborRow({
+                labor_name: lb.labor_name ?? '',
+                mp: lb.mp ?? 1,
+                days: lb.days ?? 1,
+                rate: lb.rate ?? 0,
+            }));
+        }
+
+        recalc();
+    } catch (err) {
+        console.error(err);
+        alert('Gagal memuat data quotation. Silakan coba lagi.');
+    }
 });
 
 /* ══ MATERIAL rows ══════════════════════════════════════ */
@@ -358,7 +386,7 @@ function createItemRow(item = {}) {
     tr.dataset.idx = idx;
     tr.innerHTML = `
         <td class="item-no" id="ino-${idx}"></td>
-        <td><input type="text"   name="items[${idx}][material_name]" class="item-input" required value="${esc(item.material_name)}" placeholder="Nama material / jasa"></td>
+        <td><input type="text"   name="items[${idx}][material_name]" class="item-input" required value="${esc(item.material_name)}" placeholder="Nama produk / jasa"></td>
         <td><input type="text"   name="items[${idx}][description]"   class="item-input" value="${esc(item.description)}" placeholder="Keterangan"></td>
         <td><input type="text"   name="items[${idx}][unit]"          class="item-input" value="${esc(item.unit ?? 'Unit')}" style="text-align:center;" required></td>
         <td><input type="number" name="items[${idx}][qty]"           class="item-input item-qty"   min="0" step="any" value="${qty}"  style="text-align:right;" required></td>

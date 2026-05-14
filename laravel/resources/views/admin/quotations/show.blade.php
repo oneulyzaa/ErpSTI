@@ -195,9 +195,7 @@
             <div class="card-body">
                 <div class="summary-row"><span>Total Produksi</span><span class="summary-val">Rp {{ number_format($quotation->subtotal_material, 0, ',', '.') }}</span></div>
                 <div class="summary-row"><span>Total Labor</span><span class="summary-val">Rp {{ number_format($quotation->subtotal_labor, 0, ',', '.') }}</span></div>
-                <div class="summary-row"><span>Subtotal</span><span class="summary-val">Rp {{ number_format($quotation->subtotal, 0, ',', '.') }}</span></div>
-                <div class="summary-row"><span>PPN ({{ number_format($quotation->tax_percentage, 0) }}%)</span><span class="summary-val">Rp {{ number_format($quotation->tax_amount, 0, ',', '.') }}</span></div>
-                <div class="summary-row total-row"><span>TOTAL</span><span class="summary-val">Rp {{ number_format($quotation->total, 0, ',', '.') }}</span></div>
+                <div class="summary-row total-row"><span>GRAND TOTAL</span><span class="summary-val">Rp {{ number_format($quotation->total, 0, ',', '.') }}</span></div>
             </div>
             <div class="card-footer bg-white border-top">
                 <a href="{{ route('admin.quotations.pdf', $quotation) }}" target="_blank"

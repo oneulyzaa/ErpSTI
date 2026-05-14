@@ -168,6 +168,27 @@ class SalesOrderController extends Controller
         ));
     }
 
+    // ─── AJAX: Get Quotation Data (items + labors + client info) ────────
+    public function getQuotationData(Quotation $quotation)
+    {
+        $quotation->load(['items', 'labors', 'client']);
+
+        $client = $quotation->client;
+
+        return response()->json([
+            'project_name'      => $quotation->project_name,
+            'quote_number'      => $quotation->quote_number,
+            'client_name'       => $client?->nama_kontak_perusahaan ?? $quotation->client_name,
+            'client_company'    => $client?->nama_perusahaan ?? $quotation->client_company,
+            'client_attention'  => $quotation->client_attention,
+            'client_cc'         => $quotation->client_cc,
+            'client_email'      => $client?->email_perusahaan ?? $quotation->client_email,
+            'description_of_work' => $quotation->description_of_work,
+            'items'             => $quotation->items->toArray(),
+            'labors'            => $quotation->labors->toArray(),
+        ]);
+    }
+
     // ─── Helpers ──────────────────────────────────────────────────────────────
     private function validateSalesOrder(Request $request, ?int $ignoreId = null): array
     {
@@ -179,8 +200,8 @@ class SalesOrderController extends Controller
             'date'                => 'required|date',
             'delivery_date'       => 'nullable|date|after_or_equal:date',
             'customer_id'         => 'nullable|string|max:100',
-            'client_name'         => 'required|string|max:255',
-            'client_company'      => 'required|string|max:255',
+            'client_name'         => 'nullable|string|max:255',
+            'client_company'      => 'nullable|string|max:255',
             'client_attention'    => 'nullable|string|max:255',
             'client_cc'           => 'nullable|string|max:255',
             'client_email'        => 'nullable|email|max:255',

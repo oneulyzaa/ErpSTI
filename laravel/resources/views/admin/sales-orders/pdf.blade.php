@@ -334,7 +334,7 @@
 
         {{-- ═══ MATERIAL TABLE ═══ --}}
         @if($salesOrder->items->isNotEmpty())
-        <div class="section-bar">Material</div>
+        <div class="section-bar">Produksi</div>
         <table class="mat-table">
             <thead>
                 <tr>
@@ -365,7 +365,7 @@
             </tbody>
             <tfoot>
                 <tr class="total-mat-row">
-                    <td colspan="5" style="text-align:right;">Total Material</td>
+                    <td colspan="5" style="text-align:right;">Total Produksi</td>
                     <td style="text-align:right;">Rp {{ number_format($salesOrder->subtotal_material, 0, ',', '.') }}</td>
                 </tr>
             </tfoot>
@@ -410,7 +410,7 @@
         {{-- ═══ SUMMARY ═══ --}}
         <table class="summary-wrap">
             <tr>
-                <td class="summary-label">Total Material</td>
+                <td class="summary-label">Total Produksi</td>
                 <td class="summary-value">Rp {{ number_format($salesOrder->subtotal_material, 0, ',', '.') }}</td>
             </tr>
             <tr>

@@ -105,10 +105,10 @@
             </div>
         </div>
 
-        {{-- Material --}}
+        {{-- Produksi --}}
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
-                <span class="fw-semibold">Material</span>
+                <span class="fw-semibold">Produksi</span>
                 <span class="badge bg-secondary bg-opacity-10 text-secondary">{{ $salesOrder->items->count() }} item</span>
             </div>
             <div class="table-responsive">
@@ -116,7 +116,7 @@
                     <thead class="table-light">
                         <tr>
                             <th style="width:36px;" class="text-muted fw-semibold" style="font-size:11px">#</th>
-                            <th class="text-muted fw-semibold" style="font-size:11px">MATERIAL / JASA</th>
+                            <th class="text-muted fw-semibold" style="font-size:11px">PRODUK / JASA</th>
                             <th class="text-muted fw-semibold" style="font-size:11px">DESKRIPSI</th>
                             <th class="text-muted fw-semibold text-center" style="font-size:11px">SATUAN</th>
                             <th class="text-muted fw-semibold text-end" style="font-size:11px">QTY</th>
@@ -139,7 +139,7 @@
                     </tbody>
                     <tfoot class="table-light">
                         <tr>
-                            <td colspan="6" class="text-end fw-semibold" style="font-size:12px;">Total Material</td>
+                            <td colspan="6" class="text-end fw-semibold" style="font-size:12px;">Total Produksi</td>
                             <td class="text-end fw-bold" style="font-family:monospace;">Rp {{ number_format($salesOrder->subtotal_material, 0, ',', '.') }}</td>
                         </tr>
                     </tfoot>
@@ -195,7 +195,7 @@
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white border-bottom py-3"><span class="fw-semibold">Ringkasan</span></div>
             <div class="card-body">
-                <div class="summary-row"><span>Total Material</span><span class="summary-val">Rp {{ number_format($salesOrder->subtotal_material, 0, ',', '.') }}</span></div>
+                <div class="summary-row"><span>Total Produksi</span><span class="summary-val">Rp {{ number_format($salesOrder->subtotal_material, 0, ',', '.') }}</span></div>
                 <div class="summary-row"><span>Total Labor</span><span class="summary-val">Rp {{ number_format($salesOrder->subtotal_labor, 0, ',', '.') }}</span></div>
                 <div class="summary-row"><span>Subtotal</span><span class="summary-val">Rp {{ number_format($salesOrder->subtotal, 0, ',', '.') }}</span></div>
                 <div class="summary-row"><span>PPN ({{ number_format($salesOrder->tax_percentage, 0) }}%)</span><span class="summary-val">Rp {{ number_format($salesOrder->tax_amount, 0, ',', '.') }}</span></div>

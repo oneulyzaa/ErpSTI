@@ -550,12 +550,9 @@
 
     {{-- ══════════════════════════════
          GRAND TOTAL
-         — use a two-column table: left spacer / right summary box
     ══════════════════════════════ --}}
     @php
-        $subTotal  = $totalMat + $totalLab;
-        $taxAmount = $subTotal * ($quotation->tax_percentage / 100);
-        $grandTotal = $subTotal + $taxAmount;
+        $grandTotal = $totalMat + $totalLab;
     @endphp
 
     <table class="grand-wrap">
@@ -570,16 +567,6 @@
                     <tr>
                         <td class="grand-lbl">Total Labor</td>
                         <td class="grand-val mono">Rp&nbsp;{{ number_format($totalLab, 0, ',', '.') }}</td>
-                    </tr>
-                    <tr class="grand-sep">
-                        <td class="grand-lbl" style="border-top:1px solid #c0c8d8;">Subtotal</td>
-                        <td class="grand-val mono" style="border-top:1px solid #c0c8d8;">
-                            Rp&nbsp;{{ number_format($subTotal, 0, ',', '.') }}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="grand-lbl">PPN {{ number_format($quotation->tax_percentage, 0) }}%</td>
-                        <td class="grand-val mono">Rp&nbsp;{{ number_format($taxAmount, 0, ',', '.') }}</td>
                     </tr>
                     <tr class="grand-total-row">
                         <td>GRAND TOTAL</td>

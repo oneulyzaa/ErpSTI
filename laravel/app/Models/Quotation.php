@@ -26,8 +26,6 @@ class Quotation extends Model
         'subtotal_material',
         'subtotal_labor',
         'subtotal',
-        'tax_percentage',
-        'tax_amount',
         'total',
         'status',
         'notes',
@@ -39,8 +37,6 @@ class Quotation extends Model
         'subtotal_material'=> 'decimal:2',
         'subtotal_labor'   => 'decimal:2',
         'subtotal'         => 'decimal:2',
-        'tax_percentage'   => 'decimal:2',
-        'tax_amount'       => 'decimal:2',
         'total'            => 'decimal:2',
     ];
 
