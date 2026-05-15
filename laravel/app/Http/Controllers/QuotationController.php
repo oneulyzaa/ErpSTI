@@ -148,7 +148,7 @@ class QuotationController extends Controller
             $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
         }
 
-        $pdf = Pdf::loadView('admin.quotations.pdf', compact('quotation', 'logoBase64'))
+        $pdf = Pdf::loadView('admin.quotations.pdf-design-a', compact('quotation', 'logoBase64'))
             ->setPaper('a4', 'portrait')
             ->setOption('defaultFont', 'DejaVu Sans')
             ->setOption('isHtml5ParserEnabled', true)
@@ -226,7 +226,7 @@ class QuotationController extends Controller
             'client_address'      => 'nullable|string',
             'description_of_work' => 'nullable|string',
             'status'              => 'required|in:draft,sent,approved,rejected,expired',
-            'notes'               => 'nullable|string',
+            'term_and_condition'  => 'nullable|string',
             'items'               => 'nullable|array',
             'items.*.material_name' => 'required_with:items|string|max:255',
             'items.*.unit'          => 'required_with:items|string|max:50',
