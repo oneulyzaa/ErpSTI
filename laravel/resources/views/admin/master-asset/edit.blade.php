@@ -1,19 +1,14 @@
 @extends('layouts.app')
 
-@section('title', $title ?? 'Tambah Data Asset')
+@section('title', $title ?? 'Edit Data Client')
 @section('breadcrumb', $title)
 
 @push('styles')
-<style>
-    
-</style>
 @endpush
 
 @section('content')
-
-{{-- ── Page Header ── --}}
 <div class="mb-4">
-    <a href="{{ route('admin.master-assets.index') }}" class="btn btn-secondary btn-sm">
+    <a href="{{ route('admin.master-clients.index') }}" class="btn btn-secondary btn-sm">
         <i class="bi-arrow-left"></i> Kembali
     </a>
 </div>
@@ -21,64 +16,77 @@
     <h1 class="h4 fw-bold text-dark mb-1">{{ $title }}</h1>
     <p class="text-secondary mb-0">{{ $description}}</p>
 </div>
-
 <div class="row g-3 mb-4">
-    <div class="col-lg-6 col-md-12 bg-white p-3 rounded">
-        <form action="{{ route('admin.master-assets.update', $asset->id) }}" method="POST">
+    <div class="col-lg-8 col-md-12 bg-white p-3 rounded">
+        <form action="{{ route('admin.master-clients.update', $client->id) }}" method="POST">
             @csrf
             @method('PUT')
             <div class="form-group mb-3">
-                <label for="nama_aset">Nama Material</label>
-                <input type="text" class="form-control" id="nama_aset" name="nama_aset" value="{{ $asset->nama_aset }}" required>
+                <label for="id_perusahaan">ID Perusahaan</label>
+                <input type="text" class="form-control" id="id_perusahaan" name="id_perusahaan" value="{{ $client->id_perusahaan }}" required>
             </div>
-            <div class="form-group mb-3">
-                <label for="harga">Harga</label>
-                <div class="input-group">
-                    <span class="input-group-text">Rp</span>
-                    <input type="text" class="form-control" id="harga" name="harga" value="{{ number_format($asset->harga, 0, ',', '.') }}" required oninput="formatRupiah(this)" autocomplete="off">
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-lg-6 col-md-12 mb-3">
+                        <label for="nama_perusahaan">Nama Perusahaan</label>
+                        <input type="text" class="form-control" id="nama_perusahaan" name="nama_perusahaan" value="{{ $client->nama_perusahaan }}" required>
+                    </div>
+                    <div class="col-lg-6 col-md-12 mb-3">
+                        <label for="email_perusahaan">Email Perusahaan</label>
+                        <input type="email" class="form-control" id="email_perusahaan" name="email_perusahaan" value="{{ $client->email_perusahaan }}">
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-lg-6 col-md-12 mb-3">
+                        <label for="nama_kontak_perusahaan">Nama Kontak Perusahaan</label>
+                        <input type="text" class="form-control" id="nama_kontak_perusahaan" name="nama_kontak_perusahaan" value="{{ $client->nama_kontak_perusahaan }}" required>
+                    </div>
+                    <div class="col-lg-6 col-md-12 mb-3">
+                        <label for="npwp_perusahaan">NPWP Perusahaan</label>
+                        <input type="text" class="form-control" id="npwp_perusahaan" name="npwp_perusahaan" value="{{ $client->npwp_perusahaan }}">
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-lg-4 col-md-12">
+                        <div class="mb-3">
+                            <label for="alamat_pengiriman_perusahaah">Alamat Pengiriman</label>
+                            <textarea class="form-control" id="alamat_pengiriman_perusahaah" name="alamat_pengiriman_perusahaah" rows="3">{{ $client->alamat_pengiriman_perusahaah }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="nomor_telepon_pengiriman">Telepon Pengiriman</label>
+                            <input type="text" class="form-control" id="nomor_telepon_pengiriman" name="nomor_telepon_pengiriman" value="{{ $client->nomor_telepon_pengiriman }}">
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-12">
+                        <div class="mb-3">
+                            <label for="alamat_faktur_perusahaan">Alamat Faktur</label>
+                            <textarea class="form-control" id="alamat_faktur_perusahaan" name="alamat_faktur_perusahaan" rows="3">{{ $client->alamat_faktur_perusahaan }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="nomor_telepon_faktur">Telepon Faktur</label>
+                            <input type="text" class="form-control" id="nomor_telepon_faktur" name="nomor_telepon_faktur" value="{{ $client->nomor_telepon_faktur }}">
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-12">
+                        <div class="mb-3">
+                            <label for="alamat_efaktur_perusahaan">Alamat E-Faktur</label>
+                            <textarea class="form-control" id="alamat_efaktur_perusahaan" name="alamat_efaktur_perusahaan" rows="3">{{ $client->alamat_efaktur_perusahaan }}</textarea>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="form-group mb-3">
-                <label for="satuan">Satuan</label>
-                <select class="form-select" id="satuan" name="satuan" required>
-                    {{-- <option value="" disabled selected>Pilih Satuan</option> --}}
-                    <option value="pcs" {{ $asset->satuan == 'pcs' ? 'selected' : '' }}>Pcs</option>
-                    <option value="meter" {{ $asset->satuan == 'meter' ? 'selected' : '' }}>Meter</option>
-                    <option value="box" {{ $asset->satuan == 'box' ? 'selected' : '' }}>Box</option>
-                    <option value="kg" {{ $asset->satuan == 'kg' ? 'selected' : '' }}>Kg</option>
-                </select>
-            </div>
-            <div class="form-group mb-3">
-                <label for="stok">Stok</label>
-                <input type="text" class="form-control" id="stok" name="stok" value="{{ $asset->stok }}" required>
-            </div>
-            <div class="form-group mb-3">
-                <label for="supplier_from">Supplier</label>
-                <input type="text" class="form-control" id="supplier_from" name="supplier_from" value="{{ $asset->supplier_from }}">
-            </div>
-            <div class="form-group mb-3">
-                <label for="status">Status</label>
-                <select class="form-select" id="status" name="status" required>
-                    <option value="" disabled >Pilih Status</option>
-                    <option value="1" {{ $asset->is_active == 1 ? 'selected' : '' }}>Aktif</option>
-                    <option value="0" {{ $asset->is_active == 0 ? 'selected' : '' }}>Tidak Aktif</option>
-                </select>
+                <label for="nomor_rekening_perusahaan">Nomor Rekening</label>
+                <input type="text" class="form-control" id="nomor_rekening_perusahaan" name="nomor_rekening_perusahaan" value="{{ $client->nomor_rekening_perusahaan }}">
             </div>
             <button type="submit" class="btn btn-primary">Simpan</button>
         </form>
     </div>
 </div>
-  
 @push('scripts')
-<script>
-function formatRupiah(el) {
-    let value = el.value.replace(/[^\d]/g, "");
-    if (!value) {
-        el.value = "";
-        return;
-    }
-    el.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-}
-</script>
 @endpush
 @endsection

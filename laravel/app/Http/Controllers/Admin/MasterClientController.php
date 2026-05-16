@@ -26,17 +26,17 @@ class MasterClientController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'id_perusahaan' => 'required|string|unique:clients,id_perusahaan',
-            'nama_perusahaan' => 'required|string',
-            'email_perusahaan' => 'nullable|email',
-            'nama_kontak_perusahaan' => 'nullable|string',
-            'npwp_perusahaan' => 'nullable|string',
+            'id_perusahaan'                => 'required|string|unique:clients,id_perusahaan',
+            'nama_perusahaan'              => 'required|string',
+            'email_perusahaan'             => 'nullable|email',
+            'nama_kontak_perusahaan'       => 'nullable|string',
+            'npwp_perusahaan'              => 'nullable|string',
             'alamat_pengiriman_perusahaah' => 'nullable|string',
-            'nomor_telepon_pengiriman' => 'nullable|string',
-            'alamat_faktur_perusahaan' => 'nullable|string',
-            'nomor_telepon_faktur' => 'nullable|string',
-            'alamat_efaktur_perusahaan' => 'nullable|string',
-            'nomor_rekening_perusahaan' => 'nullable|string',
+            'nomor_telepon_pengiriman'     => 'nullable|string',
+            'alamat_faktur_perusahaan'     => 'nullable|string',
+            'nomor_telepon_faktur'         => 'nullable|string',
+            'alamat_efaktur_perusahaan'    => 'nullable|string',
+            'nomor_rekening_perusahaan'    => 'nullable|string',
         ]);
         $validated['created_by'] = 'System';
         ClientModel::create($validated);
@@ -55,17 +55,17 @@ class MasterClientController extends Controller
     {
         $client = ClientModel::findOrFail($id);
         $validated = $request->validate([
-            'id_perusahaan' => 'required|string|unique:clients,id_perusahaan,' . $id,
-            'nama_perusahaan' => 'required|string',
-            'email_perusahaan' => 'nullable|email',
-            'nama_kontak_perusahaan' => 'nullable|string',
-            'npwp_perusahaan' => 'nullable|string',
+            'id_perusahaan'                => 'required|string|unique:clients,id_perusahaan,' . $id,
+            'nama_perusahaan'              => 'required|string',
+            'email_perusahaan'             => 'nullable|email',
+            'nama_kontak_perusahaan'       => 'nullable|string',
+            'npwp_perusahaan'              => 'nullable|string',
             'alamat_pengiriman_perusahaah' => 'nullable|string',
-            'nomor_telepon_pengiriman' => 'nullable|string',
-            'alamat_faktur_perusahaan' => 'nullable|string',
-            'nomor_telepon_faktur' => 'nullable|string',
-            'alamat_efaktur_perusahaan' => 'nullable|string',
-            'nomor_rekening_perusahaan' => 'nullable|string',
+            'nomor_telepon_pengiriman'     => 'nullable|string',
+            'alamat_faktur_perusahaan'     => 'nullable|string',
+            'nomor_telepon_faktur'         => 'nullable|string',
+            'alamat_efaktur_perusahaan'    => 'nullable|string',
+            'nomor_rekening_perusahaan'    => 'nullable|string',
         ]);
         $client->update($validated);
         return redirect()->route('admin.master-clients.index')->with('success', 'Data client berhasil diupdate.');
