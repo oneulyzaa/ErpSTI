@@ -52,15 +52,15 @@
                 <div class="row">
                     <div class="col-lg-4 col-md-12">
                         <div class="mb-3">
-                            <label for="alamat_pengiriman_perusahaah">Alamat Pengiriman</label>
+                            <label for="alamat_pengiriman_perusahaan">Alamat Pengiriman</label>
 <<<<<<< HEAD
-                            <textarea class="form-control" id="alamat_pengiriman_perusahaah" name="alamat_pengiriman_perusahaah" rows="3"></textarea>
+                            <textarea class="form-control" id="alamat_pengiriman_perusahaan" name="alamat_pengiriman_perusahaan" rows="3"></textarea>
                         </div>
                         <div class="mb-3">
                             <label for="nomor_telepon_pengiriman">Telepon Pengiriman</label>
                             <input type="text" class="form-control" id="nomor_telepon_pengiriman" name="nomor_telepon_pengiriman">
 =======
-                            <textarea class="form-control" id="alamat_pengiriman_perusahaah" name="alamat_pengiriman_perusahaah" rows="3" required></textarea>
+                            <textarea class="form-control" id="alamat_pengiriman_perusahaan" name="alamat_pengiriman_perusahaan" rows="3" required></textarea>
                         </div>
                         <div class="mb-3">
                             <label for="nomor_telepon_pengiriman">Telepon Pengiriman</label>
