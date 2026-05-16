@@ -21,18 +21,18 @@
         <form action="{{ route('admin.master-clients.store') }}" method="POST">
             @csrf
             <div class="form-group mb-3">
-                <label for="id_perusahaan">ID Perusahaan</label>
+                <label for="id_perusahaan">ID Perusahaan <span class="text-danger">*</span></label>
                 <input type="text" class="form-control" id="id_perusahaan" name="id_perusahaan" required>
             </div>
             <div class="form-group">
                 <div class="row">
                     <div class="col-lg-6 col-md-12 mb-3">
-                        <label for="nama_perusahaan">Nama Perusahaan</label>
+                        <label for="nama_perusahaan">Nama Perusahaan <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="nama_perusahaan" name="nama_perusahaan" required>
                     </div>
                     <div class="col-lg-6 col-md-12 mb-3">
-                        <label for="email_perusahaan">Email Perusahaan</label>
-                        <input type="email" class="form-control" id="email_perusahaan" name="email_perusahaan">
+                        <label for="email_perusahaan">Email Perusahaan <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" id="email_perusahaan" name="email_perusahaan" required>
                     </div>
                 </div>
             </div>
@@ -53,27 +53,47 @@
                     <div class="col-lg-4 col-md-12">
                         <div class="mb-3">
                             <label for="alamat_pengiriman_perusahaah">Alamat Pengiriman</label>
+<<<<<<< HEAD
                             <textarea class="form-control" id="alamat_pengiriman_perusahaah" name="alamat_pengiriman_perusahaah" rows="3"></textarea>
                         </div>
                         <div class="mb-3">
                             <label for="nomor_telepon_pengiriman">Telepon Pengiriman</label>
                             <input type="text" class="form-control" id="nomor_telepon_pengiriman" name="nomor_telepon_pengiriman">
+=======
+                            <textarea class="form-control" id="alamat_pengiriman_perusahaah" name="alamat_pengiriman_perusahaah" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="nomor_telepon_pengiriman">Telepon Pengiriman</label>
+                            <input type="text" class="form-control" id="nomor_telepon_pengiriman" name="nomor_telepon_pengiriman" required>
+>>>>>>> 614c8a60f1d2d40f13c3237d272b32ad0c8bf83d
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-12">
                         <div class="mb-3">
                             <label for="alamat_faktur_perusahaan">Alamat Faktur</label>
+<<<<<<< HEAD
                             <textarea class="form-control" id="alamat_faktur_perusahaan" name="alamat_faktur_perusahaan" rows="3"></textarea>
                         </div>
                         <div class="mb-3">
                             <label for="nomor_telepon_faktur">Telepon Faktur</label>
                             <input type="text" class="form-control" id="nomor_telepon_faktur" name="nomor_telepon_faktur">
+=======
+                            <textarea class="form-control" id="alamat_faktur_perusahaan" name="alamat_faktur_perusahaan" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="nomor_telepon_faktur">Telepon Faktur</label>
+                            <input type="text" class="form-control" id="nomor_telepon_faktur" name="nomor_telepon_faktur" required>
+>>>>>>> 614c8a60f1d2d40f13c3237d272b32ad0c8bf83d
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-12">
                         <div class="mb-3">
                             <label for="alamat_efaktur_perusahaan">Alamat E-Faktur</label>
+<<<<<<< HEAD
                             <textarea class="form-control" id="alamat_efaktur_perusahaan" name="alamat_efaktur_perusahaan" rows="3"></textarea>
+=======
+                            <textarea class="form-control" id="alamat_efaktur_perusahaan" name="alamat_efaktur_perusahaan" rows="3" required></textarea>
+>>>>>>> 614c8a60f1d2d40f13c3237d272b32ad0c8bf83d
                         </div>
                     </div>
                 </div>
