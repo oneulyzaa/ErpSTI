@@ -167,7 +167,7 @@ class QuotationController extends Controller
             'email_perusahaan'         => 'nullable|email|max:255',
             'nama_kontak_perusahaan'   => 'nullable|string|max:255',
             'npwp_perusahaan'          => 'nullable|string|max:50',
-            'alamat_pengiriman_perusahaah' => 'nullable|string',
+            'alamat_pengiriman_perusahaan' => 'nullable|string',
             'nomor_telepon_pengiriman' => 'nullable|string|max:50',
             'alamat_faktur_perusahaan' => 'nullable|string',
             'nomor_telepon_faktur'     => 'nullable|string|max:50',
@@ -200,7 +200,7 @@ class QuotationController extends Controller
                 $data['client_email']   = $data['client_email']   ?: $client->email_perusahaan;
                 // Concatenate addresses as client_address
                 $addressParts = array_filter([
-                    $client->alamat_pengiriman_perusahaah,
+                    $client->alamat_pengiriman_perusahaan,
                     $client->alamat_faktur_perusahaan,
                 ]);
                 $data['client_address'] = !empty($addressParts) ? implode("\n", $addressParts) : null;

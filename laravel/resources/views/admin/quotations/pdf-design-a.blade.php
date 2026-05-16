@@ -410,7 +410,7 @@
         $clCompany = $quotation->client?->nama_perusahaan ?? $quotation->client_company;
         $clName    = $quotation->client?->nama_kontak_perusahaan ?? $quotation->client_name;
         $clEmail   = $quotation->client?->email_perusahaan ?? $quotation->client_email;
-        $clAddr    = $quotation->client_address ?? ($quotation->client?->alamat_pengiriman_perusahaah ?? '');
+        $clAddr    = $quotation->client_address ?? ($quotation->client?->alamat_pengiriman_perusahaan ?? '');
     @endphp
     <table class="client-block">
         <tr>

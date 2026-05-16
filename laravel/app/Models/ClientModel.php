@@ -13,7 +13,7 @@ class ClientModel extends Model
         'email_perusahaan',
         'nama_kontak_perusahaan',
         'npwp_perusahaan',
-        'alamat_pengiriman_perusahaah',
+        'alamat_pengiriman_perusahaan',
         'nomor_telepon_pengiriman',
         'alamat_faktur_perusahaan',
         'nomor_telepon_faktur',

@@ -76,7 +76,7 @@
                             $clientName = $quotation->client?->nama_perusahaan ?? $quotation->client_company;
                             $contactName = $quotation->client?->nama_kontak_perusahaan ?? $quotation->client_name;
                             $contactEmail = $quotation->client?->email_perusahaan ?? $quotation->client_email;
-                            $contactAddress = $quotation->client_address ?? ($quotation->client?->alamat_pengiriman_perusahaah ?? '');
+                            $contactAddress = $quotation->client_address ?? ($quotation->client?->alamat_pengiriman_perusahaan ?? '');
                         @endphp
                         <div class="fw-bold" style="font-size:15px">{{ $clientName }}</div>
                         <div class="text-muted mt-1" style="font-size:13px;line-height:1.8;">
@@ -197,13 +197,18 @@
                 <div class="summary-row"><span>Total Labor</span><span class="summary-val">Rp {{ number_format($quotation->subtotal_labor, 0, ',', '.') }}</span></div>
                 <div class="summary-row total-row"><span>GRAND TOTAL</span><span class="summary-val">Rp {{ number_format($quotation->total, 0, ',', '.') }}</span></div>
             </div>
-            <div class="card-footer bg-white border-top">
-                <a href="{{ route('admin.quotations.pdf', $quotation) }}" target="_blank"
-                   class="btn btn-success w-100 d-flex align-items-center justify-content-center gap-2">
-                    <i class="bi bi-file-earmark-pdf-fill"></i> Cetak / Download PDF
-                </a>
+        </div>
+
+        @if($quotation->term_and_condition)
+        <div class="card border-0 shadow-sm mt-3">
+            <div class="card-header bg-white border-bottom py-3">
+                <span class="fw-semibold">Terms & Conditions</span>
+            </div>
+            <div class="card-body" style="font-size:13px;white-space:pre-line;">
+                {{ $quotation->term_and_condition }}
             </div>
         </div>
+        @endif
     </div>
 </div>
 @endsection

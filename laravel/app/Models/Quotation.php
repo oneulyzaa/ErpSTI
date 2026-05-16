@@ -28,7 +28,7 @@ class Quotation extends Model
         'subtotal',
         'total',
         'status',
-        'notes',
+        'term_and_condition',
     ];
 
     protected $casts = [

@@ -53,8 +53,8 @@
                 <div class="row">
                     <div class="col-lg-4 col-md-12">
                         <div class="mb-3">
-                            <label for="alamat_pengiriman_perusahaah">Alamat Pengiriman</label>
-                            <textarea class="form-control" id="alamat_pengiriman_perusahaah" name="alamat_pengiriman_perusahaah" rows="3" required>{{ $client->alamat_pengiriman_perusahaah }}</textarea>
+                            <label for="alamat_pengiriman_perusahaan">Alamat Pengiriman</label>
+                            <textarea class="form-control" id="alamat_pengiriman_perusahaan" name="alamat_pengiriman_perusahaan" rows="3" required>{{ $client->alamat_pengiriman_perusahaan }}</textarea>
                         </div>
                         <div class="mb-3">
                             <label for="nomor_telepon_pengiriman">Telepon Pengiriman</label>

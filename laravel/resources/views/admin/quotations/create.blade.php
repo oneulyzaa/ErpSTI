@@ -92,7 +92,7 @@
                                             data-nama="{{ $c->nama_perusahaan }}"
                                             data-kontak="{{ $c->nama_kontak_perusahaan }}"
                                             data-email="{{ $c->email_perusahaan }}"
-                                            data-alamat="{{ $c->alamat_pengiriman_perusahaah ?: $c->alamat_faktur_perusahaan }}"
+                                            data-alamat="{{ $c->alamat_pengiriman_perusahaan ?: $c->alamat_faktur_perusahaan }}"
                                             {{ old('client_id', $isEdit ? $quotation->client_id : '') == $c->id ? 'selected' : '' }}>
                                             {{ $c->id_perusahaan }} — {{ $c->nama_perusahaan }}
                                         </option>
@@ -268,8 +268,8 @@
                     <span class="fw-semibold">Terms & Conditions</span>
                 </div>
                 <div class="card-body">
-                    <textarea name="notes" class="form-control form-control-sm" rows="6"
-                              placeholder="1. This quotation is only valid through date above.&#10;2. Term of payment: ...">{{ old('notes', $isEdit ? $quotation->notes : "1. This quotation is only valid through date above.\n2. To accept the quote, sign and return quoted sheet to the address above.\n3. Term of payment :\n   - 30%  After PO + TT 14 calendar days\n   - 40%  After delivery\n   - 30%  After 8 AST\n4. Warranty : 12 months") }}</textarea>
+                    <textarea name="term_and_condition" class="form-control form-control-sm" rows="6"
+                              placeholder="1. This quotation is only valid through date above.&#10;2. Term of payment: ...">{{ old('term_and_condition', $isEdit ? $quotation->term_and_condition : "1. This quotation is only valid through date above.\n2. To accept the quote, sign and return quoted sheet to the address above.\n3. Term of payment :\n   - 30%  After PO + TT 14 calendar days\n   - 40%  After delivery\n   - 30%  After 8 AST\n4. Warranty : 12 months") }}</textarea>
                 </div>
             </div>
 
@@ -314,7 +314,7 @@
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold" style="font-size:13px">Alamat Pengiriman</label>
-                            <textarea name="alamat_pengiriman_perusahaah" class="item-input" rows="2" placeholder="Alamat lengkap pengiriman"></textarea>
+                            <textarea name="alamat_pengiriman_perusahaan" class="item-input" rows="2" placeholder="Alamat lengkap pengiriman"></textarea>
                         </div>
                         <div class="col-12 col-sm-6">
                             <label class="form-label fw-semibold" style="font-size:13px">Telepon Pengiriman</label>
@@ -404,7 +404,7 @@ document.getElementById('quick-client-form')?.addEventListener('submit', functio
             opt.dataset.nama   = data.client.nama_perusahaan || '';
             opt.dataset.kontak = data.client.nama_kontak_perusahaan || '';
             opt.dataset.email  = data.client.email_perusahaan || '';
-            opt.dataset.alamat = data.client.alamat_pengiriman_perusahaah || data.client.alamat_faktur_perusahaan || '';
+            opt.dataset.alamat = data.client.alamat_pengiriman_perusahaan || data.client.alamat_faktur_perusahaan || '';
             opt.textContent = (data.client.id_perusahaan || '') + ' — ' + (data.client.nama_perusahaan || '');
             sel.appendChild(opt);
             sel.value = data.client.id;

@@ -283,11 +283,11 @@
 
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-bottom py-3">
-                    <span class="fw-semibold">Catatan / Syarat & Ketentuan</span>
+                    <span class="fw-semibold">Terms & Conditions</span>
                 </div>
                 <div class="card-body">
-                    <textarea name="notes" class="form-control form-control-sm" rows="5"
-                              placeholder="Syarat pembayaran, garansi, catatan tambahan...">{{ old('notes', $isEdit ? $quotation->notes : '') }}</textarea>
+                    <textarea name="term_and_condition" class="form-control form-control-sm" rows="5"
+                              placeholder="Syarat pembayaran, garansi, catatan tambahan...">{{ old('term_and_condition', $isEdit ? $quotation->term_and_condition : '') }}</textarea>
                 </div>
             </div>
 

@@ -140,13 +140,13 @@
             </div>
         </div>
 
-        @if($quotation->notes)
+        @if($quotation->term_and_condition)
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white border-bottom py-3">
-                <span class="fw-semibold">Catatan / Syarat & Ketentuan</span>
+                <span class="fw-semibold">Terms & Conditions</span>
             </div>
             <div class="card-body">
-                <p class="text-muted mb-0" style="font-size:14px;line-height:1.7;">{{ $quotation->notes }}</p>
+                <p class="text-muted mb-0" style="font-size:14px;line-height:1.7;">{{ $quotation->term_and_condition }}</p>
             </div>
         </div>
         @endif

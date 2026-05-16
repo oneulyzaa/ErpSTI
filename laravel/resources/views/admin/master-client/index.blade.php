@@ -48,7 +48,7 @@
                         <td>{{ $client->email_perusahaan }}</td>
                         <td>{{ $client->nama_kontak_perusahaan }}</td>
                         <td>{{ $client->npwp_perusahaan }}</td>
-                        <td>{{ $client->alamat_pengiriman_perusahaah }}</td>
+                        <td>{{ $client->alamat_pengiriman_perusahaan }}</td>
                         <td>{{ $client->nomor_telepon_pengiriman }}</td>
                         <td>{{ $client->alamat_faktur_perusahaan }}</td>
                         <td>{{ $client->nomor_telepon_faktur }}</td>
