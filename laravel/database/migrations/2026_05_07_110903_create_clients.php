@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('npwp_perusahaan')->nullable();
 
             // tabel dengan alamat: pengiriman, faktur dan  efaktur
-            $table->text('alamat_pengiriman_perusahaah')->nullable();
+            $table->text('alamat_pengiriman_perusahaan')->nullable();
             $table->string('nomor_telepon_pengiriman')->nullable();
 
             $table->text('alamat_faktur_perusahaan')->nullable();
