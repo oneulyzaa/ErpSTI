@@ -53,28 +53,28 @@
                 <div class="row">
                     <div class="col-lg-4 col-md-12">
                         <div class="mb-3">
-                            <label for="alamat_pengiriman">Alamat Pengiriman</label>
-                            <textarea class="form-control" id="alamat_pengiriman" name="alamat_pengiriman" rows="3" required>{{ $client->alamat_pengiriman }}</textarea>
+                            <label for="alamat_pengiriman_perusahaah">Alamat Pengiriman</label>
+                            <textarea class="form-control" id="alamat_pengiriman_perusahaah" name="alamat_pengiriman_perusahaah" rows="3" required>{{ $client->alamat_pengiriman_perusahaah }}</textarea>
                         </div>
                         <div class="mb-3">
-                            <label for="telepon_pengiriman">Telepon Pengiriman</label>
-                            <input type="text" class="form-control" id="telepon_pengiriman" name="telepon_pengiriman" value="{{ $client->telepon_pengiriman }}" required>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-md-12">
-                        <div class="mb-3">
-                            <label for="alamat_faktur">Alamat Faktur</label>
-                            <textarea class="form-control" id="alamat_faktur" name="alamat_faktur" rows="3" required>{{ $client->alamat_faktur }}</textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="telepon_faktur">Telepon Faktur</label>
-                            <input type="text" class="form-control" id="telepon_faktur" name="telepon_faktur" value="{{ $client->telepon_faktur }}" required>
+                            <label for="nomor_telepon_pengiriman">Telepon Pengiriman</label>
+                            <input type="text" class="form-control" id="nomor_telepon_pengiriman" name="nomor_telepon_pengiriman" value="{{ $client->nomor_telepon_pengiriman }}" required>
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-12">
                         <div class="mb-3">
-                            <label for="alamat_efaktur">Alamat E-Faktur</label>
-                            <textarea class="form-control" id="alamat_efaktur" name="alamat_efaktur" rows="3" required>{{ $client->alamat_efaktur }}</textarea>
+                            <label for="alamat_faktur_perusahaan">Alamat Faktur</label>
+                            <textarea class="form-control" id="alamat_faktur_perusahaan" name="alamat_faktur_perusahaan" rows="3" required>{{ $client->alamat_faktur_perusahaan }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="nomor_telepon_faktur">Telepon Faktur</label>
+                            <input type="text" class="form-control" id="nomor_telepon_faktur" name="nomor_telepon_faktur" value="{{ $client->nomor_telepon_faktur }}" required>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-12">
+                        <div class="mb-3">
+                            <label for="alamat_efaktur_perusahaan">Alamat E-Faktur</label>
+                            <textarea class="form-control" id="alamat_efaktur_perusahaan" name="alamat_efaktur_perusahaan" rows="3" required>{{ $client->alamat_efaktur }}</textarea>
                         </div>
                     </div>
                 </div>
