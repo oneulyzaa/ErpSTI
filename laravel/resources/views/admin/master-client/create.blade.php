@@ -57,11 +57,6 @@
                         </div>
                         <div class="mb-3">
                             <label for="nomor_telepon_pengiriman">Telepon Pengiriman</label>
-                            <input type="text" class="form-control" id="nomor_telepon_pengiriman" name="nomor_telepon_pengiriman">
-                            <textarea class="form-control" id="alamat_pengiriman_perusahaan" name="alamat_pengiriman_perusahaan" rows="3" required></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="nomor_telepon_pengiriman">Telepon Pengiriman</label>
                             <input type="text" class="form-control" id="nomor_telepon_pengiriman" name="nomor_telepon_pengiriman" required>
                         </div>
                     </div>
@@ -72,18 +67,12 @@
                         </div>
                         <div class="mb-3">
                             <label for="nomor_telepon_faktur">Telepon Faktur</label>
-                            <input type="text" class="form-control" id="nomor_telepon_faktur" name="nomor_telepon_faktur">
-                            <textarea class="form-control" id="alamat_faktur_perusahaan" name="alamat_faktur_perusahaan" rows="3" required></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="nomor_telepon_faktur">Telepon Faktur</label>
                             <input type="text" class="form-control" id="nomor_telepon_faktur" name="nomor_telepon_faktur" required>
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-12">
                         <div class="mb-3">
                             <label for="alamat_efaktur_perusahaan">Alamat E-Faktur</label>
-                            <textarea class="form-control" id="alamat_efaktur_perusahaan" name="alamat_efaktur_perusahaan" rows="3"></textarea>
                             <textarea class="form-control" id="alamat_efaktur_perusahaan" name="alamat_efaktur_perusahaan" rows="3" required></textarea>
                         </div>
                     </div>
