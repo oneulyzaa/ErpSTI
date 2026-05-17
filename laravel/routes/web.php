@@ -49,6 +49,11 @@ Route::middleware('auth')->prefix('admin')->as('admin.')->group(function () {
     // CRUD
     Route::resource('sales-orders', SalesOrderController::class);
 
+    // ─── Delivery Order ────────────────────────────────────────────
+    Route::get('delivery-orders/{deliveryOrder}/pdf', [\App\Http\Controllers\DeliveryOrderController::class, 'pdf'])->name('delivery-orders.pdf');
+    Route::get('delivery-orders/so-data/{salesOrder}', [\App\Http\Controllers\DeliveryOrderController::class, 'getSoData'])->name('delivery-orders.so-data');
+    Route::resource('delivery-orders', \App\Http\Controllers\DeliveryOrderController::class);
+
     // ─── Production Plan ─────────────────────────────────────────
     Route::get('productions/{production}/pdf', [ProductionController::class, 'pdf'])->name('productions.pdf');
     Route::get('productions/sales-order-items/{salesOrder}', [ProductionController::class, 'getSoItems'])->name('productions.so-items');

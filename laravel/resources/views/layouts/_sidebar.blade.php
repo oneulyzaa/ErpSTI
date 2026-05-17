@@ -41,7 +41,7 @@ $menuItems = [
         'id'    => 'menu-delivery-order',
         'label' => 'Delivery Order',
         'icon'  => 'bi bi-truck',
-        'route' => null,                      // TODO: daftarkan route
+        'route' => 'admin.delivery-orders.index',
     ],
     // ── Invoice ───────────────────────────────────────────────────
     [
