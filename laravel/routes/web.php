@@ -46,12 +46,14 @@ Route::middleware('auth')->prefix('admin')->as('admin.')->group(function () {
     Route::get('sales-orders/copy-from-quotation/{quotation}', [SalesOrderController::class, 'copyFromQuotation'])->name('sales-orders.copy-from-quotation');
     // AJAX: get quotation data (items + labors) for auto-load
     Route::get('sales-orders/quotation-data/{quotation}', [SalesOrderController::class, 'getQuotationData'])->name('sales-orders.quotation-data');
+    Route::get('sales-orders/client-data/{client}', [SalesOrderController::class, 'getClientData'])->name('sales-orders.client-data');
     // CRUD
     Route::resource('sales-orders', SalesOrderController::class);
 
     // ─── Delivery Order ────────────────────────────────────────────
     Route::get('delivery-orders/{deliveryOrder}/pdf', [\App\Http\Controllers\DeliveryOrderController::class, 'pdf'])->name('delivery-orders.pdf');
     Route::get('delivery-orders/so-data/{salesOrder}', [\App\Http\Controllers\DeliveryOrderController::class, 'getSoData'])->name('delivery-orders.so-data');
+    Route::get('delivery-orders/client-data/{client}', [\App\Http\Controllers\DeliveryOrderController::class, 'getClientData'])->name('delivery-orders.client-data');
     Route::resource('delivery-orders', \App\Http\Controllers\DeliveryOrderController::class);
 
     // ─── Production Plan ─────────────────────────────────────────

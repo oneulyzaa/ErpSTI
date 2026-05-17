@@ -121,6 +121,27 @@
                         </div>
                     </div>
 
+                    <div class="section-label">Pilih Perusahaan (dari Master Client)</div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <select name="client_id" id="client-select" class="form-select form-select-sm"
+                                    data-url-template="{{ route('admin.sales-orders.client-data', ['client' => '__ID__']) }}">
+                                <option value="">-- Pilih Perusahaan (opsional) --</option>
+                                @isset($clients)
+                                    @foreach($clients as $c)
+                                        <option value="{{ $c->id }}"
+                                            data-nama="{{ $c->nama_perusahaan }}"
+                                            data-kontak="{{ $c->nama_kontak_perusahaan }}"
+                                            data-email="{{ $c->email_perusahaan }}"
+                                            {{ old('client_id', $isEdit ? ($salesOrder->client_id ?? '') : '') == $c->id ? 'selected' : '' }}>
+                                            {{ $c->id_perusahaan }} — {{ $c->nama_perusahaan }}
+                                        </option>
+                                    @endforeach
+                                @endisset
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="section-label">Info Perusahaan & Project</div>
                     <div class="row g-3 mb-3">
                         <div class="col-12 col-sm-6">
@@ -320,6 +341,27 @@ let iIdx = 0, lIdx = 0;
 
 const fmt = n => 'Rp ' + Math.round(n).toLocaleString('id-ID');
 const esc = s => String(s ?? '').replace(/"/g,'"').replace(/</g,'<');
+
+/* ══ Auto-load from Master Client via AJAX ═══════════════ */
+document.getElementById('client-select')?.addEventListener('change', async function() {
+    const opt = this.options[this.selectedIndex];
+    const val = opt.value;
+    if (!val) return;
+
+    const url = this.dataset.urlTemplate.replace('__ID__', val);
+
+    try {
+        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        if (!res.ok) throw new Error('Failed to load client data');
+        const data = await res.json();
+
+        document.getElementById('client_company').value = data.nama_perusahaan || '';
+        document.getElementById('client_name').value    = data.nama_kontak || '';
+        document.getElementById('client_email').value   = data.email || '';
+    } catch (err) {
+        console.error(err);
+    }
+});
 
 /* ══ Auto-load from Quotation via AJAX ═══════════════════ */
 document.getElementById('quotation_id')?.addEventListener('change', async function() {

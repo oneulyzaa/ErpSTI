@@ -12,6 +12,7 @@ class SalesOrder extends Model
     protected $fillable = [
         'so_number',
         'project_name',
+        'client_id',
         'quotation_id',
         'quote_number',
         'date',
@@ -43,6 +44,11 @@ class SalesOrder extends Model
         'tax_amount'       => 'decimal:2',
         'total'            => 'decimal:2',
     ];
+
+    public function client()
+    {
+        return $this->belongsTo(ClientModel::class, 'client_id');
+    }
 
     public function items()
     {

@@ -6,6 +6,7 @@ use App\Models\SalesOrder;
 use App\Models\SalesOrderItem;
 use App\Models\SalesOrderLabor;
 use App\Models\Quotation;
+use App\Models\ClientModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -54,13 +55,15 @@ class SalesOrderController extends Controller
         $soNumber     = SalesOrder::generateSONumber();
         $defaultLabors = $this->defaultLabors;
         $quotations   = Quotation::whereIn('status', ['approved', 'sent'])->latest()->get();
-        return view('admin.sales-orders.create', compact('soNumber', 'defaultLabors', 'quotations'));
+        $clients      = ClientModel::all();
+        return view('admin.sales-orders.create', compact('soNumber', 'defaultLabors', 'quotations', 'clients'));
     }
 
     // ─── Store ────────────────────────────────────────────────────────────────
     public function store(Request $request)
     {
         $validated = $this->validateSalesOrder($request);
+        $validated = $this->resolveClientData($validated);
 
         DB::transaction(function () use ($validated, $request) {
             [$subMat, $subLab, $subtotal, $taxAmount, $total] = $this->calculateTotals(
@@ -97,13 +100,15 @@ class SalesOrderController extends Controller
         $soNumber     = $salesOrder->so_number;
         $defaultLabors = $this->defaultLabors;
         $quotations   = Quotation::whereIn('status', ['approved', 'sent'])->latest()->get();
-        return view('admin.sales-orders.edit', compact('salesOrder', 'soNumber', 'defaultLabors', 'quotations'));
+        $clients      = ClientModel::all();
+        return view('admin.sales-orders.edit', compact('salesOrder', 'soNumber', 'defaultLabors', 'quotations', 'clients'));
     }
 
     // ─── Update ───────────────────────────────────────────────────────────────
     public function update(Request $request, SalesOrder $salesOrder)
     {
         $validated = $this->validateSalesOrder($request, $salesOrder->id);
+        $validated = $this->resolveClientData($validated);
 
         DB::transaction(function () use ($validated, $request, $salesOrder) {
             [$subMat, $subLab, $subtotal, $taxAmount, $total] = $this->calculateTotals(
@@ -162,9 +167,10 @@ class SalesOrderController extends Controller
         $soNumber     = SalesOrder::generateSONumber();
         $defaultLabors = $this->defaultLabors;
         $quotations   = Quotation::whereIn('status', ['approved', 'sent'])->latest()->get();
+        $clients      = ClientModel::all();
 
         return view('admin.sales-orders.create', compact(
-            'soNumber', 'defaultLabors', 'quotations', 'quotation'
+            'soNumber', 'defaultLabors', 'quotations', 'quotation', 'clients'
         ));
     }
 
@@ -176,6 +182,7 @@ class SalesOrderController extends Controller
         $client = $quotation->client;
 
         return response()->json([
+            'client_id'         => $client?->id ?? $quotation->client_id,
             'project_name'      => $quotation->project_name,
             'quote_number'      => $quotation->quote_number,
             'client_name'       => $client?->nama_kontak_perusahaan ?? $quotation->client_name,
@@ -189,12 +196,38 @@ class SalesOrderController extends Controller
         ]);
     }
 
+    // ─── AJAX: Get Client Data from master client ─────────────────────
+    public function getClientData(ClientModel $client)
+    {
+        return response()->json([
+            'id'                => $client->id,
+            'nama_perusahaan'   => $client->nama_perusahaan,
+            'nama_kontak'       => $client->nama_kontak_perusahaan,
+            'email'             => $client->email_perusahaan,
+            'alamat_pengiriman' => $client->alamat_pengiriman_perusahaan,
+        ]);
+    }
+
     // ─── Helpers ──────────────────────────────────────────────────────────────
+    private function resolveClientData(array $data): array
+    {
+        if (!empty($data['client_id'])) {
+            $client = ClientModel::find($data['client_id']);
+            if ($client) {
+                $data['client_name']    = $data['client_name']    ?: ($client->nama_kontak_perusahaan ?: $client->nama_perusahaan);
+                $data['client_company'] = $data['client_company'] ?: $client->nama_perusahaan;
+                $data['client_email']   = $data['client_email']   ?: $client->email_perusahaan;
+            }
+        }
+        return $data;
+    }
+
     private function validateSalesOrder(Request $request, ?int $ignoreId = null): array
     {
         return $request->validate([
             'so_number'           => 'required|string|unique:sales_orders,so_number' . ($ignoreId ? ",$ignoreId" : ''),
             'project_name'        => 'nullable|string|max:255',
+            'client_id'           => 'nullable|exists:clients,id',
             'quotation_id'        => 'nullable|exists:quotations,id',
             'quote_number'        => 'nullable|string|max:255',
             'date'                => 'required|date',

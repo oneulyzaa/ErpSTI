@@ -11,6 +11,7 @@ class DeliveryOrder extends Model
 
     protected $fillable = [
         'do_number',
+        'client_id',
         'sales_order_id',
         'so_number',
         'date',
@@ -30,6 +31,11 @@ class DeliveryOrder extends Model
         'date'          => 'date',
         'delivery_date' => 'date',
     ];
+
+    public function client()
+    {
+        return $this->belongsTo(ClientModel::class, 'client_id');
+    }
 
     public function items()
     {

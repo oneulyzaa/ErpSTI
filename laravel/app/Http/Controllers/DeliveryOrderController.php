@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\DeliveryOrder;
 use App\Models\DeliveryOrderItem;
 use App\Models\SalesOrder;
+use App\Models\ClientModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -38,7 +39,8 @@ class DeliveryOrderController extends Controller
     {
         $doNumber    = DeliveryOrder::generateDONumber();
         $salesOrders = SalesOrder::whereIn('status', ['confirmed', 'in_progress', 'completed'])->latest()->get();
-        return view('admin.delivery-orders.create', compact('doNumber', 'salesOrders'));
+        $clients     = ClientModel::all();
+        return view('admin.delivery-orders.create', compact('doNumber', 'salesOrders', 'clients'));
     }
 
     // ─── Store ───────────────────────────────────────────────────────────────
@@ -46,6 +48,7 @@ class DeliveryOrderController extends Controller
     {
         $validated = $request->validate([
             'do_number'           => 'required|string|unique:delivery_orders,do_number',
+            'client_id'           => 'nullable|exists:clients,id',
             'sales_order_id'      => 'nullable|exists:sales_orders,id',
             'so_number'           => 'nullable|string|max:255',
             'date'                => 'required|date',
@@ -64,6 +67,8 @@ class DeliveryOrderController extends Controller
             'items.*.unit'        => 'required_with:items|string|max:50',
             'items.*.qty'         => 'required_with:items|numeric|min:0',
         ]);
+
+        $validated = $this->resolveClientData($validated);
 
         DB::transaction(function () use ($validated, $request) {
             $deliveryOrder = DeliveryOrder::create($validated);
@@ -87,7 +92,8 @@ class DeliveryOrderController extends Controller
         $deliveryOrder->load('items');
         $doNumber    = $deliveryOrder->do_number;
         $salesOrders = SalesOrder::whereIn('status', ['confirmed', 'in_progress', 'completed'])->latest()->get();
-        return view('admin.delivery-orders.edit', compact('deliveryOrder', 'doNumber', 'salesOrders'));
+        $clients     = ClientModel::all();
+        return view('admin.delivery-orders.edit', compact('deliveryOrder', 'doNumber', 'salesOrders', 'clients'));
     }
 
     // ─── Update ──────────────────────────────────────────────────────────────
@@ -95,6 +101,7 @@ class DeliveryOrderController extends Controller
     {
         $validated = $request->validate([
             'do_number'           => 'required|string|unique:delivery_orders,do_number,' . $deliveryOrder->id,
+            'client_id'           => 'nullable|exists:clients,id',
             'sales_order_id'      => 'nullable|exists:sales_orders,id',
             'so_number'           => 'nullable|string|max:255',
             'date'                => 'required|date',
@@ -113,6 +120,8 @@ class DeliveryOrderController extends Controller
             'items.*.unit'        => 'required_with:items|string|max:50',
             'items.*.qty'         => 'required_with:items|numeric|min:0',
         ]);
+
+        $validated = $this->resolveClientData($validated);
 
         DB::transaction(function () use ($validated, $request, $deliveryOrder) {
             $deliveryOrder->update($validated);
@@ -176,7 +185,33 @@ class DeliveryOrderController extends Controller
         ]);
     }
 
+    // ─── AJAX: Get Client Data from master client ──────────────────────────
+    public function getClientData(ClientModel $client)
+    {
+        return response()->json([
+            'id'                => $client->id,
+            'nama_perusahaan'   => $client->nama_perusahaan,
+            'nama_kontak'       => $client->nama_kontak_perusahaan,
+            'email'             => $client->email_perusahaan,
+            'alamat_pengiriman' => $client->alamat_pengiriman_perusahaan,
+        ]);
+    }
+
     // ─── Helpers ─────────────────────────────────────────────────────────────
+    private function resolveClientData(array $data): array
+    {
+        if (!empty($data['client_id'])) {
+            $client = ClientModel::find($data['client_id']);
+            if ($client) {
+                $data['client_name']         = $data['client_name']         ?: ($client->nama_kontak_perusahaan ?: $client->nama_perusahaan);
+                $data['client_company']      = $data['client_company']      ?: $client->nama_perusahaan;
+                $data['client_email']        = $data['client_email']        ?: $client->email_perusahaan;
+                $data['destination_address'] = $data['destination_address'] ?: $client->alamat_pengiriman_perusahaan;
+            }
+        }
+        return $data;
+    }
+
     private function syncItems(DeliveryOrder $deliveryOrder, array $items): void
     {
         $deliveryOrder->items()->delete();
