@@ -49,7 +49,7 @@ $menuItems = [
         'id'    => 'menu-invoice',
         'label' => 'Invoice',
         'icon'  => 'bi bi-file-earmark-text-fill',
-        'route' => null,                      // TODO: daftarkan route
+        'route' => 'admin.invoices.index',
     ],
     // -- Tanda Terima
     [
@@ -57,7 +57,7 @@ $menuItems = [
         'id'    => 'menu-tanda-terima',
         'label' => 'Tanda Terima',
         'icon'  => 'bi bi-journal-check',
-        'route' => null,                      // TODO: daftarkan route
+        'route' => 'admin.receipts.index',
     ],
     
     // ── Laporan ────────────────────────────────────────────────────
