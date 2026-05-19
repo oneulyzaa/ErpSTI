@@ -332,8 +332,16 @@
     {{-- ═══ SUMMARY ═══ --}}
     <table class="summary-wrap">
         <tr>
-            <td class="summary-label">Subtotal</td>
+            <td class="summary-label">Subtotal Produksi</td>
             <td class="summary-value">Rp {{ number_format($invoice->subtotal, 0, ',', '.') }}</td>
+        </tr>
+        <tr>
+            <td class="summary-label">Subtotal Labor</td>
+            <td class="summary-value">Rp {{ number_format($invoice->subtotal_labor ?? 0, 0, ',', '.') }}</td>
+        </tr>
+        <tr>
+            <td class="summary-label">Subtotal</td>
+            <td class="summary-value">Rp {{ number_format($invoice->subtotal+$invoice->subtotal_labor ?? 0, 0, ',', '.') }}</td>
         </tr>
         <tr>
             <td class="summary-label">PPN ({{ number_format($invoice->tax_percentage, 0) }}%)</td>

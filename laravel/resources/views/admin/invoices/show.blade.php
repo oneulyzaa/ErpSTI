@@ -196,6 +196,14 @@
                     <span class="total-value" style="font-size:13px;">Rp {{ number_format($invoice->subtotal, 0, ',', '.') }}</span>
                 </div>
                 <div class="d-flex justify-content-between align-items-center px-3 py-2" style="border-bottom:1px solid #f1f5f9;">
+                    <span style="font-size:13px;color:#475569;">Subtotal Labor</span>
+                    <span class="total-value" style="font-size:13px;">Rp {{ number_format($invoice->subtotal_labor ?? 0, 0, ',', '.') }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center px-3 py-2" style="border-bottom:1px solid #f1f5f9;">
+                    <span style="font-size:13px;color:#475569;">Subtotal</span>
+                    <span class="total-value" style="font-size:13px;">Rp {{ number_format($invoice->subtotal+$invoice->subtotal_labor ?? 0, 0, ',', '.') }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center px-3 py-2" style="border-bottom:1px solid #f1f5f9;">
                     <span style="font-size:13px;color:#475569;">PPN ({{ $invoice->tax_percentage }}%)</span>
                     <span class="total-value" style="font-size:13px;">Rp {{ number_format($invoice->tax_amount, 0, ',', '.') }}</span>
                 </div>
