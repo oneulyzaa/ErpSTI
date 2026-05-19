@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\MasterAssetController;
 use App\Http\Controllers\Admin\MasterClientController;
 use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\ReceiptController;
+use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\DeliveryOrderController;
 use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\SalesOrderController;
@@ -74,4 +75,11 @@ Route::middleware('auth')->prefix('admin')->as('admin.')->group(function () {
     Route::get('receipts/invoice-data/{invoice}', [ReceiptController::class, 'getInvoiceData'])->name('receipts.invoice-data');
     Route::get('receipts/client-data/{client}', [ReceiptController::class, 'getClientData'])->name('receipts.client-data');
     Route::resource('receipts', ReceiptController::class);
+
+    // ─── Reports ──────────────────────────────────────────────────
+    Route::prefix('reports')->as('reports.')->group(function () {
+        Route::get('sales', [ReportController::class, 'sales'])->name('sales');
+        Route::get('sales/pdf', [ReportController::class, 'salesPdf'])->name('sales.pdf');
+        Route::get('sales/excel', [ReportController::class, 'salesExcel'])->name('sales.excel');
+    });
 });

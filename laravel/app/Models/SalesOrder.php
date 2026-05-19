@@ -65,6 +65,21 @@ class SalesOrder extends Model
         return $this->belongsTo(Quotation::class);
     }
 
+    public function productions()
+    {
+        return $this->hasMany(Production::class);
+    }
+
+    public function deliveryOrders()
+    {
+        return $this->hasMany(DeliveryOrder::class);
+    }
+
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
     public static function generateSONumber(): string
     {
         $prefix = 'SO-' . now()->format('Ym') . '-';

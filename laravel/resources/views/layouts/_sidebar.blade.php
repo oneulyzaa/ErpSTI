@@ -70,14 +70,14 @@ $menuItems = [
         'id'         => 'menu-reports',
         'label'      => 'Laporan',
         'icon'       => 'bi bi-bar-chart-line',
-        'routes'     => ['reports.*'],
+        'routes'     => ['admin.reports.*'],
         'submenu_id' => 'submenu-laporan',
         'children'   => [
             [
                 'id'    => 'menu-report-sales',
                 'label' => 'Lap. Penjualan',
                 'icon'  => 'bi bi-graph-up-arrow',
-                'route' => null,              // TODO: daftarkan route
+                'route' => 'admin.reports.sales',
             ],
             [
                 'id'    => 'menu-report-products',
