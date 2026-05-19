@@ -1,10 +1,10 @@
+{{-- create.blade.php --}}
 @extends('layouts.app')
 
 @php
-    $isEdit      = isset($invoice);
-    $action      = $isEdit ? route('admin.invoices.update', $invoice) : route('admin.invoices.store');
-    $oldItems    = old('items',  $isEdit ? $invoice->items->toArray()  : []);
-    $oldLabors   = old('labors', $isEdit ? $invoice->labors->toArray() : []);
+    $isEdit   = isset($invoice);
+    $action   = $isEdit ? route('admin.invoices.update', $invoice) : route('admin.invoices.store');
+    $oldItems = old('items', $isEdit ? $invoice->items->toArray() : []);
 @endphp
 
 @section('title', $isEdit ? 'Edit Invoice' : 'Buat Invoice Baru')
@@ -33,7 +33,6 @@
     }
     .btn-remove-row:hover { color: #ef4444; background: #fee2e2; }
     .table-section-header th { background: #1e3a5f !important; color: #fff !important; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
-    .table-section-header2 th { background: #2d5a27 !important; color: #fff !important; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
     .total-display { font-family: monospace; font-size: 15px; font-weight: 700; color: #1B5DBC; }
     .total-label { font-size: 13px; color: #475569; }
 </style>
@@ -56,6 +55,7 @@
     @if($isEdit) @method('PUT') @endif
 
     <div class="row g-3 align-items-start">
+
         {{-- ── LEFT COLUMN ── --}}
         <div class="col-12 col-xl-8 d-flex flex-column gap-3">
 
@@ -143,7 +143,7 @@
                         </div>
                     </div>
 
-                    <div class="mb-3">
+                    <div class="mb-0">
                         <label class="form-label fw-semibold" style="font-size:13px">Deskripsi</label>
                         <textarea name="description" id="description" class="form-control form-control-sm" rows="2"
                                   placeholder="Deskripsi pekerjaan...">{{ old('description', $isEdit ? $invoice->description : '') }}</textarea>
@@ -151,10 +151,10 @@
                 </div>
             </div>
 
-            {{-- ── MATERIAL ITEMS ── --}}
+            {{-- ── Produksi ITEMS ── --}}
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
-                    <span class="fw-semibold">Item Material</span>
+                    <span class="fw-semibold">Item Produksi</span>
                     <button type="button" class="btn btn-primary btn-sm d-flex align-items-center gap-1" id="btn-add-item">
                         <i class="bi bi-plus-lg"></i> Tambah Item
                     </button>
@@ -168,8 +168,8 @@
                                 <th style="min-width:120px;">Deskripsi</th>
                                 <th style="width:70px;text-align:center;">Satuan</th>
                                 <th style="width:70px;text-align:right;">Qty</th>
-                                <th style="width:110px;text-align:right;">Harga</th>
-                                <th style="width:110px;text-align:right;">Subtotal</th>
+                                <th style="width:120px;text-align:right;">Harga</th>
+                                <th style="width:120px;text-align:right;">Subtotal</th>
                                 <th style="width:36px;"></th>
                             </tr>
                         </thead>
@@ -183,57 +183,23 @@
                 </div>
             </div>
 
-            {{-- ── LABOR ITEMS ── --}}
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
-                    <span class="fw-semibold">Biaya Tenaga Kerja (Labor)</span>
-                    <button type="button" class="btn btn-success btn-sm d-flex align-items-center gap-1" id="btn-add-labor">
-                        <i class="bi bi-plus-lg"></i> Tambah Labor
-                    </button>
-                </div>
-                <div class="table-responsive">
-                    <table class="table mb-0" style="font-size:13px;">
-                        <thead>
-                            <tr class="table-section-header2">
-                                <th style="width:36px;">#</th>
-                                <th style="min-width:140px;">Nama Pekerjaan <span class="text-warning">*</span></th>
-                                <th style="width:60px;text-align:center;">MP</th>
-                                <th style="width:80px;text-align:center;">Hari</th>
-                                <th style="width:110px;text-align:right;">Rate/Hari</th>
-                                <th style="width:110px;text-align:right;">Subtotal</th>
-                                <th style="width:36px;"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="labors-tbody"></tbody>
-                    </table>
-                </div>
-                <div class="card-footer bg-white d-flex align-items-center py-2">
-                    <button type="button" class="btn btn-outline-success btn-sm" id="btn-add-labor-2">
-                        <i class="bi bi-plus-lg"></i> Tambah Labor
-                    </button>
-                </div>
-            </div>
-
         </div>{{-- end left --}}
 
         {{-- ── RIGHT COLUMN ── --}}
         <div class="col-12 col-xl-4 d-flex flex-column gap-3">
 
+            {{-- Ringkasan Keuangan --}}
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-bottom py-3">
                     <span class="fw-semibold">Ringkasan Keuangan</span>
                 </div>
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px solid #f1f5f9;">
-                        <span class="total-label">Subtotal Material</span>
+                <div class="card-body p-0">
+                    <div class="d-flex justify-content-between align-items-center px-3 py-2" style="border-bottom:1px solid #f1f5f9;">
+                        <span class="total-label">Subtotal Produksi</span>
                         <span class="total-display" id="display-subtotal">Rp 0</span>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px solid #f1f5f9;">
-                        <span class="total-label">Subtotal Labor</span>
-                        <span class="total-display" id="display-labor">Rp 0</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px solid #f1f5f9;">
-                        <span class="total-label">
+                    <div class="d-flex justify-content-between align-items-center px-3 py-2" style="border-bottom:1px solid #f1f5f9;">
+                        <span class="total-label d-flex align-items-center gap-1">
                             PPN (
                             <input type="number" name="tax_percentage" id="tax_percentage"
                                    class="form-control form-control-sm d-inline-block"
@@ -243,19 +209,20 @@
                         </span>
                         <span class="total-display" id="display-tax">Rp 0</span>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center pt-3">
-                        <span class="fw-bold" style="font-size:15px;">Total</span>
-                        <span class="total-display" style="font-size:18px;" id="display-total">Rp 0</span>
+                    <div class="d-flex justify-content-between align-items-center px-3 py-3" style="background:#f8faff;">
+                        <strong style="font-size:15px;">Total</strong>
+                        <strong class="total-display" style="font-size:17px;" id="display-total">Rp 0</strong>
                     </div>
 
                     {{-- Hidden fields --}}
-                    <input type="hidden" name="subtotal" id="input-subtotal" value="0">
-                    <input type="hidden" name="subtotal_labor" id="input-labor" value="0">
-                    <input type="hidden" name="tax_amount" id="input-tax" value="0">
-                    <input type="hidden" name="total" id="input-total" value="0">
+                    <input type="hidden" name="subtotal"      id="input-subtotal" value="0">
+                    <input type="hidden" name="subtotal_labor" id="input-labor"   value="0">
+                    <input type="hidden" name="tax_amount"    id="input-tax"      value="0">
+                    <input type="hidden" name="total"         id="input-total"    value="0">
                 </div>
             </div>
 
+            {{-- Syarat & Ketentuan --}}
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-bottom py-3">
                     <span class="fw-semibold">Syarat & Ketentuan</span>
@@ -266,6 +233,7 @@
                 </div>
             </div>
 
+            {{-- Catatan --}}
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-bottom py-3">
                     <span class="fw-semibold">Catatan</span>
@@ -276,6 +244,7 @@
                 </div>
             </div>
 
+            {{-- Actions --}}
             <div class="d-grid gap-2">
                 <button type="submit" class="btn btn-primary d-flex align-items-center justify-content-center gap-2">
                     <i class="bi bi-check-lg"></i>
@@ -292,61 +261,43 @@
 
 @push('scripts')
 <script>
-const initItems  = @json($oldItems);
-const initLabors = @json($oldLabors);
+const initItems = @json($oldItems);
 let iIdx = 0;
-let lIdx = 0;
 
-const esc = s => String(s ?? '').replace(/"/g,'"').replace(/</g,'<');
+const esc = s => String(s ?? '').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 const fmt = (n) => 'Rp ' + (n || 0).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 
 /* ══ Auto-load from Sales Order via AJAX ═══════════════════ */
-document.getElementById('sales_order_id')?.addEventListener('change', async function() {
+document.getElementById('sales_order_id')?.addEventListener('change', async function () {
     const opt = this.options[this.selectedIndex];
     if (!opt.value) return;
 
     const url = this.dataset.urlTemplate.replace('__ID__', opt.value);
-
     try {
         const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
         if (!res.ok) throw new Error('Failed to load SO data');
         const data = await res.json();
 
-        document.getElementById('so_number').value          = data.so_number || '';
-        document.getElementById('client_name').value        = data.client_name || '';
-        document.getElementById('client_company').value     = data.client_company || '';
-        document.getElementById('client_attention').value   = data.client_attention || '';
-        document.getElementById('client_cc').value          = data.client_cc || '';
-        document.getElementById('client_email').value       = data.client_email || '';
-        document.getElementById('description').value        = data.description || '';
+        document.getElementById('so_number').value        = data.so_number || '';
+        document.getElementById('client_name').value      = data.client_name || '';
+        document.getElementById('client_company').value   = data.client_company || '';
+        document.getElementById('client_attention').value = data.client_attention || '';
+        document.getElementById('client_cc').value        = data.client_cc || '';
+        document.getElementById('client_email').value     = data.client_email || '';
+        document.getElementById('description').value      = data.description || '';
 
-        // Load material items
         document.getElementById('items-tbody').innerHTML = '';
         iIdx = 0;
         if (data.items && data.items.length) {
             data.items.forEach(it => addItemRow({
-                item_name: it.item_name ?? '',
+                item_name:  it.item_name  ?? '',
                 description: it.description ?? '',
-                unit: it.unit ?? 'Unit',
-                qty: it.qty ?? 1,
+                unit:       it.unit       ?? 'Unit',
+                qty:        it.qty        ?? 1,
                 unit_price: it.unit_price ?? 0,
-                subtotal: it.subtotal ?? 0,
+                subtotal:   it.subtotal   ?? 0,
             }));
         }
-
-        // Load labor items
-        document.getElementById('labors-tbody').innerHTML = '';
-        lIdx = 0;
-        if (data.labors && data.labors.length) {
-            data.labors.forEach(lb => addLaborRow({
-                labor_name: lb.labor_name ?? '',
-                mp: lb.mp ?? 1,
-                days: lb.days ?? 0,
-                rate: lb.rate ?? 0,
-                subtotal: lb.subtotal ?? 0,
-            }));
-        }
-
         recalc();
     } catch (err) {
         console.error(err);
@@ -354,36 +305,35 @@ document.getElementById('sales_order_id')?.addEventListener('change', async func
     }
 });
 
-/* ══ Material Item rows ════════════════════════════════════ */
+/* ══ Produksi Item rows ════════════════════════════════════ */
 function createItemRow(item = {}) {
-    const idx = iIdx++;
-    const qty = parseFloat(item.qty ?? 1) || 0;
+    const idx   = iIdx++;
+    const qty   = parseFloat(item.qty   ?? 1)  || 0;
     const price = parseFloat(item.unit_price ?? 0) || 0;
-    const sub = parseFloat(item.subtotal ?? (qty * price)) || 0;
+    const sub   = parseFloat(item.subtotal   ?? (qty * price)) || 0;
 
     const tr = document.createElement('tr');
     tr.dataset.idx = idx;
     tr.innerHTML = `
         <td class="item-no" id="ino-${idx}"></td>
-        <td><input type="text"   name="items[${idx}][item_name]" class="item-input" required value="${esc(item.item_name)}" placeholder="Nama item"></td>
+        <td><input type="text"   name="items[${idx}][item_name]"   class="item-input" required value="${esc(item.item_name)}" placeholder="Nama item"></td>
         <td><input type="text"   name="items[${idx}][description]" class="item-input" value="${esc(item.description)}" placeholder="Keterangan"></td>
-        <td><input type="text"   name="items[${idx}][unit]"       class="item-input" value="${esc(item.unit ?? 'Unit')}" style="text-align:center;" required></td>
-        <td><input type="number" name="items[${idx}][qty]"        class="item-input item-qty" min="0" step="any" value="${qty}" style="text-align:right;" required></td>
-        <td><input type="number" name="items[${idx}][unit_price]" class="item-input item-price" min="0" step="any" value="${price}" style="text-align:right;" required></td>
-        <td><input type="number" name="items[${idx}][subtotal]"   class="item-input item-subtotal" min="0" step="any" value="${sub}" style="text-align:right;font-weight:600;color:#1B5DBC;" readonly></td>
+        <td><input type="text"   name="items[${idx}][unit]"        class="item-input" value="${esc(item.unit ?? 'Unit')}" style="text-align:center;" required></td>
+        <td><input type="number" name="items[${idx}][qty]"         class="item-input item-qty"   min="0" step="any" value="${qty}"   style="text-align:right;" required></td>
+        <td><input type="number" name="items[${idx}][unit_price]"  class="item-input item-price" min="0" step="any" value="${price}" style="text-align:right;" required></td>
+        <td><input type="number" name="items[${idx}][subtotal]"    class="item-input item-subtotal" min="0" step="any" value="${sub}" style="text-align:right;font-weight:600;color:#1B5DBC;" readonly></td>
         <td><button type="button" class="btn-remove-row" onclick="removeItemRow(this)"><i class="bi bi-x-lg"></i></button></td>
     `;
-    tr.querySelector('.item-qty')?.addEventListener('input', function() { calcRowSubtotal(this); recalc(); });
-    tr.querySelector('.item-price')?.addEventListener('input', function() { calcRowSubtotal(this); recalc(); });
+    tr.querySelector('.item-qty')?.addEventListener('input',   function () { calcRowSubtotal(this); recalc(); });
+    tr.querySelector('.item-price')?.addEventListener('input', function () { calcRowSubtotal(this); recalc(); });
     return tr;
 }
 
 function calcRowSubtotal(el) {
-    const tr = el.closest('tr');
-    const qty = parseFloat(tr.querySelector('.item-qty')?.value) || 0;
-    const price = parseFloat(tr.querySelector('.item-price')?.value) || 0;
-    const sub = qty * price;
-    tr.querySelector('.item-subtotal').value = sub.toFixed(2);
+    const tr    = el.closest('tr');
+    const qty   = parseFloat(tr.querySelector('.item-qty')?.value)   || 0;
+    const price = parseFloat(tr.querySelector('.item-price')?.value)  || 0;
+    tr.querySelector('.item-subtotal').value = (qty * price).toFixed(2);
 }
 
 function removeItemRow(btn) {
@@ -394,58 +344,9 @@ function removeItemRow(btn) {
 
 function addItemRow(item = {}) {
     const tbody = document.getElementById('items-tbody');
-    const tr = createItemRow(item);
+    const tr    = createItemRow(item);
     tbody.appendChild(tr);
     reorderNums('items-tbody', 'ino-');
-    recalc();
-    tr.querySelector('.item-input').focus();
-}
-
-/* ══ Labor rows ═══════════════════════════════════════════ */
-function createLaborRow(labor = {}) {
-    const idx = lIdx++;
-    const mp = parseInt(labor.mp ?? 1) || 1;
-    const days = parseFloat(labor.days ?? 0) || 0;
-    const rate = parseFloat(labor.rate ?? 0) || 0;
-    const sub = parseFloat(labor.subtotal ?? (mp * days * rate)) || 0;
-
-    const tr = document.createElement('tr');
-    tr.dataset.idx = idx;
-    tr.innerHTML = `
-        <td class="item-no" id="lno-${idx}"></td>
-        <td><input type="text"   name="labors[${idx}][labor_name]" class="item-input" required value="${esc(labor.labor_name)}" placeholder="Nama pekerjaan"></td>
-        <td><input type="number" name="labors[${idx}][mp]"   class="item-input labor-mp" min="1" step="1" value="${mp}" style="text-align:center;" required></td>
-        <td><input type="number" name="labors[${idx}][days]" class="item-input labor-days" min="0" step="any" value="${days}" style="text-align:center;" required></td>
-        <td><input type="number" name="labors[${idx}][rate]" class="item-input labor-rate" min="0" step="any" value="${rate}" style="text-align:right;" required></td>
-        <td><input type="number" name="labors[${idx}][subtotal]" class="item-input labor-subtotal" min="0" step="any" value="${sub}" style="text-align:right;font-weight:600;color:#1B5DBC;" readonly></td>
-        <td><button type="button" class="btn-remove-row" onclick="removeLaborRow(this)"><i class="bi bi-x-lg"></i></button></td>
-    `;
-    tr.querySelector('.labor-mp')?.addEventListener('input', function() { calcLaborSubtotal(this); recalc(); });
-    tr.querySelector('.labor-days')?.addEventListener('input', function() { calcLaborSubtotal(this); recalc(); });
-    tr.querySelector('.labor-rate')?.addEventListener('input', function() { calcLaborSubtotal(this); recalc(); });
-    return tr;
-}
-
-function calcLaborSubtotal(el) {
-    const tr = el.closest('tr');
-    const mp = parseInt(tr.querySelector('.labor-mp')?.value) || 0;
-    const days = parseFloat(tr.querySelector('.labor-days')?.value) || 0;
-    const rate = parseFloat(tr.querySelector('.labor-rate')?.value) || 0;
-    const sub = mp * days * rate;
-    tr.querySelector('.labor-subtotal').value = sub.toFixed(2);
-}
-
-function removeLaborRow(btn) {
-    btn.closest('tr').remove();
-    reorderNums('labors-tbody', 'lno-');
-    recalc();
-}
-
-function addLaborRow(labor = {}) {
-    const tbody = document.getElementById('labors-tbody');
-    const tr = createLaborRow(labor);
-    tbody.appendChild(tr);
-    reorderNums('labors-tbody', 'lno-');
     recalc();
     tr.querySelector('.item-input').focus();
 }
@@ -464,25 +365,18 @@ function recalc() {
         subtotal += parseFloat(tr.querySelector('.item-subtotal')?.value) || 0;
     });
 
-    let laborTotal = 0;
-    document.querySelectorAll('#labors-tbody tr').forEach(tr => {
-        laborTotal += parseFloat(tr.querySelector('.labor-subtotal')?.value) || 0;
-    });
-
-    const grandSubtotal = subtotal + laborTotal;
     const taxPct = parseFloat(document.getElementById('tax_percentage')?.value) || 0;
-    const taxAmt = grandSubtotal * (taxPct / 100);
-    const total  = grandSubtotal + taxAmt;
+    const taxAmt = subtotal * (taxPct / 100);
+    const total  = subtotal + taxAmt;
 
     document.getElementById('display-subtotal').textContent = fmt(subtotal);
-    document.getElementById('display-labor').textContent    = fmt(laborTotal);
     document.getElementById('display-tax').textContent      = fmt(taxAmt);
-    document.getElementById('display-total').textContent     = fmt(total);
+    document.getElementById('display-total').textContent    = fmt(total);
 
     document.getElementById('input-subtotal').value = subtotal.toFixed(2);
-    document.getElementById('input-labor').value    = laborTotal.toFixed(2);
+    document.getElementById('input-labor').value    = '0';
     document.getElementById('input-tax').value      = taxAmt.toFixed(2);
-    document.getElementById('input-total').value     = total.toFixed(2);
+    document.getElementById('input-total').value    = total.toFixed(2);
 }
 
 /* ══ Tax percentage change ══════════════════════════════ */
@@ -491,12 +385,9 @@ document.getElementById('tax_percentage')?.addEventListener('input', recalc);
 /* ══ Boot ═══════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
     (initItems.length ? initItems : [{}]).forEach(i => addItemRow(i));
-    (initLabors.length ? initLabors : []).forEach(l => addLaborRow(l));
 
     document.getElementById('btn-add-item').addEventListener('click',   () => addItemRow());
     document.getElementById('btn-add-item-2').addEventListener('click', () => addItemRow());
-    document.getElementById('btn-add-labor').addEventListener('click',   () => addLaborRow());
-    document.getElementById('btn-add-labor-2').addEventListener('click', () => addLaborRow());
 });
 </script>
 @endpush
