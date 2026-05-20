@@ -67,8 +67,11 @@
 
 {{-- ── Stat Cards ── --}}
 <div class="row g-3 mb-4">
+
+    {{-- Card 1: Total Penjualan → Lap. Penjualan --}}
     <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm stat-card h-100" style="background:#fff">
+        <div class="card border-0 shadow-sm stat-card h-100" style="background:#fff;cursor:pointer"
+             onclick="window.location='{{ route('admin.reports.sales') }}'">
             <div class="card-body d-flex align-items-center gap-3">
                 <div class="stat-icon" style="background:rgba(99,102,241,.18);color:#818cf8">
                     <i class="bi bi-cart-check-fill"></i>
@@ -83,8 +86,11 @@
             </div>
         </div>
     </div>
+
+    {{-- Card 2: Total Klien → Data Klien --}}
     <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm stat-card h-100" style="background:#fff">
+        <div class="card border-0 shadow-sm stat-card h-100" style="background:#fff;cursor:pointer"
+             onclick="window.location='{{ route('admin.master-clients.index') }}'">
             <div class="card-body d-flex align-items-center gap-3">
                 <div class="stat-icon" style="background:rgba(34,197,94,.18);color:#4ade80">
                     <i class="bi bi-people-fill"></i>
@@ -99,8 +105,11 @@
             </div>
         </div>
     </div>
+
+    {{-- Card 3: Penawaran Pending → Quotation --}}
     <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm stat-card h-100" style="background:#fff">
+        <div class="card border-0 shadow-sm stat-card h-100" style="background:#fff;cursor:pointer"
+             onclick="window.location='{{ route('admin.quotations.index') }}'">
             <div class="card-body d-flex align-items-center gap-3">
                 <div class="stat-icon" style="background:rgba(245,158,11,.18);color:#fbbf24">
                     <i class="bi bi-file-earmark-text-fill"></i>
@@ -115,8 +124,11 @@
             </div>
         </div>
     </div>
+
+    {{-- Card 4: Invoice Belum Lunas → Invoice --}}
     <div class="col-12 col-sm-6 col-xl-3">
-        <div class="card border-0 shadow-sm stat-card h-100" style="background:#fff">
+        <div class="card border-0 shadow-sm stat-card h-100" style="background:#fff;cursor:pointer"
+             onclick="window.location='{{ route('admin.invoices.index') }}'">
             <div class="card-body d-flex align-items-center gap-3">
                 <div class="stat-icon" style="background:rgba(34,211,238,.18);color:#22d3ee">
                     <i class="bi bi-file-earmark-richtext-fill"></i>
@@ -131,6 +143,7 @@
             </div>
         </div>
     </div>
+
 </div>
 
 {{-- ── Table + Activity ── --}}
