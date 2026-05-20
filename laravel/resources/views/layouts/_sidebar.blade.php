@@ -79,12 +79,14 @@ $menuItems = [
                 'icon'  => 'bi bi-graph-up-arrow',
                 'route' => 'admin.reports.sales',
             ],
+            /*
             [
                 'id'    => 'menu-report-products',
                 'label' => 'Lap. Produk',
                 'icon'  => 'bi bi-box-arrow-up-right',
                 'route' => null,              // TODO: daftarkan route
             ],
+            */
         ],
     ],
 
