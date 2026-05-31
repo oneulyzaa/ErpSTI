@@ -15,14 +15,24 @@
 
 @section('content')
 
+@php $canManage = auth()->user()->isGudang(); @endphp
+
 <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
         <h4 class="fw-bold mb-1">Rencana Produksi</h4>
         <p class="text-muted mb-0" style="font-size:13px">Kelola bahan baku untuk setiap produk dari Sales Order</p>
     </div>
+    {{-- Tombol Buat hanya untuk Gudang --}}
+    @if($canManage)
     <a href="{{ route('admin.productions.create') }}" class="btn btn-primary d-flex align-items-center gap-2">
         <i class="bi bi-plus-lg"></i> Buat Rencana Produksi
     </a>
+    @else
+    <span class="btn btn-secondary disabled d-flex align-items-center gap-2"
+          title="Anda hanya dapat melihat data produksi">
+        <i class="bi bi-lock-fill"></i> View Only
+    </span>
+    @endif
 </div>
 
 {{-- Filter --}}
@@ -71,9 +81,11 @@
         <i class="bi bi-gear text-muted" style="font-size:48px"></i>
         <div class="mt-3 fw-semibold text-muted">Belum ada Rencana Produksi</div>
         <div class="text-muted mb-3" style="font-size:13px">Buat rencana produksi dari Sales Order yang sudah dikonfirmasi</div>
+        @if($canManage)
         <a href="{{ route('admin.productions.create') }}" class="btn btn-primary btn-sm">
             <i class="bi bi-plus-lg"></i> Buat Rencana Produksi
         </a>
+        @endif
     </div>
     @else
     <div class="table-responsive">
@@ -110,12 +122,34 @@
                     <td>{{ $prd->date->format('d M Y') }}</td>
                     <td><span class="badge badge-{{ $s[0] }}">{{ $s[1] }}</span></td>
                     <td class="text-center table-actions">
-                        <a href="{{ route('admin.productions.show', $prd) }}" class="btn btn-info btn-sm"><i class="bi bi-eye"></i></a>
-                        <a href="{{ route('admin.productions.edit', $prd) }}" class="btn btn-primary btn-sm"><i class="bi bi-pencil"></i></a>
-                        <form action="{{ route('admin.productions.destroy', $prd) }}" method="POST" class="d-inline">
-                            @csrf @method('DELETE')
-                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Hapus Rencana Produksi ini?')"><i class="bi bi-trash"></i></button>
-                        </form>
+                        {{-- Tombol Lihat — semua role boleh --}}
+                        <a href="{{ route('admin.productions.show', $prd) }}"
+                           class="btn btn-info btn-sm" title="Lihat Detail">
+                            <i class="bi bi-eye"></i>
+                        </a>
+
+                        {{-- Tombol Edit & Hapus — hanya Gudang --}}
+                        @if($canManage)
+                            <a href="{{ route('admin.productions.edit', $prd) }}"
+                               class="btn btn-primary btn-sm" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form action="{{ route('admin.productions.destroy', $prd) }}"
+                                  method="POST" class="d-inline">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="btn btn-danger btn-sm"
+                                        title="Hapus"
+                                        onclick="return confirm('Hapus Rencana Produksi ini?')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        @else
+                            {{-- Tampilkan gembok kecil sebagai penanda read-only --}}
+                            <span class="btn btn-outline-secondary btn-sm disabled"
+                                  title="Anda tidak memiliki akses untuk mengubah data ini">
+                                <i class="bi bi-lock-fill"></i>
+                            </span>
+                        @endif
                     </td>
                 </tr>
                 @endforeach
