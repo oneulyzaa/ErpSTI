@@ -16,6 +16,7 @@
 
         .page { padding: 20px 26px 16px; }
 
+        /* ── HEADER ── */
         .header-wrap {
             width: 100%;
             border-collapse: collapse;
@@ -23,322 +24,296 @@
         }
         .header-wrap td { vertical-align: top; padding: 0; }
 
-        .logo-cell { width: 220px; }
-        .logo-cell img { width: 165px; display: block; }
+        .logo-cell { width: 55%; }
+        .logo-cell img { width: 150px; display: block; }
 
         .company-info {
-            font-size: 7.5px;
-            color: #555;
+            font-size: 9px;
+            color: #1B5DBC;
+            font-weight: bold;
             line-height: 1.65;
-            margin-top: 5px;
+            margin-top: 2px;
         }
-        .company-info a { color: #1B5DBC; text-decoration: none; }
 
-        .title-cell { text-align: right; }
+        .title-cell { text-align: right; vertical-align: middle; }
 
         .doc-title {
-            font-size: 24px;
+            font-size: 28px;
             font-weight: bold;
-            letter-spacing: 3px;
+            letter-spacing: 2px;
             color: #1B5DBC;
             text-transform: uppercase;
             line-height: 1;
-            margin-bottom: 8px;
         }
-
-        .meta-table {
-            border-collapse: collapse;
-            margin-left: auto;
-        }
-        .meta-table td {
-            border: 1px solid #c0c8d8;
-            padding: 2.5px 7px;
-            font-size: 8px;
-            white-space: nowrap;
-        }
-        .meta-label {
-            background: #e4eaf5;
-            font-weight: bold;
-            color: #333;
-            text-align: right;
-            width: 90px;
-        }
-        .meta-value {
-            background: #fff;
-            min-width: 120px;
-            font-family: 'DejaVu Sans Mono', monospace;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 1px 8px;
-            border-radius: 3px;
-            font-size: 7.5px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: .5px;
-        }
-        .status-draft     { background: #e2e8f0; color: #475569; }
-        .status-confirmed { background: #dcfce7; color: #15803d; }
-        .status-cancelled { background: #fee2e2; color: #b91c1c; }
 
         .divider {
             border: none;
-            border-top: 2.5px solid #1B5DBC;
-            margin: 7px 0 6px;
+            border-top: 1.5px solid #1B5DBC;
+            margin: 8px 0 10px;
         }
 
-        .client-block {
+        /* ── CLIENT + META ROW ── */
+        .info-wrap {
             width: 100%;
             border-collapse: collapse;
-            border: 1px solid #c8d0dc;
-            margin-bottom: 6px;
+            margin-bottom: 14px;
+            font-size: 8.5px;
         }
-        .client-block td {
+        .info-wrap td { vertical-align: top; padding: 1px 0; }
+        .info-client { width: 55%; }
+        .info-client-lbl { width: 60px; color: #333; }
+        .info-meta { text-align: left; vertical-align: top; }
+        .meta-table {
+            border-collapse: collapse;
+            font-size: 8.5px;
+        }
+        .meta-table td { padding: 1px 4px; white-space: nowrap; }
+        .meta-label { width: 75px; color: #333; }
+        .meta-value { color: #111; }
+
+        /* ── ITEM TABLE ── */
+        .item-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+            font-size: 8.5px;
+        }
+        .item-table th {
+            border: 1px solid #aaa;
             padding: 4px 8px;
-            font-size: 8.5px;
-            vertical-align: top;
+            text-align: center;
+            background: #fff;
+            font-weight: bold;
         }
+        .item-table td {
+            border: 1px solid #aaa;
+            padding: 5px 8px;
+            vertical-align: middle;
+        }
+        .col-no     { width: 30px; text-align: center; }
+        .col-desc   { text-align: left; }
+        .col-amount { width: 130px; text-align: right; }
+        .col-remark { width: 90px; text-align: center; }
 
-        .client-lbl {
-            font-size: 7px;
-            font-weight: bold;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: .5px;
-            margin-bottom: 1px;
-        }
-        .client-val {
-            font-size: 9px;
-            font-weight: bold;
-            color: #111;
-        }
-        .client-sub {
-            font-size: 8px;
-            color: #444;
-            line-height: 1.5;
-        }
-        .client-sep { border-top: 1px dotted #dde3ec; }
+        .empty-row td { height: 22px; }
 
-        .amount-box {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 10px 0;
-        }
-        .amount-box td {
-            border: 1px solid #c8d0dc;
-            padding: 8px 12px;
-        }
-        .amount-label {
-            font-size: 7.5px;
-            font-weight: bold;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: .5px;
-            background: #f0f4fc;
-            width: 140px;
-            text-align: right;
-        }
-        .amount-value {
-            font-size: 18px;
-            font-weight: bold;
-            color: #1B5DBC;
-            font-family: 'DejaVu Sans Mono', monospace;
-            text-align: right;
-        }
-
-        .payment-detail {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 6px;
-        }
-        .payment-detail td {
-            border: 1px solid #ccd3df;
-            padding: 3px 8px;
-            font-size: 8.5px;
-        }
-        .payment-detail .pd-label {
-            font-weight: bold;
-            color: #555;
-            background: #f5f7fc;
-            width: 140px;
-        }
-        .payment-detail .pd-value {
-            font-family: 'DejaVu Sans Mono', monospace;
-        }
-
-        .invoice-ref {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 6px;
-        }
-        .invoice-ref td {
-            border: 1px solid #c8d0dc;
+        /* ── TOTAL ROW ── */
+        .total-row td {
+            border: 1px solid #aaa;
             padding: 4px 8px;
             font-size: 8.5px;
         }
-        .invoice-ref .ir-label {
-            font-weight: bold;
-            color: #555;
-            background: #f0f4fc;
-            width: 140px;
-        }
-        .invoice-ref .ir-value {
-            font-family: 'DejaVu Sans Mono', monospace;
-        }
-        .invoice-ref .ir-status {
-            font-weight: bold;
-        }
 
-        .footer-note {
-            margin-top: 10px;
-            font-size: 7.5px;
-            color: #555;
-            line-height: 1.6;
-            border-top: 1px solid #dde3ec;
-            padding-top: 8px;
+        /* ── SIGNATURE (kanan saja) ── */
+        .sig-outer {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
         }
+        .sig-outer td { vertical-align: top; padding: 0; }
+        .sig-spacer { width: 40%; }
 
         .signature-wrap {
             width: 100%;
-            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        .signature-wrap th {
+            border: 1px solid #aaa;
+            padding: 4px 8px;
+            text-align: center;
+            font-size: 8.5px;
+            background: #fff;
+            font-weight: bold;
         }
         .signature-wrap td {
-            width: 50%;
-            text-align: center;
-            padding: 0 20px;
+            border: 1px solid #aaa;
+            padding: 4px 8px;
             font-size: 8.5px;
+            vertical-align: bottom;
+            text-align: center;
         }
-        .signature-line {
-            margin-top: 36px;
-            border-top: 1px solid #333;
-            width: 160px;
-            display: inline-block;
+        .signature-info td {
+            border: 1px solid #aaa;
+            padding: 4px 8px;
+            font-size: 8.5px;
+            vertical-align: bottom;
+            text-align: center;
+        }
+
+        /* ── FOOTER NOTE ── */
+        .footer-note {
+            margin-top: 10px;
+            font-size: 8px;
+            color: #333;
+            line-height: 1.7;
+        }
+
+        .page-divider {
+            border: none;
+            border-top: 1px solid #aaa;
+            margin-top: 16px;
         }
     </style>
 </head>
 <body>
-    <div class="page">
-        {{-- ═══ HEADER ═══ --}}
-        <table class="header-wrap">
-            <tr>
-                <td class="logo-cell">
-                    @if($logoBase64)
-                        <img src="{{ $logoBase64 }}" alt="Logo STI">
-                    @else
-                        <div style="font-size:18px;font-weight:bold;color:#1B5DBC;">PT. STI</div>
-                    @endif
-                    <div class="company-info">
-                        Ruko Palazo Blok AB 46, Ciantra<br>
-                        Cikarang Selatan, Bekasi 17530<br>
-                        Telp: +6221-22108157<br>
-                        <a href="mailto:marketing@stintegrator.com">marketing@stintegrator.com</a>
-                    </div>
-                </td>
-                <td class="title-cell">
-                    <div class="doc-title">TANDA TERIMA</div>
-                    <table class="meta-table">
-                        <tr><td class="meta-label">No. Tanda Terima</td><td class="meta-value">{{ $receipt->receipt_number }}</td></tr>
-                        <tr><td class="meta-label">Tanggal</td><td class="meta-value">{{ $receipt->date->format('d M Y') }}</td></tr>
-                        <tr><td class="meta-label">Status</td><td class="meta-value"><span class="status-badge status-{{ $receipt->status }}">{{ ucfirst($receipt->status) }}</span></td></tr>
-                    </table>
-                </td>
-            </tr>
-        </table>
+<div class="page">
 
-        <hr class="divider">
+    {{-- ═══ HEADER ═══ --}}
+    <table class="header-wrap">
+        <tr>
+            <td class="logo-cell">
+                @if($logoBase64)
+                    <img src="{{ $logoBase64 }}" alt="Logo STI">
+                @else
+                    <div style="font-size:18px;font-weight:bold;color:#1B5DBC;">PT. STI</div>
+                @endif
+                <div class="company-info">PT. SISTEM TEKNOLOGI INTEGRATOR</div>
+            </td>
+            <td class="title-cell">
+                <div class="doc-title">TANDA TERIMA</div>
+            </td>
+        </tr>
+    </table>
 
-        {{-- ═══ CLIENT INFO ═══ --}}
-        <table class="client-block">
+    <hr class="divider">
+
+    {{-- ═══ CLIENT + META ═══ --}}
+    <table class="info-wrap">
+        <tr>
+            <td class="info-client">
+                <table style="border-collapse:collapse;font-size:8.5px;">
+                    <tr>
+                        <td class="info-client-lbl">Kepada :</td>
+                        <td style="color:#111;">
+                            <strong>{{ $receipt->client_company }}</strong><br>
+                            @if($receipt->client_address){!! nl2br(e($receipt->client_address)) !!}<br>@endif
+                            @if($receipt->client_phone)Telp : {{ $receipt->client_phone }}@endif
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td class="info-meta">
+                <table class="meta-table">
+                    <tr>
+                        <td class="meta-label">Date</td>
+                        <td class="meta-value">{{ $receipt->date->format('d F Y') }}</td>
+                    </tr>
+                    <tr>
+                        <td class="meta-label">Receipt No</td>
+                        <td class="meta-value">{{ $receipt->receipt_number }}</td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    {{-- ═══ ITEM TABLE ═══ --}}
+    <table class="item-table">
+        <thead>
             <tr>
-                <td style="width:100%;">
-                    <div class="client-lbl">Diterima Dari</div>
-                    <div class="client-val">{{ $receipt->client_company }}</div>
-                    <div class="client-sub" style="margin-top:2px;">
-                        Kontak: {{ $receipt->client_name }}<br>
-                        @if($receipt->client_attention)Attn: {{ $receipt->client_attention }}<br>@endif
-                        @if($receipt->client_email){{ $receipt->client_email }}@endif
-                    </div>
-                </td>
+                <th class="col-no">No</th>
+                <th class="col-desc">Description</th>
+                <th class="col-amount">Amount</th>
+                <th class="col-remark">Remarks</th>
             </tr>
-            @if($receipt->description)
+        </thead>
+        <tbody>
+            @forelse($receipt->items ?? [] as $i => $item)
             <tr>
-                <td class="client-sep">
-                    <div class="client-lbl">Keterangan</div>
-                    <div class="client-sub">{{ $receipt->description }}</div>
-                </td>
+                <td class="col-no">{{ $i + 1 }}</td>
+                <td class="col-desc">{{ $item->description ?? '' }}</td>
+                <td class="col-amount">Rp &nbsp;{{ number_format($item->amount, 0, ',', '.') }}</td>
+                <td class="col-remark" style="text-align:center;">{{ $item->remarks ?? '' }}</td>
+            </tr>
+            @empty
+            @if($receipt->invoice)
+            <tr>
+                <td class="col-no">1</td>
+                <td class="col-desc">Pembayaran Inv No. {{ $receipt->invoice->invoice_number }}</td>
+                <td class="col-amount">Rp &nbsp;{{ number_format($receipt->amount, 0, ',', '.') }}</td>
+                <td class="col-remark"></td>
             </tr>
             @endif
-        </table>
+            @endforelse
 
-        {{-- ═══ AMOUNT ═══ --}}
-        <table class="amount-box">
-            <tr>
-                <td class="amount-label">Jumlah Pembayaran</td>
-                <td class="amount-value">Rp {{ number_format($receipt->amount, 0, ',', '.') }}</td>
+            {{-- baris kosong pengisi --}}
+            @php $filledRows = max(count($receipt->items ?? []), $receipt->invoice ? 1 : 0); @endphp
+            @for($e = 0; $e < max(0, 4 - $filledRows); $e++)
+            <tr class="empty-row">
+                <td></td><td></td><td></td><td></td>
             </tr>
-        </table>
-
-        {{-- ═══ PAYMENT DETAIL ═══ --}}
-        <table class="payment-detail">
-            <tr>
-                <td class="pd-label">Metode Pembayaran</td>
-                <td class="pd-value">
-                    @php
-                        $methodLabels = ['cash'=>'Cash / Tunai','transfer'=>'Transfer Bank','cheque'=>'Cek / Giro','other'=>'Lainnya'];
-                    @endphp
-                    {{ $methodLabels[$receipt->payment_method] ?? $receipt->payment_method }}
+            @endfor
+        </tbody>
+        <tfoot>
+            <tr class="total-row">
+                <td colspan="2" style="text-align:right;font-weight:bold;border:1px solid #aaa;"></td>
+                <td style="text-align:right;font-weight:bold;border:1px solid #aaa;">
+                    Rp &nbsp;{{ number_format($receipt->amount, 0, ',', '.') }}
                 </td>
+                <td style="border:1px solid #aaa;"></td>
             </tr>
-            @if($receipt->payment_reference)
-            <tr>
-                <td class="pd-label">No. Referensi</td>
-                <td class="pd-value">{{ $receipt->payment_reference }}</td>
-            </tr>
-            @endif
-        </table>
+        </tfoot>
+    </table>
 
-        {{-- ═══ INVOICE REFERENCE ═══ --}}
-        @if($receipt->invoice)
-        <table class="invoice-ref">
-            <tr>
-                <td class="ir-label">Referensi Invoice</td>
-                <td class="ir-value">{{ $receipt->invoice->invoice_number }}</td>
-            </tr>
-            <tr>
-                <td class="ir-label">Total Invoice</td>
-                <td class="ir-value">Rp {{ number_format($receipt->invoice->total, 0, ',', '.') }}</td>
-            </tr>
-            <tr>
-                <td class="ir-label">Status Invoice</td>
-                <td class="ir-value ir-status">{{ ucfirst(str_replace('_',' ',$receipt->invoice->status)) }}</td>
-            </tr>
-        </table>
-        @endif
+    {{-- ═══ SIGNATURE (rata kanan) ═══ --}}
+    <table class="sig-outer">
+        <tr>
+            <td class="sig-spacer"></td>
+            <td style="width:60%;">
+                <table class="signature-wrap">
+                    <thead>
+                        <tr>
+                            <th style="width:33%;">Send by</th>
+                            <th style="width:33%;">Received By</th>
+                            <th style="width:34%;">Payment schedule</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding:3px 8px;height:60px; border-top: 1px solid #000;">
+                            
+                            </td>
+                            <td style="padding:3px 8px; border-top: 1px solid #000;"></td>
+                            <td style="padding:3px 8px; border-top: 1px solid #000;"></td>
+                        </tr>     
+                    {{-- Baris Name --}}
+                    <tr>
+                        <td style="padding:3px 8px; border-top: 1px solid #000;"></td>
+                        <td style="padding:5px 8px; text-align:left; border-top: 1px solid #000;">
+                            Name :&nbsp;
+                        </td>
+                        <td style="padding:3px 8px; border-top: 1px solid #000;"></td>
+                    </tr>
 
-        {{-- ═══ NOTES ═══ --}}
+                    {{-- Baris Date --}}
+                    <tr>
+                        <td style="padding:3px 8px; border-top: 1px solid #000;">
+                            Anita Widya
+                        </td>
+                        <td style="padding:5px 8px; text-align:left; border-top: 1px solid #000;">
+                            Date &nbsp;:&nbsp;
+                        </td>
+                        <td style="padding:3px 8px; border-top: 1px solid #000;"></td>
+                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+
+    {{-- ═══ NOTES ═══ --}}
+    <div class="footer-note">
+        Ket :<br>
         @if($receipt->notes)
-        <div class="footer-note">
-            <strong>Catatan:</strong><br>
             {!! nl2br(e($receipt->notes)) !!}
-        </div>
+        @else
+            Mohon diisi dan di tandatangani payment schedulnya, lalu dikirim kembali melalui :<br>
+            Email : finance@stintegrator.com
         @endif
-
-        {{-- ═══ SIGNATURE ═══ --}}
-        <table class="signature-wrap">
-            <tr>
-                <td>
-                    <div>Diterima Oleh,</div>
-                    <div class="signature-line"></div>
-                    <div style="margin-top:4px;font-weight:bold;">Finance</div>
-                </td>
-                <td>
-                    <div>Mengetahui,</div>
-                    <div class="signature-line"></div>
-                    <div style="margin-top:4px;font-weight:bold;">Manager</div>
-                </td>
-            </tr>
-        </table>
     </div>
+
+    <hr class="page-divider">
+
+</div>
 </body>
 </html>

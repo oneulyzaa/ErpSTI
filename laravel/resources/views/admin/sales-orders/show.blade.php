@@ -81,6 +81,7 @@
                             @if($salesOrder->client_cc)CC: {{ $salesOrder->client_cc }}<br>@endif
                             Kontak: {{ $salesOrder->client_name }}<br>
                             @if($salesOrder->client_email){{ $salesOrder->client_email }}@endif
+                            @if($salesOrder->client_address)<br>{!! nl2br(e($salesOrder->client_address)) !!}@endif
                         </div>
                     </div>
                 </div>

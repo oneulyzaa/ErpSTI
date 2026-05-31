@@ -190,6 +190,7 @@ class SalesOrderController extends Controller
             'client_attention'  => $quotation->client_attention,
             'client_cc'         => $quotation->client_cc,
             'client_email'      => $client?->email_perusahaan ?? $quotation->client_email,
+            'client_address'    => $client?->alamat_pengiriman_perusahaan ?? $quotation->client_address,
             'description_of_work' => $quotation->description_of_work,
             'items'             => $quotation->items->toArray(),
             'labors'            => $quotation->labors->toArray(),
@@ -204,7 +205,7 @@ class SalesOrderController extends Controller
             'nama_perusahaan'   => $client->nama_perusahaan,
             'nama_kontak'       => $client->nama_kontak_perusahaan,
             'email'             => $client->email_perusahaan,
-            'alamat_pengiriman' => $client->alamat_pengiriman_perusahaan,
+            'alamat_pengiriman_perusahaan' => $client->alamat_pengiriman_perusahaan,
         ]);
     }
 
@@ -238,6 +239,7 @@ class SalesOrderController extends Controller
             'client_attention'    => 'nullable|string|max:255',
             'client_cc'           => 'nullable|string|max:255',
             'client_email'        => 'nullable|email|max:255',
+            'client_address'      => 'nullable|string|max:255',
             'description_of_work' => 'nullable|string',
             'tax_percentage'      => 'required|numeric|min:0|max:100',
             'status'              => 'required|in:draft,confirmed,in_progress,completed,cancelled',

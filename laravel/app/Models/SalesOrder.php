@@ -23,6 +23,7 @@ class SalesOrder extends Model
         'client_attention',
         'client_cc',
         'client_email',
+        'client_address',
         'description_of_work',
         'subtotal_material',
         'subtotal_labor',

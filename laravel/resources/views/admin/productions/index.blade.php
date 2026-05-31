@@ -20,9 +20,11 @@
         <h4 class="fw-bold mb-1">Rencana Produksi</h4>
         <p class="text-muted mb-0" style="font-size:13px">Kelola bahan baku untuk setiap produk dari Sales Order</p>
     </div>
+    @if(auth()->user()->role === 'gudang')  
     <a href="{{ route('admin.productions.create') }}" class="btn btn-primary d-flex align-items-center gap-2">
         <i class="bi bi-plus-lg"></i> Buat Rencana Produksi
     </a>
+    @endif
 </div>
 
 {{-- Filter --}}
@@ -111,11 +113,14 @@
                     <td><span class="badge badge-{{ $s[0] }}">{{ $s[1] }}</span></td>
                     <td class="text-center table-actions">
                         <a href="{{ route('admin.productions.show', $prd) }}" class="btn btn-info btn-sm"><i class="bi bi-eye"></i></a>
-                        <a href="{{ route('admin.productions.edit', $prd) }}" class="btn btn-primary btn-sm"><i class="bi bi-pencil"></i></a>
-                        <form action="{{ route('admin.productions.destroy', $prd) }}" method="POST" class="d-inline">
-                            @csrf @method('DELETE')
-                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Hapus Rencana Produksi ini?')"><i class="bi bi-trash"></i></button>
-                        </form>
+                        @if(auth()->user()->role === 'gudang')  
+                            <a href="{{ route('admin.productions.edit', $prd) }}" class="btn btn-primary btn-sm"><i class="bi bi-pencil"></i></a>
+                            <form action="{{ route('admin.productions.destroy', $prd) }}" method="POST" class="d-inline">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Hapus Rencana Produksi ini?')"><i class="bi bi-trash"></i></button>
+                            </form>
+                        @endif
+                        
                     </td>
                 </tr>
                 @endforeach

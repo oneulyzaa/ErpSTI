@@ -107,6 +107,11 @@
                         <span class="info-label">Email</span>
                         <div class="info-value">{{ $invoice->client_email ?: '-' }}</div>
                     </div>
+                    @if($invoice->client_address)
+                    <div class="col-12">
+                        <span class="info-label">Alamat</span>
+                        <div class="info-value" style="white-space:pre-wrap;">{{ $invoice->client_address }}</div>      
+                    </div>
                 </div>
             </div>
         </div>

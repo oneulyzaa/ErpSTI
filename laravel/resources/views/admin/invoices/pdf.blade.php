@@ -330,28 +330,55 @@
     @endif
 
     {{-- ═══ SUMMARY ═══ --}}
-    <table class="summary-wrap">
-        <tr>
-            <td class="summary-label">Subtotal Produksi</td>
-            <td class="summary-value">Rp {{ number_format($invoice->subtotal, 0, ',', '.') }}</td>
-        </tr>
-        <tr>
-            <td class="summary-label">Subtotal Labor</td>
-            <td class="summary-value">Rp {{ number_format($invoice->subtotal_labor ?? 0, 0, ',', '.') }}</td>
-        </tr>
-        <tr>
-            <td class="summary-label">Subtotal</td>
-            <td class="summary-value">Rp {{ number_format($invoice->subtotal+$invoice->subtotal_labor ?? 0, 0, ',', '.') }}</td>
-        </tr>
-        <tr>
-            <td class="summary-label">PPN ({{ number_format($invoice->tax_percentage, 0) }}%)</td>
-            <td class="summary-value">Rp {{ number_format($invoice->tax_amount, 0, ',', '.') }}</td>
-        </tr>
-        <tr class="summary-total">
-            <td>TOTAL</td>
-            <td class="summary-value">Rp {{ number_format($invoice->total, 0, ',', '.') }}</td>
-        </tr>
-    </table>
+<table style="width:100%;border-collapse:collapse;margin-top:8px;">
+    <tr>
+        {{-- ── INFO BANK (kiri) ── --}}
+        <td style="vertical-align:bottom;padding-right:12px;">
+            <div style="font-size:7px;font-weight:bold;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">Informasi Pembayaran</div>
+            <table style="border-collapse:collapse;border:1px solid #c8d0dc;font-size:8.5px;">
+                <tr>
+                    <td style="padding:3px 8px;background:#f0f4fc;font-weight:bold;color:#444;white-space:nowrap;">Nama Bank</td>
+                    <td style="padding:3px 8px;border-left:1px solid #c8d0dc;">Bank Mandiri</td>
+                </tr>
+                <tr>
+                    <td style="padding:3px 8px;background:#f0f4fc;font-weight:bold;color:#444;border-top:1px solid #c8d0dc;white-space:nowrap;">No. Rekening</td>
+                    <td style="padding:3px 8px;border-left:1px solid #c8d0dc;border-top:1px solid #c8d0dc;font-family:'DejaVu Sans Mono',monospace;">12345678</td>
+                </tr>
+                <tr>
+                    <td style="padding:3px 8px;background:#f0f4fc;font-weight:bold;color:#444;border-top:1px solid #c8d0dc;white-space:nowrap;">A.N.</td>
+                    <td style="padding:3px 8px;border-left:1px solid #c8d0dc;border-top:1px solid #c8d0dc;">Sistem Teknologi Integrator</td>
+                </tr>
+            </table>
+        </td>
+
+        {{-- ── SUMMARY (kanan) ── --}}
+        <td style="vertical-align:bottom;width:260px;">
+            <table class="summary-wrap" style="margin-top:0;width:100%;">
+                <tr>
+                    <td class="summary-label">Subtotal Produksi</td>
+                    <td class="summary-value">Rp {{ number_format($invoice->subtotal, 0, ',', '.') }}</td>
+                </tr>
+                <tr>
+                    <td class="summary-label">Subtotal Labor</td>
+                    <td class="summary-value">Rp {{ number_format($invoice->subtotal_labor ?? 0, 0, ',', '.') }}</td>
+                </tr>
+                <tr>
+                    <td class="summary-label">Subtotal</td>
+                    <td class="summary-value">Rp {{ number_format($invoice->subtotal+$invoice->subtotal_labor ?? 0, 0, ',', '.') }}</td>
+                </tr>
+                <tr>
+                    <td class="summary-label">PPN ({{ number_format($invoice->tax_percentage, 0) }}%)</td>
+                    <td class="summary-value">Rp {{ number_format($invoice->tax_amount, 0, ',', '.') }}</td>
+                </tr>
+                <tr class="summary-total">
+                    <td>TOTAL</td>
+                    <td class="summary-value">Rp {{ number_format($invoice->total, 0, ',', '.') }}</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+    
 
     {{-- ═══ TERMS & CONDITIONS ═══ --}}
     @if($invoice->term_and_condition)

@@ -143,7 +143,12 @@
                         </div>
                     </div>
 
-                    <div class="mb-3">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" style="font-size:13px">Alamat</label>
+                            <textarea name="client_address" id="client_address" class="form-control form-control-sm" rows="2"
+                                    placeholder="Alamat pelanggan...">{{ old('client_address', $isEdit ? $invoice->client_address : '') }}</textarea>
+                    </div>
+                     <div class="mb-3">
                         <label class="form-label fw-semibold" style="font-size:13px">Deskripsi</label>
                         <textarea name="description" id="description" class="form-control form-control-sm" rows="2"
                                   placeholder="Deskripsi pekerjaan...">{{ old('description', $isEdit ? $invoice->description : '') }}</textarea>
@@ -318,6 +323,7 @@ document.getElementById('sales_order_id')?.addEventListener('change', async func
         document.getElementById('client_attention').value   = data.client_attention || '';
         document.getElementById('client_cc').value          = data.client_cc || '';
         document.getElementById('client_email').value       = data.client_email || '';
+        document.getElementById('client_address').value     = data.client_address || '';
         document.getElementById('description').value        = data.description || '';
 
         // Load material items

@@ -20,6 +20,7 @@ class Invoice extends Model
         'client_attention',
         'client_cc',
         'client_email',
+        'client_address',
         'description',
         'subtotal',
         'subtotal_labor',

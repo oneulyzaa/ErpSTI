@@ -182,7 +182,11 @@
                                    value="{{ old('customer_id', $isEdit ? $salesOrder->customer_id : '') }}">
                         </div>
                     </div>
-
+                    <div>
+                        <label class="form-label fw-semibold" style="font-size:13px">Alamat</label>
+                        <textarea name="client_address" id="client_address" class="form-control form-control-sm" rows="2"
+                                  placeholder="Alamat klien...">{{ old('client_address', $isEdit ? $salesOrder->client_address : ($copyQuote ? $quotation->client_address : '')) }}</textarea>
+                    </div>
                     <div>
                         <label class="form-label fw-semibold" style="font-size:13px">Description of Work</label>
                         <textarea name="description_of_work" id="description_of_work" class="form-control form-control-sm" rows="2"
@@ -358,6 +362,7 @@ document.getElementById('client-select')?.addEventListener('change', async funct
         document.getElementById('client_company').value = data.nama_perusahaan || '';
         document.getElementById('client_name').value    = data.nama_kontak || '';
         document.getElementById('client_email').value   = data.email || '';
+        document.getElementById('client_address').value = data.alamat_pengiriman_perusahaan || '';
     } catch (err) {
         console.error(err);
     }

@@ -295,6 +295,7 @@
                         @if($salesOrder->client_attention)Attn: {{ $salesOrder->client_attention }}<br>@endif
                         @if($salesOrder->client_cc)CC: {{ $salesOrder->client_cc }}<br>@endif
                         @if($salesOrder->client_email){{ $salesOrder->client_email }}@endif
+                        @if($salesOrder->client_address)<br>{!! nl2br(e($salesOrder->client_address)) !!}@endif
                     </div>
                 </td>
                 <td style="width:50%;">
@@ -445,12 +446,12 @@
                 <td>
                     <div>Dibuat Oleh,</div>
                     <div class="signature-line"></div>
-                    <div style="margin-top:4px;font-weight:bold;">Marketing</div>
+                    <div style="margin-top:4px;font-weight:bold;">Staf Penjualan</div>
                 </td>
                 <td>
                     <div>Disetujui Oleh,</div>
                     <div class="signature-line"></div>
-                    <div style="margin-top:4px;font-weight:bold;">Manager</div>
+                    <div style="margin-top:4px;font-weight:bold;">Direktur</div>
                 </td>
             </tr>
         </table>
