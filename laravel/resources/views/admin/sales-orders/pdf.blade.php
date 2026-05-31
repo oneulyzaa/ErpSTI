@@ -445,12 +445,12 @@
                 <td>
                     <div>Dibuat Oleh,</div>
                     <div class="signature-line"></div>
-                    <div style="margin-top:4px;font-weight:bold;">Admin</div>
+                    <div style="margin-top:4px;font-weight:bold;">Marketing</div>
                 </td>
                 <td>
                     <div>Disetujui Oleh,</div>
                     <div class="signature-line"></div>
-                    <div style="margin-top:4px;font-weight:bold;">Direktur</div>
+                    <div style="margin-top:4px;font-weight:bold;">Manager</div>
                 </td>
             </tr>
         </table>

@@ -14,24 +14,14 @@
 
 @section('content')
 
-@php $canManage = auth()->user()->isFinance(); @endphp
-
 <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
         <h4 class="fw-bold mb-1">Tanda Terima Pembayaran</h4>
         <p class="text-muted mb-0" style="font-size:13px">Kelola semua tanda terima pembayaran</p>
     </div>
-    {{-- Tombol Buat hanya untuk Finance --}}
-    @if($canManage)
     <a href="{{ route('admin.receipts.create') }}" class="btn btn-primary d-flex align-items-center gap-2">
         <i class="bi bi-plus-lg"></i> Buat Tanda Terima
     </a>
-    @else
-    <span class="btn btn-secondary disabled d-flex align-items-center gap-2"
-          title="Anda hanya dapat melihat data tanda terima">
-        <i class="bi bi-lock-fill"></i> View Only
-    </span>
-    @endif
 </div>
 
 {{-- Filter --}}
@@ -80,11 +70,9 @@
         <i class="bi bi-journal-check text-muted" style="font-size:48px"></i>
         <div class="mt-3 fw-semibold text-muted">Belum ada Tanda Terima</div>
         <div class="text-muted mb-3" style="font-size:13px">Mulai buat Tanda Terima pertama</div>
-        @if($canManage)
         <a href="{{ route('admin.receipts.create') }}" class="btn btn-primary btn-sm">
             <i class="bi bi-plus-lg"></i> Buat Tanda Terima
         </a>
-        @endif
     </div>
     @else
     <div class="table-responsive">
@@ -125,38 +113,13 @@
                     <td>{{ $methodLabels[$r->payment_method] ?? $r->payment_method }}</td>
                     <td><span class="badge badge-{{ $s[0] }}">{{ $s[1] }}</span></td>
                     <td class="text-center table-actions">
-                        {{-- PDF & Lihat — semua role boleh --}}
-                        <a href="{{ route('admin.receipts.pdf', $r) }}"
-                           class="btn btn-danger btn-sm" target="_blank" title="Cetak PDF">
-                            <i class="bi bi-file-pdf"></i>
-                        </a>
-                        <a href="{{ route('admin.receipts.show', $r) }}"
-                           class="btn btn-info btn-sm" title="Lihat Detail">
-                            <i class="bi bi-eye"></i>
-                        </a>
-
-                        {{-- Edit & Hapus — hanya Finance --}}
-                        @if($canManage)
-                            <a href="{{ route('admin.receipts.edit', $r) }}"
-                               class="btn btn-primary btn-sm" title="Edit">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            <form action="{{ route('admin.receipts.destroy', $r) }}"
-                                  method="POST" class="d-inline">
-                                @csrf @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-sm"
-                                        title="Hapus"
-                                        onclick="return confirm('Hapus Tanda Terima ini?')">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
-                        @else
-                            {{-- Gembok kecil penanda read-only --}}
-                            <span class="btn btn-outline-secondary btn-sm disabled"
-                                  title="Anda tidak memiliki akses untuk mengubah data ini">
-                                <i class="bi bi-lock-fill"></i>
-                            </span>
-                        @endif
+                        <a href="{{ route('admin.receipts.pdf', $r) }}" class="btn btn-danger btn-sm" target="_blank" title="Cetak PDF"><i class="bi bi-file-pdf"></i></a>
+                        <a href="{{ route('admin.receipts.show', $r) }}" class="btn btn-info btn-sm"><i class="bi bi-eye"></i></a>
+                        <a href="{{ route('admin.receipts.edit', $r) }}" class="btn btn-primary btn-sm"><i class="bi bi-pencil"></i></a>
+                        <form action="{{ route('admin.receipts.destroy', $r) }}" method="POST" class="d-inline">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Hapus Tanda Terima ini?')"><i class="bi bi-trash"></i></button>
+                        </form>
                     </td>
                 </tr>
                 @endforeach
