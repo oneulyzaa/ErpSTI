@@ -77,11 +77,21 @@
                     <i class="bi bi-cart-check-fill"></i>
                 </div>
                 <div>
-                    <div class="fw-bold text-dark" style="font-size:22px;letter-spacing:-.02em">Rp 48,5 Jt</div>
+                    <div class="fw-bold text-dark" style="font-size:22px;letter-spacing:-.02em">{{ $stats['total_penjualan_formatted'] }}</div>
                     <div class="text-secondary" style="font-size:12px">Total Penjualan Bulan Ini</div>
-                    <div class="text-success d-flex align-items-center gap-1 mt-1" style="font-size:11px;font-weight:600">
-                        <i class="bi bi-arrow-up-short"></i> +12% dari bulan lalu
-                    </div>
+                    @if($stats['persentase_perubahan'] > 0)
+                        <div class="text-success d-flex align-items-center gap-1 mt-1" style="font-size:11px;font-weight:600">
+                            <i class="bi bi-arrow-up-short"></i> +{{ $stats['persentase_perubahan'] }}% dari bulan lalu
+                        </div>
+                    @elseif($stats['persentase_perubahan'] < 0)
+                        <div class="text-danger d-flex align-items-center gap-1 mt-1" style="font-size:11px;font-weight:600">
+                            <i class="bi bi-arrow-down-short"></i> {{ $stats['persentase_perubahan'] }}% dari bulan lalu
+                        </div>
+                    @else
+                        <div class="text-secondary d-flex align-items-center gap-1 mt-1" style="font-size:11px;font-weight:600">
+                            <i class="bi bi-dash"></i> Sama dengan bulan lalu
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -96,10 +106,10 @@
                     <i class="bi bi-people-fill"></i>
                 </div>
                 <div>
-                    <div class="fw-bold text-dark" style="font-size:22px;letter-spacing:-.02em">128</div>
+                    <div class="fw-bold text-dark" style="font-size:22px;letter-spacing:-.02em">{{ $stats['total_klien'] }}</div>
                     <div class="text-secondary" style="font-size:12px">Total Klien Aktif</div>
                     <div class="text-success d-flex align-items-center gap-1 mt-1" style="font-size:11px;font-weight:600">
-                        <i class="bi bi-arrow-up-short"></i> +5 klien baru
+                        <i class="bi bi-arrow-up-short"></i> +{{ $stats['klien_baru'] }} klien baru
                     </div>
                 </div>
             </div>
@@ -115,10 +125,10 @@
                     <i class="bi bi-file-earmark-text-fill"></i>
                 </div>
                 <div>
-                    <div class="fw-bold text-dark" style="font-size:22px;letter-spacing:-.02em">24</div>
+                    <div class="fw-bold text-dark" style="font-size:22px;letter-spacing:-.02em">{{ $stats['penawaran_pending'] }}</div>
                     <div class="text-secondary" style="font-size:12px">Penawaran Pending</div>
                     <div class="text-warning d-flex align-items-center gap-1 mt-1" style="font-size:11px;font-weight:600">
-                        <i class="bi bi-arrow-down-short"></i> 8 menunggu approval
+                        <i class="bi bi-clock-fill"></i> Menunggu approval
                     </div>
                 </div>
             </div>
@@ -134,10 +144,10 @@
                     <i class="bi bi-file-earmark-richtext-fill"></i>
                 </div>
                 <div>
-                    <div class="fw-bold text-dark" style="font-size:22px;letter-spacing:-.02em">15</div>
+                    <div class="fw-bold text-dark" style="font-size:22px;letter-spacing:-.02em">{{ $stats['invoice_belum_lunas'] }}</div>
                     <div class="text-secondary" style="font-size:12px">Invoice Belum Lunas</div>
                     <div class="text-danger d-flex align-items-center gap-1 mt-1" style="font-size:11px;font-weight:600">
-                        <i class="bi bi-arrow-down-short"></i> Rp 12,3 Jt outstanding
+                        <i class="bi bi-arrow-down-short"></i> {{ $stats['invoice_outstanding_formatted'] }} outstanding
                     </div>
                 </div>
             </div>
@@ -186,46 +196,44 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @forelse($penjualanTerbaru as $index => $so)
                             <tr>
-                                <td class="ps-3 text-secondary">1</td>
-                                <td><span class="fw-semibold text-primary">#SO-2024-001</span></td>
-                                <td>PT. Maju Bersama</td>
-                                <td class="fw-semibold">Rp 5.500.000</td>
-                                <td><span class="badge rounded-pill text-bg-success"><i class="bi bi-check-circle-fill me-1"></i>Selesai</span></td>
-                                <td class="pe-3 text-secondary">25 Apr 2026</td>
+                                <td class="ps-3 text-secondary">{{ $index + 1 }}</td>
+                                <td><span class="fw-semibold text-primary">#{{ $so->so_number }}</span></td>
+                                <td>{{ $so->client_name ?? $so->client?->nama_perusahaan ?? '-' }}</td>
+                                <td class="fw-semibold">Rp {{ number_format($so->total, 0, ',', '.') }}</td>
+                                <td>
+                                    @php
+                                        $statusClass = match($so->status) {
+                                            'completed', 'selesai' => 'success',
+                                            'cancelled', 'batal' => 'danger',
+                                            'invoiced' => 'primary',
+                                            default => 'warning',
+                                        };
+                                        $statusLabel = match($so->status) {
+                                            'completed', 'selesai' => 'Selesai',
+                                            'cancelled', 'batal' => 'Batal',
+                                            'invoiced' => 'Invoice',
+                                            default => 'Proses',
+                                        };
+                                        $statusIcon = match($so->status) {
+                                            'completed', 'selesai' => 'bi-check-circle-fill',
+                                            'cancelled', 'batal' => 'bi-x-circle-fill',
+                                            'invoiced' => 'bi-file-earmark-check-fill',
+                                            default => 'bi-clock-fill',
+                                        };
+                                    @endphp
+                                    <span class="badge rounded-pill text-bg-{{ $statusClass }}">
+                                        <i class="bi {{ $statusIcon }} me-1"></i>{{ $statusLabel }}
+                                    </span>
+                                </td>
+                                <td class="pe-3 text-secondary">{{ $so->date?->format('d M Y') ?? '-' }}</td>
                             </tr>
+                            @empty
                             <tr>
-                                <td class="ps-3 text-secondary">2</td>
-                                <td><span class="fw-semibold text-primary">#SO-2024-002</span></td>
-                                <td>CV. Sukses Jaya</td>
-                                <td class="fw-semibold">Rp 3.200.000</td>
-                                <td><span class="badge rounded-pill text-bg-warning"><i class="bi bi-clock-fill me-1"></i>Proses</span></td>
-                                <td class="pe-3 text-secondary">24 Apr 2026</td>
+                                <td colspan="6" class="text-center text-secondary py-4">Belum ada data penjualan</td>
                             </tr>
-                            <tr>
-                                <td class="ps-3 text-secondary">3</td>
-                                <td><span class="fw-semibold text-primary">#SO-2024-003</span></td>
-                                <td>PT. Teknologi Nusantara</td>
-                                <td class="fw-semibold">Rp 8.750.000</td>
-                                <td><span class="badge rounded-pill text-bg-success"><i class="bi bi-check-circle-fill me-1"></i>Selesai</span></td>
-                                <td class="pe-3 text-secondary">23 Apr 2026</td>
-                            </tr>
-                            <tr>
-                                <td class="ps-3 text-secondary">4</td>
-                                <td><span class="fw-semibold text-primary">#SO-2024-004</span></td>
-                                <td>UD. Karya Mandiri</td>
-                                <td class="fw-semibold">Rp 1.800.000</td>
-                                <td><span class="badge rounded-pill text-bg-danger"><i class="bi bi-x-circle-fill me-1"></i>Batal</span></td>
-                                <td class="pe-3 text-secondary">22 Apr 2026</td>
-                            </tr>
-                            <tr>
-                                <td class="ps-3 text-secondary">5</td>
-                                <td><span class="fw-semibold text-primary">#SO-2024-005</span></td>
-                                <td>PT. Globalindo Raya</td>
-                                <td class="fw-semibold">Rp 12.400.000</td>
-                                <td><span class="badge rounded-pill text-bg-primary"><i class="bi bi-file-earmark-check-fill me-1"></i>Invoice</span></td>
-                                <td class="pe-3 text-secondary">21 Apr 2026</td>
-                            </tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
@@ -239,13 +247,19 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
     const ctx = document.getElementById('salesLineChart').getContext('2d');
+    const salesLabels = @json($salesChartData['labels']);
+    const salesData = @json($salesChartData['data']);
+    
+    // Convert data to millions for display
+    const dataInMillions = salesData.map(val => parseFloat((val / 1000000).toFixed(2)));
+    
     new Chart(ctx, {
         type: 'line',
         data: {
-            labels: ['Nov', 'Des', 'Jan', 'Feb', 'Mar', 'Apr'],
+            labels: salesLabels,
             datasets: [{
                 label: 'Penjualan (Juta)',
-                data: [32, 45, 28, 38, 41, 48],
+                data: dataInMillions,
                 borderColor: '#6366f1',
                 backgroundColor: 'rgba(99,102,241,0.08)',
                 borderWidth: 2.5,
