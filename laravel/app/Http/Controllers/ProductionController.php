@@ -22,9 +22,9 @@ class ProductionController extends Controller
             $s = $request->search;
             $query->where(function ($q) use ($s) {
                 $q->where('production_number', 'like', "%$s%")
-                  ->orWhere('so_number', 'like', "%$s%")
-                  ->orWhere('project_name', 'like', "%$s%")
-                  ->orWhere('client_company', 'like', "%$s%");
+                    ->orWhere('so_number', 'like', "%$s%")
+                    ->orWhere('project_name', 'like', "%$s%")
+                    ->orWhere('client_company', 'like', "%$s%");
             });
         }
         if ($request->filled('status')) {
@@ -39,17 +39,20 @@ class ProductionController extends Controller
     public function create(Request $request)
     {
         $productionNumber = Production::generateProductionNumber();
-        $salesOrders      = SalesOrder::with(['items', 'labors'])
+        $salesOrders = SalesOrder::with(['items.materials', 'labors'])
             ->whereIn('status', ['confirmed', 'in_progress', 'completed'])
             ->latest()
             ->get();
 
-        $assets   = AsetModel::all();
-        $soId     = $request->input('sales_order_id');
-        $selected = $soId ? SalesOrder::with(['items', 'labors'])->find($soId) : null;
+        $assets = AsetModel::all();
+        $soId = $request->input('sales_order_id');
+        $selected = $soId ? SalesOrder::with(['items.materials', 'labors'])->find($soId) : null;
 
         return view('admin.productions.create', compact(
-            'productionNumber', 'salesOrders', 'assets', 'selected'
+            'productionNumber',
+            'salesOrders',
+            'assets',
+            'selected'
         ));
     }
 
@@ -74,34 +77,37 @@ class ProductionController extends Controller
         return view('admin.productions.show', compact('production'));
     }
 
-    // ─── Edit ─────────────────────────────────────────────────────────────────
+    // ─── Edit (status only) ───────────────────────────────────────────────────
     public function edit(Production $production)
     {
-        $production->load(['items.materials']);
-        $productionNumber = $production->production_number;
-        $salesOrders      = SalesOrder::with(['items', 'labors'])
-            ->whereIn('status', ['confirmed', 'in_progress', 'completed'])
-            ->latest()
-            ->get();
-        $assets = AsetModel::all();
-
-        return view('admin.productions.create', compact(
-            'production', 'productionNumber', 'salesOrders', 'assets'
-        ));
+        return view('admin.productions.edit', compact('production'));
     }
 
-    // ─── Update ───────────────────────────────────────────────────────────────
+    // ─── Update Status Only ───────────────────────────────────────────────────
     public function update(Request $request, Production $production)
     {
-        $validated = $this->validateProduction($request, $production->id);
+        $validated = $request->validate([
+            'status' => 'required|in:planned,in_progress,completed,cancelled',
+            'notes' => 'nullable|string',
+        ]);
 
-        DB::transaction(function () use ($validated, $request, $production) {
+        DB::transaction(function () use ($production, $validated) {
             $production->update($validated);
-            $this->syncItems($production, $request->items ?? []);
+
+            // Cascade status to all child production items
+            $itemStatus = match ($validated['status']) {
+                'planned' => 'pending',
+                'in_progress' => 'in_progress',
+                'completed' => 'completed',
+                'cancelled' => 'completed',
+                default => 'pending',
+            };
+
+            $production->items()->update(['status' => $itemStatus]);
         });
 
         return redirect()->route('admin.productions.index')
-            ->with('success', 'Rencana Produksi berhasil diperbarui.');
+            ->with('success', 'Status produksi berhasil diperbarui.');
     }
 
     // ─── Delete ───────────────────────────────────────────────────────────────
@@ -136,12 +142,12 @@ class ProductionController extends Controller
     // ─── AJAX: get Sales Order items for auto-fill ───────────────────────────
     public function getSoItems(SalesOrder $salesOrder)
     {
-        $salesOrder->load(['items', 'labors']);
+        $salesOrder->load(['items.materials', 'labors']);
 
         return response()->json([
-            'project_name'   => $salesOrder->project_name,
+            'project_name' => $salesOrder->project_name,
             'client_company' => $salesOrder->client_company,
-            'items'          => $salesOrder->items->toArray(),
+            'items' => $salesOrder->items->toArray(),
         ]);
     }
 
@@ -150,23 +156,23 @@ class ProductionController extends Controller
     {
         return $request->validate([
             'production_number' => 'required|string|unique:productions,production_number' . ($ignoreId ? ",$ignoreId" : ''),
-            'sales_order_id'    => 'required|exists:sales_orders,id',
-            'so_number'         => 'nullable|string|max:255',
-            'project_name'      => 'nullable|string|max:255',
-            'client_company'    => 'nullable|string|max:255',
-            'date'              => 'required|date',
-            'target_date'       => 'nullable|date|after_or_equal:date',
-            'status'            => 'required|in:planned,in_progress,completed,cancelled',
-            'notes'             => 'nullable|string',
-            'items'             => 'nullable|array',
+            'sales_order_id' => 'required|exists:sales_orders,id',
+            'so_number' => 'nullable|string|max:255',
+            'project_name' => 'nullable|string|max:255',
+            'client_company' => 'nullable|string|max:255',
+            'date' => 'required|date',
+            'target_date' => 'nullable|date|after_or_equal:date',
+            'status' => 'required|in:planned,in_progress,completed,cancelled',
+            'notes' => 'nullable|string',
+            'items' => 'nullable|array',
             'items.*.product_name' => 'required_with:items|string|max:255',
-            'items.*.product_qty'  => 'required_with:items|numeric|min:0',
-            'items.*.unit'         => 'required_with:items|string|max:50',
-            'items.*.materials'               => 'nullable|array',
-            'items.*.materials.*.asset_id'    => 'nullable|exists:assets,id',
+            'items.*.product_qty' => 'required_with:items|numeric|min:0',
+            'items.*.unit' => 'required_with:items|string|max:50',
+            'items.*.materials' => 'nullable|array',
+            'items.*.materials.*.asset_id' => 'nullable|exists:assets,id',
             'items.*.materials.*.nama_bahan_baku' => 'required_with:items.*.materials|string|max:255',
-            'items.*.materials.*.qty_required'=> 'required_with:items.*.materials|numeric|min:0',
-            'items.*.materials.*.satuan'      => 'required_with:items.*.materials|string|max:50',
+            'items.*.materials.*.qty_required' => 'required_with:items.*.materials|numeric|min:0',
+            'items.*.materials.*.satuan' => 'required_with:items.*.materials|string|max:50',
         ]);
     }
 
@@ -176,28 +182,30 @@ class ProductionController extends Controller
         $production->items()->delete();
 
         foreach ($items as $i => $item) {
-            if (empty($item['product_name'])) continue;
+            if (empty($item['product_name']))
+                continue;
 
             $prodItem = ProductionItem::create([
-                'production_id'       => $production->id,
+                'production_id' => $production->id,
                 'sales_order_item_id' => $item['sales_order_item_id'] ?? null,
-                'product_name'        => $item['product_name'],
-                'product_qty'         => $item['product_qty'] ?? 1,
-                'unit'                => $item['unit'] ?? 'Unit',
-                'status'              => $item['status'] ?? 'pending',
-                'sort_order'          => $i + 1,
+                'product_name' => $item['product_name'],
+                'product_qty' => $item['product_qty'] ?? 1,
+                'unit' => $item['unit'] ?? 'Unit',
+                'status' => $item['status'] ?? 'pending',
+                'sort_order' => $i + 1,
             ]);
 
             // Sync materials for this product
             $materials = $item['materials'] ?? [];
             foreach ($materials as $m => $mat) {
-                if (empty($mat['nama_bahan_baku'])) continue;
+                if (empty($mat['nama_bahan_baku']))
+                    continue;
                 ProductionMaterial::create([
                     'production_item_id' => $prodItem->id,
-                    'asset_id'           => $mat['asset_id'] ?? null,
-                    'nama_bahan_baku'    => $mat['nama_bahan_baku'],
-                    'qty_required'       => $mat['qty_required'] ?? 0,
-                    'satuan'             => $mat['satuan'] ?? 'pcs',
+                    'asset_id' => $mat['asset_id'] ?? null,
+                    'nama_bahan_baku' => $mat['nama_bahan_baku'],
+                    'qty_required' => $mat['qty_required'] ?? 0,
+                    'satuan' => $mat['satuan'] ?? 'pcs',
                 ]);
             }
         }

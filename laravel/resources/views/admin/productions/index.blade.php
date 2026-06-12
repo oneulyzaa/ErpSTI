@@ -112,15 +112,13 @@
                     <td>{{ $prd->date->format('d M Y') }}</td>
                     <td><span class="badge badge-{{ $s[0] }}">{{ $s[1] }}</span></td>
                     <td class="text-center table-actions">
-                        <a href="{{ route('admin.productions.show', $prd) }}" class="btn btn-info btn-sm"><i class="bi bi-eye"></i></a>
-                        @if(auth()->user()->role === 'gudang')  
-                            <a href="{{ route('admin.productions.edit', $prd) }}" class="btn btn-primary btn-sm"><i class="bi bi-pencil"></i></a>
-                            <form action="{{ route('admin.productions.destroy', $prd) }}" method="POST" class="d-inline">
-                                @csrf @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Hapus Rencana Produksi ini?')"><i class="bi bi-trash"></i></button>
-                            </form>
-                        @endif
-                        
+                        <a href="{{ route('admin.productions.show', $prd) }}" class="btn btn-info btn-sm" title="Lihat"><i class="bi bi-eye"></i></a>
+                        <a href="{{ route('admin.productions.edit', $prd) }}" class="btn btn-warning btn-sm" title="Update Status"><i class="bi bi-pencil"></i></a>
+                        <a href="{{ route('admin.productions.pdf', $prd) }}" class="btn btn-success btn-sm" target="_blank" title="Cetak PDF"><i class="bi bi-file-earmark-pdf"></i></a>
+                        <form action="{{ route('admin.productions.destroy', $prd) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus Rencana Produksi ini?')">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="btn btn-danger btn-sm" title="Hapus"><i class="bi bi-trash"></i></button>
+                        </form>
                     </td>
                 </tr>
                 @endforeach

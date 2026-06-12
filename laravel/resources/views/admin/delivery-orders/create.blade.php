@@ -32,6 +32,39 @@
     }
     .btn-remove-row:hover { color: #ef4444; background: #fee2e2; }
     .table-section-header th { background: #1e3a5f !important; color: #fff !important; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
+    .product-card {
+        background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;
+        margin-bottom: 12px; overflow: hidden;
+    }
+    .product-card-header {
+        background: #f8fafc; padding: 10px 14px;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex; align-items: center; gap: 10px;
+    }
+    .product-card-header .card-num {
+        font-family: monospace; font-weight: 700; font-size: 13px; color: #1B5DBC;
+        background: #dbeafe; border-radius: 4px; padding: 2px 8px; min-width: 32px; text-align: center;
+    }
+    .product-card-body { padding: 12px 14px; }
+    .material-row { background: #f9fafb; font-size: 12px; }
+    .material-row td { padding: 4px 8px !important; }
+    .mat-input-sm {
+        border: 1px solid #e2e8f0; border-radius: 4px;
+        padding: 3px 6px; font-size: 12px; width: 100%;
+        background: #fff; font-family: inherit; outline: none;
+    }
+    .mat-input-sm:focus { border-color: #1B5DBC; box-shadow: 0 0 0 2px rgba(27,93,188,.10); }
+    .btn-add-mat {
+        background: none; border: 1px dashed #cbd5e1; color: #64748b;
+        cursor: pointer; padding: 3px 10px; border-radius: 5px;
+        font-size: 11px; transition: all .15s;
+    }
+    .btn-add-mat:hover { border-color: #1B5DBC; color: #1B5DBC; background: #f0f6ff; }
+    .btn-remove-mat {
+        background: none; border: none; color: #cbd5e1; cursor: pointer;
+        padding: 2px 4px; border-radius: 4px; font-size: 12px;
+    }
+    .btn-remove-mat:hover { color: #ef4444; background: #fee2e2; }
 </style>
 @endpush
 
@@ -174,7 +207,7 @@
                 </div>
             </div>
 
-            {{-- ── ITEMS ── --}}
+            {{-- ── PRODUCT CARDS ── --}}
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
                     <span class="fw-semibold">Item Pengiriman</span>
@@ -182,21 +215,7 @@
                         <i class="bi bi-plus-lg"></i> Tambah Item
                     </button>
                 </div>
-                <div class="table-responsive">
-                    <table class="table mb-0" style="font-size:13px;">
-                        <thead>
-                            <tr class="table-section-header">
-                                <th style="width:36px;">#</th>
-                                <th style="min-width:180px;">Nama Item <span class="text-warning">*</span></th>
-                                <th style="min-width:140px;">Deskripsi</th>
-                                <th style="width:80px;text-align:center;">Satuan</th>
-                                <th style="width:80px;text-align:right;">Qty</th>
-                                <th style="width:36px;"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="items-tbody"></tbody>
-                    </table>
-                </div>
+                <div class="card-body" id="items-container"></div>
                 <div class="card-footer bg-white d-flex align-items-center py-2">
                     <button type="button" class="btn btn-outline-primary btn-sm" id="btn-add-item-2">
                         <i class="bi bi-plus-lg"></i> Tambah Item
@@ -252,7 +271,7 @@
 @push('scripts')
 <script>
 const initItems = @json($oldItems);
-let iIdx = 0;
+let iIdx = 0, mIdx = {};
 
 const esc = s => String(s ?? '').replace(/"/g,'"').replace(/</g,'<');
 
@@ -299,15 +318,17 @@ document.getElementById('sales_order_id')?.addEventListener('change', async func
         document.getElementById('client_email').value       = data.client_email || '';
         document.getElementById('description').value        = data.description || '';
 
-        // Clear & load items
-        document.getElementById('items-tbody').innerHTML = '';
+        // Clear & load items with materials
+        document.getElementById('items-container').innerHTML = '';
         iIdx = 0;
+        mIdx = {};
         if (data.items && data.items.length) {
-            data.items.forEach(it => addItemRow({
+            data.items.forEach(it => addProductCard({
                 item_name: it.item_name ?? '',
                 description: it.description ?? '',
                 unit: it.unit ?? 'Unit',
                 qty: it.qty ?? 1,
+                materials: it.materials ?? [],
             }));
         }
 
@@ -318,53 +339,159 @@ document.getElementById('sales_order_id')?.addEventListener('change', async func
     }
 });
 
-/* ══ Item rows ═══════════════════════════════════════════ */
-function createItemRow(item = {}) {
-    const idx = iIdx++;
+/* ══ PRODUCT CARDS with MATERIALS ══════════════════════ */
+function createProductCard(item = {}) {
+    const pIdx = iIdx++;
+    mIdx['p' + pIdx] = 0;
     const qty = parseFloat(item.qty ?? 1) || 0;
 
-    const tr = document.createElement('tr');
-    tr.dataset.idx = idx;
-    tr.innerHTML = `
-        <td class="item-no" id="ino-${idx}"></td>
-        <td><input type="text"   name="items[${idx}][item_name]" class="item-input" required value="${esc(item.item_name)}" placeholder="Nama item"></td>
-        <td><input type="text"   name="items[${idx}][description]" class="item-input" value="${esc(item.description)}" placeholder="Keterangan"></td>
-        <td><input type="text"   name="items[${idx}][unit]"       class="item-input" value="${esc(item.unit ?? 'Unit')}" style="text-align:center;" required></td>
-        <td><input type="number" name="items[${idx}][qty]"        class="item-input item-qty" min="0" step="any" value="${qty}" style="text-align:right;" required></td>
-        <td><button type="button" class="btn-remove-row" onclick="removeItemRow(this)"><i class="bi bi-x-lg"></i></button></td>
+    const div = document.createElement('div');
+    div.className = 'product-card';
+    div.dataset.pIdx = pIdx;
+
+    div.innerHTML = `
+        <div class="product-card-header">
+            <span class="card-num">${pIdx + 1}</span>
+            <div style="flex:1; display:flex; gap:8px; flex-wrap:wrap;">
+                <input type="text" name="items[${pIdx}][item_name]" class="item-input" placeholder="Nama item *" value="${esc(item.item_name)}" style="flex:2;min-width:140px;" required>
+                <input type="text" name="items[${pIdx}][description]" class="item-input" placeholder="Deskripsi" value="${esc(item.description)}" style="flex:2;min-width:140px;">
+                <input type="text" name="items[${pIdx}][unit]" class="item-input" placeholder="Satuan" value="${esc(item.unit ?? 'Unit')}" style="flex:0 0 70px;text-align:center;" required>
+                <input type="number" name="items[${pIdx}][qty]" class="item-input item-qty" min="0" step="any" value="${qty}" style="flex:0 0 80px;text-align:right;" required>
+            </div>
+            <button type="button" class="btn-remove-row" onclick="removeProduct(this)" title="Hapus item"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="product-card-body">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+                <span style="font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase;">Material / Bahan Baku</span>
+                <button type="button" class="btn-add-mat" onclick="addMaterialRow(this)" data-p="${pIdx}">
+                    <i class="bi bi-plus"></i> Tambah Material
+                </button>
+            </div>
+            <table class="table table-sm mb-0" style="font-size:12px;">
+                <thead>
+                    <tr style="background:#f1f5f9;">
+                        <th style="width:28px;">#</th>
+                        <th>Nama Material</th>
+                        <th style="width:60px;">Satuan</th>
+                        <th style="width:70px;text-align:right;">Qty</th>
+                        <th style="width:100px;text-align:right;">Harga Satuan</th>
+                        <th style="width:100px;text-align:right;">Subtotal</th>
+                        <th style="width:28px;"></th>
+                    </tr>
+                </thead>
+                <tbody class="mat-tbody"></tbody>
+            </table>
+        </div>
     `;
-    tr.querySelector('.item-qty').addEventListener('input', () => recalc());
-    return tr;
+
+    div.querySelector('.item-qty')?.addEventListener('input', () => recalc());
+    return div;
 }
 
-function removeItemRow(btn) {
-    btn.closest('tr').remove();
-    reorderNums('items-tbody', 'ino-');
+function addProductCard(item = {}) {
+    const container = document.getElementById('items-container');
+    const card = createProductCard(item);
+    container.appendChild(card);
+    renumberProducts();
+
+    // Seed materials if any
+    if (item.materials && item.materials.length) {
+        const pIdx = card.dataset.pIdx;
+        item.materials.forEach(mat => addMaterialRow(card.querySelector('.btn-add-mat'), {
+            asset_id: mat.asset_id ?? '',
+            material_name: mat.material_name ?? '',
+            qty_required: mat.qty_required ?? 0,
+            satuan: mat.satuan ?? 'pcs',
+            unit_price: mat.unit_price ?? 0,
+        }));
+    }
+}
+
+function removeProduct(btn) {
+    const card = btn.closest('.product-card');
+    delete mIdx['p' + card.dataset.pIdx];
+    card.remove();
+    renumberProducts();
     recalc();
 }
 
-function addItemRow(item = {}) {
-    const tbody = document.getElementById('items-tbody');
-    const tr = createItemRow(item);
-    tbody.appendChild(tr);
-    reorderNums('items-tbody', 'ino-');
-    recalc();
-    tr.querySelector('.item-input').focus();
-}
-
-/* ══ Helpers ════════════════════════════════════════════ */
-function reorderNums(tbodyId, prefix) {
-    document.querySelectorAll(`#${tbodyId} tr`).forEach((tr, i) => {
-        const el = tr.querySelector(`[id^="${prefix}"]`);
-        if (el) el.textContent = i + 1;
+function renumberProducts() {
+    document.querySelectorAll('#items-container .product-card').forEach((card, i) => {
+        card.querySelector('.card-num').textContent = i + 1;
+        card.dataset.pIdx = i;
+        // Update name prefixes
+        card.querySelectorAll('[name]').forEach(el => {
+            const name = el.getAttribute('name');
+            if (name) {
+                el.setAttribute('name', name.replace(/items\[\d+\]/, 'items[' + i + ']'));
+            }
+        });
+        // Update button data-p
+        const btn = card.querySelector('.btn-add-mat');
+        if (btn) btn.dataset.p = i;
     });
 }
 
+/* ══ MATERIAL ROWS ═══════════════════════════════════ */
+function createMaterialRow(pIdx, mat = {}) {
+    const mSeq = mIdx['p' + pIdx]++;
+
+    const tr = document.createElement('tr');
+    tr.className = 'material-row';
+    tr.innerHTML = `
+        <td style="text-align:center;font-family:monospace;color:#94a3b8;">${mSeq + 1}</td>
+        <td>
+            <input type="text" name="items[${pIdx}][materials][${mSeq}][material_name]" class="mat-input-sm" value="${esc(mat.material_name)}" placeholder="Nama material" required>
+            <input type="hidden" name="items[${pIdx}][materials][${mSeq}][asset_id]" value="${esc(mat.asset_id ?? '')}">
+        </td>
+        <td><input type="text" name="items[${pIdx}][materials][${mSeq}][satuan]" class="mat-input-sm" value="${esc(mat.satuan ?? 'pcs')}" style="text-align:center;"></td>
+        <td><input type="number" name="items[${pIdx}][materials][${mSeq}][qty_required]" class="mat-input-sm mat-qty" min="0" step="any" value="${parseFloat(mat.qty_required ?? 0) || 0}" style="text-align:right;" required></td>
+        <td><input type="number" name="items[${pIdx}][materials][${mSeq}][unit_price]" class="mat-input-sm mat-price" min="0" step="any" value="${parseFloat(mat.unit_price ?? 0) || 0}" style="text-align:right;"></td>
+        <td style="text-align:right;font-weight:600;color:#1B5DBC;font-family:monospace;">${((parseFloat(mat.qty_required) || 0) * (parseFloat(mat.unit_price) || 0)).toLocaleString('id-ID')}</td>
+        <td><button type="button" class="btn-remove-mat" onclick="removeMaterialRow(this)"><i class="bi bi-x"></i></button></td>
+    `;
+    tr.querySelector('.mat-qty')?.addEventListener('input', function() { updateMatRow(this); recalc(); });
+    tr.querySelector('.mat-price')?.addEventListener('input', function() { updateMatRow(this); recalc(); });
+    return tr;
+}
+
+function addMaterialRow(btn, mat = {}) {
+    const pIdx = btn.dataset.p;
+    const card = btn.closest('.product-card');
+    const tbody = card.querySelector('.mat-tbody');
+    const tr = createMaterialRow(pIdx, mat);
+    tbody.appendChild(tr);
+    renumberMaterials(card);
+    recalc();
+}
+
+function updateMatRow(el) {
+    const tr = el.closest('tr');
+    const qty = parseFloat(tr.querySelector('.mat-qty')?.value) || 0;
+    const price = parseFloat(tr.querySelector('.mat-price')?.value) || 0;
+    const tds = tr.querySelectorAll('td');
+    tds[tds.length - 2].textContent = (qty * price).toLocaleString('id-ID');
+}
+
+function removeMaterialRow(btn) {
+    const card = btn.closest('.product-card');
+    btn.closest('tr').remove();
+    renumberMaterials(card);
+    recalc();
+}
+
+function renumberMaterials(card) {
+    card.querySelectorAll('.mat-tbody tr').forEach((tr, i) => {
+        tr.querySelector('td').textContent = i + 1;
+    });
+}
+
+/* ══ Helpers ════════════════════════════════════════════ */
 function recalc() {
     let totalQty = 0;
     let totalItems = 0;
-    document.querySelectorAll('#items-tbody tr').forEach(tr => {
-        totalQty += parseFloat(tr.querySelector('.item-qty')?.value) || 0;
+    document.querySelectorAll('#items-container .product-card').forEach(card => {
+        totalQty += parseFloat(card.querySelector('.item-qty')?.value) || 0;
         totalItems++;
     });
 
@@ -374,10 +501,10 @@ function recalc() {
 
 /* ══ Boot ═══════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
-    (initItems.length ? initItems : [{}]).forEach(i => addItemRow(i));
+    (initItems.length ? initItems : [{}]).forEach(i => addProductCard(i));
 
-    document.getElementById('btn-add-item').addEventListener('click',   () => addItemRow());
-    document.getElementById('btn-add-item-2').addEventListener('click', () => addItemRow());
+    document.getElementById('btn-add-item').addEventListener('click',   () => addProductCard());
+    document.getElementById('btn-add-item-2').addEventListener('click', () => addProductCard());
 });
 </script>
 @endpush

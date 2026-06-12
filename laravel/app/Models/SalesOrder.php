@@ -27,6 +27,7 @@ class SalesOrder extends Model
         'description_of_work',
         'subtotal_material',
         'subtotal_labor',
+        'subtotal_other_cost',
         'subtotal',
         'tax_percentage',
         'tax_amount',
@@ -36,14 +37,15 @@ class SalesOrder extends Model
     ];
 
     protected $casts = [
-        'date'             => 'date',
-        'delivery_date'    => 'date',
-        'subtotal_material'=> 'decimal:2',
-        'subtotal_labor'   => 'decimal:2',
-        'subtotal'         => 'decimal:2',
-        'tax_percentage'   => 'decimal:2',
-        'tax_amount'       => 'decimal:2',
-        'total'            => 'decimal:2',
+        'date' => 'date',
+        'delivery_date' => 'date',
+        'subtotal_material' => 'decimal:2',
+        'subtotal_labor' => 'decimal:2',
+        'subtotal_other_cost' => 'decimal:2',
+        'subtotal' => 'decimal:2',
+        'tax_percentage' => 'decimal:2',
+        'tax_amount' => 'decimal:2',
+        'total' => 'decimal:2',
     ];
 
     public function client()
@@ -55,11 +57,16 @@ class SalesOrder extends Model
     {
         return $this->hasMany(SalesOrderItem::class)->orderBy('sort_order');
     }
-
     public function labors()
     {
         return $this->hasMany(SalesOrderLabor::class)->orderBy('sort_order');
     }
+
+    public function otherCosts()
+    {
+        return $this->hasMany(SalesOrderOtherCost::class)->orderBy('sort_order');
+    }
+
 
     public function quotation()
     {
@@ -84,8 +91,8 @@ class SalesOrder extends Model
     public static function generateSONumber(): string
     {
         $prefix = 'SO-' . now()->format('Ym') . '-';
-        $last   = static::where('so_number', 'like', $prefix . '%')
-            ->orderByDesc('so_number')
+        $last = static::where('so_number', 'like', $prefix . '%')
+            ->orderByDesc('id')
             ->value('so_number');
 
         $next = $last ? (int) substr($last, -4) + 1 : 1;

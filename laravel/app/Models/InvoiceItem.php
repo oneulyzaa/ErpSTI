@@ -18,13 +18,18 @@ class InvoiceItem extends Model
     ];
 
     protected $casts = [
-        'qty'        => 'decimal:2',
+        'qty' => 'decimal:2',
         'unit_price' => 'decimal:2',
-        'subtotal'   => 'decimal:2',
+        'subtotal' => 'decimal:2',
     ];
 
     public function invoice()
     {
         return $this->belongsTo(Invoice::class);
+    }
+
+    public function materials()
+    {
+        return $this->hasMany(InvoiceItemMaterial::class)->orderBy('sort_order');
     }
 }

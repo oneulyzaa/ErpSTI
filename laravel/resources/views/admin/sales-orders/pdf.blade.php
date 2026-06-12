@@ -408,6 +408,43 @@
         </table>
         @endif
 
+        {{-- ═══ OTHER COSTS TABLE ═══ --}}
+        @php
+            $otherCosts = $salesOrder->otherCosts ?? collect();
+            $totalOth   = $otherCosts->sum('subtotal');
+        @endphp
+        @if($otherCosts->isNotEmpty())
+        <div class="section-bar">Biaya Lain-Lain</div>
+        <table class="lab-table">
+            <thead>
+                <tr>
+                    <th class="col-lno">#</th>
+                    <th class="th-left col-lab">Nama Biaya</th>
+                    <th class="th-center col-mp">Qty</th>
+                    <th class="th-right col-rate">Rate</th>
+                    <th class="th-right col-lsub">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($otherCosts as $i => $cost)
+                <tr class="{{ $i % 2 === 0 ? 'row-odd' : 'row-even' }}">
+                    <td>{{ $i + 1 }}</td>
+                    <td><strong>{{ $cost->cost_name }}</strong></td>
+                    <td style="text-align:center;">{{ number_format($cost->qty, 2, ',', '.') }}</td>
+                    <td style="text-align:right;">Rp {{ number_format($cost->rate, 0, ',', '.') }}</td>
+                    <td style="text-align:right;">Rp {{ number_format($cost->subtotal, 0, ',', '.') }}</td>
+                </tr>
+                @endforeach
+            </tbody>
+            <tfoot>
+                <tr class="total-lab-row">
+                    <td colspan="4" style="text-align:right;">Total Biaya Lain-Lain</td>
+                    <td style="text-align:right;">Rp {{ number_format($totalOth, 0, ',', '.') }}</td>
+                </tr>
+            </tfoot>
+        </table>
+        @endif
+
         {{-- ═══ SUMMARY ═══ --}}
         <table class="summary-wrap">
             <tr>
@@ -418,6 +455,12 @@
                 <td class="summary-label">Total Labor</td>
                 <td class="summary-value">Rp {{ number_format($salesOrder->subtotal_labor, 0, ',', '.') }}</td>
             </tr>
+            @if($totalOth > 0)
+            <tr>
+                <td class="summary-label">Total Biaya Lain-Lain</td>
+                <td class="summary-value">Rp {{ number_format($totalOth, 0, ',', '.') }}</td>
+            </tr>
+            @endif
             <tr>
                 <td class="summary-label">Subtotal</td>
                 <td class="summary-value">Rp {{ number_format($salesOrder->subtotal, 0, ',', '.') }}</td>

@@ -34,7 +34,7 @@
             <div class="col-12 col-sm-5 col-md-4">
                 <label class="form-label fw-semibold mb-1" style="font-size:13px">Cari</label>
                 <input type="text" name="search" class="form-control form-control-sm"
-                       placeholder="No. quotation, klien..." value="{{ request('search') }}">
+                       placeholder="No. quotation, PO, klien..." value="{{ request('search') }}">
             </div>
             <div class="col-6 col-sm-3 col-md-2">
                 <label class="form-label fw-semibold mb-1" style="font-size:13px">Status</label>
@@ -84,6 +84,7 @@
                 <tr>
                     <th class="text-muted fw-semibold" style="font-size:12px;width:40px">#</th>
                     <th class="text-muted fw-semibold" style="font-size:12px">NO. QUOTATION</th>
+                    <th class="text-muted fw-semibold" style="font-size:12px">NO. PO</th>
                     <th class="text-muted fw-semibold" style="font-size:12px">KLIEN</th>
                     <th class="text-muted fw-semibold" style="font-size:12px">PERUSAHAAN</th>
                     <th class="text-muted fw-semibold" style="font-size:12px">PROJECT</th>
@@ -109,6 +110,7 @@
                 <tr>
                     <td>{{ $loop->iteration }}</td>
                     <td class="quote-no">{{ $q->quote_number }}</td>
+                    <td>{{ $q->nomor_po ?? '-' }}</td>
                     <td>{{ $q->client?->nama_kontak_perusahaan ?? $q->client_name }}</td>
                     <td>{{ $q->client?->nama_perusahaan ?? $q->client_company }}</td>
                     <td>{{ $q->project_name ?? '-' }}</td>

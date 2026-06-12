@@ -20,6 +20,7 @@ class Receipt extends Model
         'client_email',
         'description',
         'amount',
+        'subtotal_other_cost',
         'payment_method',
         'payment_reference',
         'status',
@@ -27,20 +28,26 @@ class Receipt extends Model
     ];
 
     protected $casts = [
-        'date'   => 'date',
+        'date' => 'date',
         'amount' => 'decimal:2',
+        'subtotal_other_cost' => 'decimal:2',
     ];
-
     public function invoice()
     {
         return $this->belongsTo(Invoice::class);
     }
 
+    public function otherCosts()
+    {
+        return $this->hasMany(ReceiptOtherCost::class)->orderBy('sort_order');
+    }
+
+
     public static function generateReceiptNumber(): string
     {
         $prefix = 'TT-' . now()->format('Ym') . '-';
-        $last   = static::where('receipt_number', 'like', $prefix . '%')
-            ->orderByDesc('receipt_number')
+        $last = static::where('receipt_number', 'like', $prefix . '%')
+            ->orderByDesc('id')
             ->value('receipt_number');
 
         $next = $last ? (int) substr($last, -4) + 1 : 1;

@@ -1,11 +1,12 @@
 @extends('layouts.app')
 
 @php
-    $isEdit      = isset($salesOrder);
-    $action      = $isEdit ? route('admin.sales-orders.update', $salesOrder) : route('admin.sales-orders.store');
-    $oldItems    = old('items',  $isEdit ? $salesOrder->items->toArray()  : []);
-    $oldLabors   = old('labors', $isEdit ? $salesOrder->labors->toArray() : []);
-    $copyQuote  = isset($quotation);
+    $isEdit        = isset($salesOrder);
+    $action        = $isEdit ? route('admin.sales-orders.update', $salesOrder) : route('admin.sales-orders.store');
+    $oldItems      = old('items',       $isEdit ? $salesOrder->items->load('materials')->toArray()      : []);
+    $oldLabors     = old('labors',      $isEdit ? $salesOrder->labors->toArray()     : []);
+    $oldOtherCosts = old('other_costs', $isEdit ? $salesOrder->otherCosts->toArray() : []);
+    $copyQuote    = isset($quotation);
 @endphp
 
 @section('title', $isEdit ? 'Edit Sales Order' : 'Buat Sales Order Baru')
@@ -203,23 +204,7 @@
                         <i class="bi bi-plus-lg"></i> Tambah Produk
                     </button>
                 </div>
-                <div class="table-responsive">
-                    <table class="table mb-0" style="font-size:13px;">
-                        <thead>
-                            <tr class="table-section-header">
-                                <th style="width:36px;">#</th>
-                                <th style="min-width:180px;">Nama Produk / Jasa <span class="text-warning">*</span></th>
-                                <th style="min-width:140px;">Deskripsi</th>
-                                <th style="width:80px;text-align:center;">Satuan</th>
-                                <th style="width:80px;text-align:right;">Qty</th>
-                                <th style="width:130px;text-align:right;">Harga Satuan</th>
-                                <th style="width:130px;text-align:right;">Sub Total</th>
-                                <th style="width:36px;"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="items-tbody"></tbody>
-                    </table>
-                </div>
+                <div class="card-body" id="items-container"></div>
                 <div class="card-footer bg-white d-flex align-items-center justify-content-between py-2">
                     <button type="button" class="btn btn-outline-primary btn-sm" id="btn-add-item-2">
                         <i class="bi bi-plus-lg"></i> Tambah Produk
@@ -265,6 +250,40 @@
                 </div>
             </div>
 
+            {{-- Biaya Lain-Lain --}}
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
+                    <span class="fw-semibold">Biaya Lain-Lain</span>
+                    <button type="button" class="btn btn-sm d-flex align-items-center gap-1"
+                            style="background:#1B5DBC;color:#fff;" id="btn-add-other-cost">
+                        <i class="bi bi-plus-lg"></i> Tambah Biaya
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table mb-0" style="font-size:13px;">
+                        <thead>
+                            <tr class="labor-header">
+                                <th style="width:36px;">#</th>
+                                <th style="min-width:180px;">Nama Biaya <span class="text-warning">*</span></th>
+                                <th style="width:80px;text-align:center;">Qty</th>
+                                <th style="width:140px;text-align:right;">Rate</th>
+                                <th style="width:140px;text-align:right;">Sub Total</th>
+                                <th style="width:36px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="other-costs-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="card-footer bg-white d-flex align-items-center justify-content-between py-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-add-other-cost-2">
+                        <i class="bi bi-plus-lg"></i> Tambah Biaya
+                    </button>
+                    <div class="fw-semibold" style="font-size:13px;">
+                        Total Biaya Lain-Lain: <span class="ms-2" id="disp-oth" style="font-family:monospace;color:#1B5DBC;">Rp 0</span>
+                    </div>
+                </div>
+            </div>
+
         </div>{{-- end left --}}
 
         {{-- ── RIGHT COLUMN ── --}}
@@ -277,6 +296,7 @@
                 <div class="card-body">
                     <div class="summary-row"><span>Total Produksi</span><span class="summary-val" id="sum-mat">Rp 0</span></div>
                     <div class="summary-row"><span>Total Labor</span><span class="summary-val" id="sum-lab">Rp 0</span></div>
+                    <div class="summary-row"><span>Total Biaya Lain-Lain</span><span class="summary-val" id="sum-oth">Rp 0</span></div>
                     <div class="summary-row"><span>Subtotal</span><span class="summary-val" id="sum-sub">Rp 0</span></div>
                     <div class="summary-row align-items-start gap-2" style="flex-wrap:wrap;">
                         <div>
@@ -292,11 +312,12 @@
                         <span>TOTAL</span>
                         <span class="summary-val" id="sum-total">Rp 0</span>
                     </div>
-                    <input type="hidden" name="_subtotal_material" id="h-mat">
-                    <input type="hidden" name="_subtotal_labor"    id="h-lab">
-                    <input type="hidden" name="_subtotal"          id="h-sub">
-                    <input type="hidden" name="_tax_amount"        id="h-tax">
-                    <input type="hidden" name="_total"             id="h-total">
+                    <input type="hidden" name="_subtotal_material"   id="h-mat">
+                    <input type="hidden" name="_subtotal_labor"      id="h-lab">
+                    <input type="hidden" name="_subtotal_other_cost" id="h-oth">
+                    <input type="hidden" name="_subtotal"            id="h-sub">
+                    <input type="hidden" name="_tax_amount"          id="h-tax">
+                    <input type="hidden" name="_total"               id="h-total">
                 </div>
             </div>
 
@@ -324,8 +345,9 @@
 
 @if($copyQuote)
 @php
-    $copyItems  = $quotation->items->toArray();
-    $copyLabors = $quotation->labors->toArray();
+    $copyItems      = $quotation->items->load('materials')->toArray();
+    $copyLabors     = $quotation->labors->toArray();
+    $copyOtherCosts = $quotation->otherCosts->toArray();
 @endphp
 @endif
 
@@ -335,13 +357,15 @@
 <script>
 /* ── seed data ── */
 @if($copyQuote)
-const initItems  = @json($copyItems);
-const initLabors = @json($copyLabors);
+const initItems      = @json($copyItems);
+const initLabors     = @json($copyLabors);
+const initOtherCosts = @json($copyOtherCosts);
 @else
-const initItems  = @json($oldItems);
-const initLabors = @json($oldLabors);
+const initItems      = @json($oldItems);
+const initLabors     = @json($oldLabors);
+const initOtherCosts = @json($oldOtherCosts);
 @endif
-let iIdx = 0, lIdx = 0;
+let iIdx = 0, lIdx = 0, oIdx = 0;
 
 const fmt = n => 'Rp ' + Math.round(n).toLocaleString('id-ID');
 const esc = s => String(s ?? '').replace(/"/g,'"').replace(/</g,'<');
@@ -391,16 +415,10 @@ document.getElementById('quotation_id')?.addEventListener('change', async functi
         document.getElementById('description_of_work').value = data.description_of_work || '';
 
         // Clear & load items
-        document.getElementById('items-tbody').innerHTML = '';
+        document.getElementById('items-container').innerHTML = '';
         iIdx = 0;
         if (data.items && data.items.length) {
-            data.items.forEach(it => addItemRow({
-                material_name: it.material_name ?? '',
-                description: it.description ?? '',
-                unit: it.unit ?? 'Unit',
-                qty: it.qty ?? 1,
-                unit_price: it.unit_price ?? 0,
-            }));
+            data.items.forEach(it => addProductCard(it));
         }
 
         // Clear & load labors
@@ -415,6 +433,17 @@ document.getElementById('quotation_id')?.addEventListener('change', async functi
             }));
         }
 
+        // Clear & load other costs
+        document.getElementById('other-costs-tbody').innerHTML = '';
+        oIdx = 0;
+        if (data.other_costs && data.other_costs.length) {
+            data.other_costs.forEach(oc => addOtherCostRow({
+                cost_name: oc.cost_name ?? '',
+                qty: oc.qty ?? 1,
+                rate: oc.rate ?? 0,
+            }));
+        }
+
         recalc();
     } catch (err) {
         console.error(err);
@@ -422,48 +451,134 @@ document.getElementById('quotation_id')?.addEventListener('change', async functi
     }
 });
 
-/* ══ MATERIAL rows ══════════════════════════════════════ */
-function createItemRow(item = {}) {
-    const idx   = iIdx++;
+/* ══ PRODUCT CARDS with MATERIALS ══════════════════════ */
+let mIdx = {}; // keyed by 'p' + product index
+function createProductCard(item = {}) {
+    const idx = iIdx++;
+    mIdx['p' + idx] = 0;
     const qty   = parseFloat(item.qty ?? 1) || 0;
     const price = parseFloat(item.unit_price ?? 0) || 0;
-    const sub   = qty * price;
+    const materials = item.materials || [];
 
-    const tr = document.createElement('tr');
-    tr.dataset.idx = idx;
-    tr.innerHTML = `
-        <td class="item-no" id="ino-${idx}"></td>
-        <td><input type="text"   name="items[${idx}][material_name]" class="item-input" required value="${esc(item.material_name)}" placeholder="Nama produk / jasa"></td>
-        <td><input type="text"   name="items[${idx}][description]"   class="item-input" value="${esc(item.description)}" placeholder="Keterangan"></td>
-        <td><input type="text"   name="items[${idx}][unit]"          class="item-input" value="${esc(item.unit ?? 'Unit')}" style="text-align:center;" required></td>
-        <td><input type="number" name="items[${idx}][qty]"           class="item-input item-qty"   min="0" step="any" value="${qty}"  style="text-align:right;" required></td>
-        <td><input type="number" name="items[${idx}][unit_price]"    class="item-input item-price" min="0" step="any" value="${price}" style="text-align:right;" required></td>
-        <td class="subtotal-cell" id="isub-${idx}">${fmt(sub)}</td>
-        <td><button type="button" class="btn-remove-row" onclick="removeItemRow(this)"><i class="bi bi-x-lg"></i></button></td>
+    const card = document.createElement('div');
+    card.className = 'product-card';
+    card.dataset.idx = idx;
+    card.style.cssText = 'border:1px solid #e2e8f0;border-radius:8px;margin-bottom:10px;background:#fff;';
+    card.innerHTML = `
+        <div style="padding:10px 14px;background:#f8fafc;border-bottom:1px solid #e2e8f0;border-radius:7px 7px 0 0;">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="fw-semibold" style="font-size:14px;min-width:30px;" id="pnum-${idx}">#1</span>
+                <input type="text" name="items[${idx}][material_name]" class="item-input" required style="width:160px;" value="${esc(item.material_name || '')}" placeholder="Nama Produk">
+                <input type="text" name="items[${idx}][description]" class="item-input" style="width:140px;" value="${esc(item.description || '')}" placeholder="Deskripsi">
+                <input type="text" name="items[${idx}][unit]" class="item-input" required style="width:75px;text-align:center;" value="${esc(item.unit || 'Unit')}" placeholder="Sat">
+                <input type="number" name="items[${idx}][qty]" class="item-input item-qty" required style="width:70px;text-align:right;" min="0" step="any" value="${qty}" onchange="updateProductCardSub(this.closest('.product-card'))">
+                <input type="number" name="items[${idx}][unit_price]" class="item-input item-price" required style="width:110px;text-align:right;" min="0" step="any" value="${price}" onchange="updateProductCardSub(this.closest('.product-card'))">
+                <span class="subtotal-cell" id="isub-${idx}">${fmt(qty * price)}</span>
+                <button type="button" class="btn-remove-row" onclick="removeProduct(this)"><i class="bi bi-x-lg"></i></button>
+            </div>
+        </div>
+        <div class="p-3">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span style="font-size:12px;font-weight:600;color:#1B5DBC;">MATERIAL</span>
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="addMaterialRow(this)">
+                    <i class="bi bi-plus-lg"></i> Tambah Material
+                </button>
+            </div>
+            <table class="table table-sm mb-0" style="font-size:12px;">
+                <thead>
+                    <tr style="background:#e8f0fe;font-size:10px;text-transform:uppercase;letter-spacing:.04em;">
+                        <th style="width:28px;">#</th>
+                        <th style="min-width:140px;">Nama Material</th>
+                        <th style="width:70px;text-align:center;">Satuan</th>
+                        <th style="width:80px;text-align:right;">Qty</th>
+                        <th style="width:110px;text-align:right;">Harga</th>
+                        <th style="width:100px;text-align:right;">Subtotal</th>
+                        <th style="width:28px;"></th>
+                    </tr>
+                </thead>
+                <tbody class="mat-tbody" id="mat-tbody-${idx}"></tbody>
+            </table>
+        </div>
     `;
-    tr.querySelector('.item-qty').addEventListener('input',   () => updateItemRow(tr));
-    tr.querySelector('.item-price').addEventListener('input', () => updateItemRow(tr));
-    return tr;
+
+    // Seed materials
+    if (materials.length) {
+        materials.forEach(mat => addMaterialRow(card.querySelector('.btn-outline-primary'), mat));
+    }
+
+    return card;
 }
-function updateItemRow(tr) {
-    const idx   = tr.dataset.idx;
-    const qty   = parseFloat(tr.querySelector('.item-qty').value)   || 0;
-    const price = parseFloat(tr.querySelector('.item-price').value) || 0;
-    tr.querySelector(`#isub-${idx}`).textContent = fmt(qty * price);
+function updateProductCardSub(card) {
+    const idx  = card.dataset.idx;
+    const qty  = parseFloat(card.querySelector('.item-qty')?.value) || 0;
+    const price = parseFloat(card.querySelector('.item-price')?.value) || 0;
+    const el = card.querySelector(`#isub-${idx}`);
+    if (el) el.textContent = fmt(qty * price);
     recalc();
 }
-function removeItemRow(btn) {
-    btn.closest('tr').remove();
-    reorderNums('items-tbody', 'ino-');
+function addProductCard(item = {}) {
+    const container = document.getElementById('items-container');
+    const card = createProductCard(item);
+    container.appendChild(card);
+    renumberProducts();
+    recalc();
+    card.querySelector('.item-input')?.focus();
+}
+function removeProduct(btn) {
+    btn.closest('.product-card').remove();
+    renumberProducts();
     recalc();
 }
-function addItemRow(item = {}) {
-    const tbody = document.getElementById('items-tbody');
-    const tr = createItemRow(item);
+function renumberProducts() {
+    document.querySelectorAll('#items-container .product-card').forEach((card, i) => {
+        const el = card.querySelector('[id^="pnum-"]');
+        if (el) el.textContent = '#' + (i + 1);
+    });
+}
+/* ══ Material rows inside product cards ═══════════════ */
+function addMaterialRow(btnTrigger, mat = {}) {
+    const card  = btnTrigger.closest('.product-card');
+    const pIdx  = card.dataset.idx;
+    const mKey  = 'p' + pIdx;
+    const mSeq  = mIdx[mKey] = (mIdx[mKey] || 0) + 1;
+    const qty   = parseFloat(mat.qty_required ?? 0) || 0;
+    const price = parseFloat(mat.unit_price ?? 0) || 0;
+
+    const tbody = card.querySelector('.mat-tbody');
+    const tr = document.createElement('tr');
+    tr.dataset.mi = mSeq;
+    tr.innerHTML = `
+        <td style="text-align:center;color:#94a3b8;">${mSeq}</td>
+        <td><input type="text" name="items[${pIdx}][materials][${mSeq}][material_name]" class="item-input" required value="${esc(mat.material_name || '')}" placeholder="Nama material"></td>
+        <td><input type="text" name="items[${pIdx}][materials][${mSeq}][satuan]" class="item-input" value="${esc(mat.satuan || 'pcs')}" style="text-align:center;"></td>
+        <td><input type="number" name="items[${pIdx}][materials][${mSeq}][qty_required]" class="item-input mat-qty" min="0" step="any" value="${qty}" style="text-align:right;" onchange="updateMatRow(this)"></td>
+        <td><input type="number" name="items[${pIdx}][materials][${mSeq}][unit_price]" class="item-input mat-price" min="0" step="any" value="${price}" style="text-align:right;" onchange="updateMatRow(this)"></td>
+        <td style="text-align:right;font-weight:600;color:#1B5DBC;">${fmt(qty * price)}</td>
+        <td><button type="button" class="btn-remove-row" onclick="removeMaterialRow(this)"><i class="bi bi-x-lg"></i></button></td>
+    `;
+    if (mat.asset_id) {
+        tr.querySelector(`input[name="items[${pIdx}][materials][${mSeq}][material_name]"]`).insertAdjacentHTML('afterend',
+            `<input type="hidden" name="items[${pIdx}][materials][${mSeq}][asset_id]" value="${mat.asset_id}">`);
+    }
     tbody.appendChild(tr);
-    reorderNums('items-tbody', 'ino-');
-    recalc();
-    tr.querySelector('.item-input').focus();
+    renumberMaterials(card);
+}
+function updateMatRow(el) {
+    const tr = el.closest('tr');
+    const qty = parseFloat(tr.querySelector('.mat-qty')?.value) || 0;
+    const price = parseFloat(tr.querySelector('.mat-price')?.value) || 0;
+    const lastTd = tr.querySelectorAll('td');
+    lastTd[lastTd.length - 2].textContent = fmt(qty * price);
+}
+function removeMaterialRow(btn) {
+    const card = btn.closest('.product-card');
+    btn.closest('tr').remove();
+    renumberMaterials(card);
+}
+function renumberMaterials(card) {
+    card.querySelectorAll('.mat-tbody tr').forEach((tr, i) => {
+        tr.querySelector('td').textContent = i + 1;
+    });
 }
 
 /* ══ LABOR rows ═════════════════════════════════════════ */
@@ -511,6 +626,47 @@ function addLaborRow(labor = {}) {
     recalc();
 }
 
+/* ══ OTHER COSTS rows ══════════════════════════════════ */
+function createOtherCostRow(cost = {}) {
+    const idx  = oIdx++;
+    const qty  = parseFloat(cost.qty  ?? 1) || 0;
+    const rate = parseFloat(cost.rate ?? 0) || 0;
+    const sub  = qty * rate;
+
+    const tr = document.createElement('tr');
+    tr.dataset.idx = idx;
+    tr.innerHTML = `
+        <td class="item-no" id="ono-${idx}"></td>
+        <td><input type="text"   name="other_costs[${idx}][cost_name]" class="item-input" required value="${esc(cost.cost_name)}" placeholder="Nama biaya"></td>
+        <td><input type="number" name="other_costs[${idx}][qty]"       class="item-input oc-qty"   min="0" step="any" value="${qty}"  style="text-align:center;" required></td>
+        <td><input type="number" name="other_costs[${idx}][rate]"      class="item-input oc-rate"  min="0" step="any" value="${rate}" style="text-align:right;" required></td>
+        <td class="subtotal-cell" id="osub-${idx}">${fmt(sub)}</td>
+        <td><button type="button" class="btn-remove-row" onclick="removeOtherCostRow(this)"><i class="bi bi-x-lg"></i></button></td>
+    `;
+    tr.querySelector('.oc-qty').addEventListener('input',  () => updateOtherCostRow(tr));
+    tr.querySelector('.oc-rate').addEventListener('input', () => updateOtherCostRow(tr));
+    return tr;
+}
+function updateOtherCostRow(tr) {
+    const idx  = tr.dataset.idx;
+    const qty  = parseFloat(tr.querySelector('.oc-qty').value)  || 0;
+    const rate = parseFloat(tr.querySelector('.oc-rate').value) || 0;
+    tr.querySelector(`#osub-${idx}`).textContent = fmt(qty * rate);
+    recalc();
+}
+function removeOtherCostRow(btn) {
+    btn.closest('tr').remove();
+    reorderNums('other-costs-tbody', 'ono-');
+    recalc();
+}
+function addOtherCostRow(cost = {}) {
+    const tbody = document.getElementById('other-costs-tbody');
+    const tr = createOtherCostRow(cost);
+    tbody.appendChild(tr);
+    reorderNums('other-costs-tbody', 'ono-');
+    recalc();
+}
+
 /* ══ Helpers ════════════════════════════════════════════ */
 function reorderNums(tbodyId, prefix) {
     document.querySelectorAll(`#${tbodyId} tr`).forEach((tr, i) => {
@@ -520,30 +676,48 @@ function reorderNums(tbodyId, prefix) {
 }
 
 function recalc() {
-    let mat = 0, lab = 0;
-    document.querySelectorAll('#items-tbody tr').forEach(tr => {
-        mat += (parseFloat(tr.querySelector('.item-qty')?.value)   || 0)
-             * (parseFloat(tr.querySelector('.item-price')?.value) || 0);
+    let mat = 0, lab = 0, oth = 0;
+
+    // Product subtotal (qty * unit_price)
+    document.querySelectorAll('#items-container .product-card').forEach(card => {
+        mat += (parseFloat(card.querySelector('.item-qty')?.value)   || 0)
+             * (parseFloat(card.querySelector('.item-price')?.value) || 0);
     });
+
+    // Material subtotals
+    document.querySelectorAll('#items-container .mat-qty').forEach(el => {
+        const tr = el.closest('tr');
+        const qty   = parseFloat(el.value) || 0;
+        const price = parseFloat(tr.querySelector('.mat-price')?.value) || 0;
+        mat += qty * price;
+    });
+
     document.querySelectorAll('#labors-tbody tr').forEach(tr => {
         lab += (parseInt(tr.querySelector('.labor-mp')?.value)     || 0)
              * (parseFloat(tr.querySelector('.labor-days')?.value) || 0)
              * (parseFloat(tr.querySelector('.labor-rate')?.value) || 0);
     });
-    const sub   = mat + lab;
+    document.querySelectorAll('#other-costs-tbody tr').forEach(tr => {
+        oth += (parseFloat(tr.querySelector('.oc-qty')?.value)  || 0)
+             * (parseFloat(tr.querySelector('.oc-rate')?.value) || 0);
+    });
+    const sub   = mat + lab + oth;
     const tax   = sub * ((parseFloat(document.getElementById('tax_percentage').value) || 0) / 100);
     const total = sub + tax;
 
     document.getElementById('disp-mat').textContent = fmt(mat);
     document.getElementById('disp-lab').textContent = fmt(lab);
+    document.getElementById('disp-oth').textContent = fmt(oth);
     document.getElementById('sum-mat').textContent  = fmt(mat);
     document.getElementById('sum-lab').textContent  = fmt(lab);
+    document.getElementById('sum-oth').textContent  = fmt(oth);
     document.getElementById('sum-sub').textContent  = fmt(sub);
     document.getElementById('sum-tax').textContent  = fmt(tax);
     document.getElementById('sum-total').textContent= fmt(total);
 
     document.getElementById('h-mat').value   = mat.toFixed(2);
     document.getElementById('h-lab').value   = lab.toFixed(2);
+    document.getElementById('h-oth').value   = oth.toFixed(2);
     document.getElementById('h-sub').value   = sub.toFixed(2);
     document.getElementById('h-tax').value   = tax.toFixed(2);
     document.getElementById('h-total').value = total.toFixed(2);
@@ -551,13 +725,16 @@ function recalc() {
 
 /* ══ Boot ═══════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
-    (initItems.length  ? initItems  : [{}]).forEach(i => addItemRow(i));
+    (initItems.length  ? initItems  : [{}]).forEach(i => addProductCard(i));
     (initLabors.length ? initLabors : [{}]).forEach(l => addLaborRow(l));
+    (initOtherCosts.length ? initOtherCosts : []).forEach(c => addOtherCostRow(c));
 
-    document.getElementById('btn-add-item').addEventListener('click',   () => addItemRow());
-    document.getElementById('btn-add-item-2').addEventListener('click', () => addItemRow());
+    document.getElementById('btn-add-item').addEventListener('click',   () => addProductCard());
+    document.getElementById('btn-add-item-2').addEventListener('click', () => addProductCard());
     document.getElementById('btn-add-labor').addEventListener('click',  () => addLaborRow());
     document.getElementById('btn-add-labor-2').addEventListener('click',() => addLaborRow());
+    document.getElementById('btn-add-other-cost').addEventListener('click',  () => addOtherCostRow());
+    document.getElementById('btn-add-other-cost-2').addEventListener('click',() => addOtherCostRow());
     document.getElementById('tax_percentage').addEventListener('input', recalc);
 });
 </script>

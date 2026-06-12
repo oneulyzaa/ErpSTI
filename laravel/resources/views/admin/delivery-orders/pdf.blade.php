@@ -265,7 +265,7 @@
             <tbody>
                 @foreach($deliveryOrder->items as $i => $item)
                 <tr class="{{ $i % 2 === 0 ? 'row-odd' : 'row-even' }}">
-                    <td>{{ $i + 1 }}</td>
+                    <td style="text-align:center;">{{ $i + 1 }}</td>
                     <td>
                         <div style="font-weight:bold;">{{ $item->item_name }}</div>
                         @if($item->description)
@@ -275,12 +275,42 @@
                     <td style="text-align:center;">{{ $item->unit }}</td>
                     <td style="text-align:right;">{{ number_format($item->qty, 2, ',', '.') }}</td>
                 </tr>
+                @if($item->materials && $item->materials->count())
+                <tr class="{{ $i % 2 === 0 ? 'row-even' : 'row-odd' }}">
+                    <td colspan="4" style="padding:0;">
+                        <table style="width:100%;border-collapse:collapse;font-size:7px;">
+                            <thead>
+                                <tr>
+                                    <th style="background:#e8f0fe;color:#333;padding:2px 3px;border:1px solid #ccd3df;width:22px;"></th>
+                                    <th style="background:#e8f0fe;color:#333;padding:2px 3px;border:1px solid #ccd3df;text-align:left;text-transform:uppercase;">Material / Bahan Baku</th>
+                                    <th style="background:#e8f0fe;color:#333;padding:2px 3px;border:1px solid #ccd3df;width:38px;text-align:center;">Satuan</th>
+                                    <th style="background:#e8f0fe;color:#333;padding:2px 3px;border:1px solid #ccd3df;width:45px;text-align:right;">Qty</th>
+                                    {{-- <th style="background:#e8f0fe;color:#333;padding:2px 3px;border:1px solid #ccd3df;width:75px;text-align:right;">Harga</th>
+                                    <th style="background:#e8f0fe;color:#333;padding:2px 3px;border:1px solid #ccd3df;width:75px;text-align:right;">Subtotal</th> --}}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($item->materials as $m => $mat)
+                                <tr>
+                                    <td style="text-align:center;border:1px solid #ccd3df;padding:1px 3px;font-size:6.5px;">{{ $m+1 }}</td>
+                                    <td style="border:1px solid #ccd3df;padding:1px 3px;font-size:7px;">{{ $mat->material_name }}</td>
+                                    <td style="text-align:center;border:1px solid #ccd3df;padding:1px 3px;font-size:7px;">{{ $mat->satuan }}</td>
+                                    <td style="text-align:right;border:1px solid #ccd3df;padding:1px 3px;font-size:7px;">{{ number_format($mat->qty_required, 2, ',', '.') }}</td>
+                                    {{-- <td style="text-align:right;border:1px solid #ccd3df;padding:1px 3px;font-size:7px;">Rp {{ number_format($mat->unit_price, 0, ',', '.') }}</td>
+                                    <td style="text-align:right;border:1px solid #ccd3df;padding:1px 3px;font-size:7px;">Rp {{ number_format($mat->subtotal, 0, ',', '.') }}</td> --}}
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                @endif
                 @endforeach
             </tbody>
             <tfoot>
                 <tr class="total-row">
-                    <td colspan="3" style="text-align:right;">Total Item: {{ $deliveryOrder->items->count() }}</td>
-                    <td style="text-align:right;">{{ number_format($deliveryOrder->items->sum('qty'), 2, ',', '.') }}</td>
+                    <td colspan="4" style="text-align:right;">Total Item: {{ $deliveryOrder->items->count() }}</td>
+                    {{-- <td style="text-align:right;">{{ number_format($deliveryOrder->items->sum('qty'), 2, ',', '.') }}</td> --}}
                 </tr>
             </tfoot>
         </table>

@@ -24,6 +24,7 @@ class Invoice extends Model
         'description',
         'subtotal',
         'subtotal_labor',
+        'subtotal_other_cost',
         'tax_percentage',
         'tax_amount',
         'total',
@@ -33,24 +34,30 @@ class Invoice extends Model
     ];
 
     protected $casts = [
-        'date'           => 'date',
-        'due_date'       => 'date',
-        'subtotal'       => 'decimal:2',
+        'date' => 'date',
+        'due_date' => 'date',
+        'subtotal' => 'decimal:2',
         'subtotal_labor' => 'decimal:2',
+        'subtotal_other_cost' => 'decimal:2',
         'tax_percentage' => 'decimal:2',
-        'tax_amount'     => 'decimal:2',
-        'total'          => 'decimal:2',
+        'tax_amount' => 'decimal:2',
+        'total' => 'decimal:2',
     ];
 
     public function items()
     {
         return $this->hasMany(InvoiceItem::class)->orderBy('sort_order');
     }
-
     public function labors()
     {
         return $this->hasMany(InvoiceLabor::class)->orderBy('sort_order');
     }
+
+    public function otherCosts()
+    {
+        return $this->hasMany(InvoiceOtherCost::class)->orderBy('sort_order');
+    }
+
 
     public function salesOrder()
     {
@@ -65,8 +72,8 @@ class Invoice extends Model
     public static function generateInvoiceNumber(): string
     {
         $prefix = 'INV-' . now()->format('Ym') . '-';
-        $last   = static::where('invoice_number', 'like', $prefix . '%')
-            ->orderByDesc('invoice_number')
+        $last = static::where('invoice_number', 'like', $prefix . '%')
+            ->orderByDesc('id')
             ->value('invoice_number');
 
         $next = $last ? (int) substr($last, -4) + 1 : 1;

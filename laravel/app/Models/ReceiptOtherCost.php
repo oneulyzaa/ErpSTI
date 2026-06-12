@@ -1,0 +1,28 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class ReceiptOtherCost extends Model
+{
+    protected $fillable = [
+        'receipt_id',
+        'sort_order',
+        'cost_name',
+        'qty',
+        'rate',
+        'subtotal',
+    ];
+
+    protected $casts = [
+        'qty' => 'decimal:2',
+        'rate' => 'decimal:2',
+        'subtotal' => 'decimal:2',
+    ];
+
+    public function receipt()
+    {
+        return $this->belongsTo(Receipt::class);
+    }
+}

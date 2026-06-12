@@ -189,6 +189,47 @@
             </div>
         </div>
 
+        {{-- Biaya Lain-Lain --}}
+        @if($salesOrder->otherCosts && $salesOrder->otherCosts->count())
+        <div class="card border-0 shadow-sm">
+            <div class="card-header py-3 d-flex align-items-center justify-content-between"
+                 style="background:#1B5DBC;">
+                <span class="fw-semibold text-white">Biaya Lain-Lain</span>
+                <span class="badge bg-white bg-opacity-25 text-white">{{ $salesOrder->otherCosts->count() }} item</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" style="font-size:13px;">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:36px;" class="text-muted fw-semibold" style="font-size:11px">#</th>
+                            <th class="text-muted fw-semibold" style="font-size:11px">NAMA BIAYA</th>
+                            <th class="text-muted fw-semibold text-center" style="font-size:11px">QTY</th>
+                            <th class="text-muted fw-semibold text-end" style="font-size:11px">RATE</th>
+                            <th class="text-muted fw-semibold text-end" style="font-size:11px">SUBTOTAL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($salesOrder->otherCosts as $i => $cost)
+                        <tr>
+                            <td class="text-center text-muted" style="font-family:monospace;font-size:12px;">{{ $i+1 }}</td>
+                            <td class="fw-semibold">{{ $cost->cost_name }}</td>
+                            <td class="text-center" style="font-family:monospace;">{{ number_format($cost->qty, 2, ',', '.') }}</td>
+                            <td class="text-end" style="font-family:monospace;">Rp {{ number_format($cost->rate, 0, ',', '.') }}</td>
+                            <td class="text-end fw-semibold" style="font-family:monospace;">Rp {{ number_format($cost->subtotal, 0, ',', '.') }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                    <tfoot class="table-light">
+                        <tr>
+                            <td colspan="4" class="text-end fw-semibold" style="font-size:12px;">Total Biaya Lain-Lain</td>
+                            <td class="text-end fw-bold" style="font-family:monospace;">Rp {{ number_format($salesOrder->subtotal_other_cost, 0, ',', '.') }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+        @endif
+
     </div>
 
     {{-- RIGHT --}}
@@ -198,6 +239,9 @@
             <div class="card-body">
                 <div class="summary-row"><span>Total Produksi</span><span class="summary-val">Rp {{ number_format($salesOrder->subtotal_material, 0, ',', '.') }}</span></div>
                 <div class="summary-row"><span>Total Labor</span><span class="summary-val">Rp {{ number_format($salesOrder->subtotal_labor, 0, ',', '.') }}</span></div>
+                @if($salesOrder->subtotal_other_cost > 0)
+                <div class="summary-row"><span>Total Biaya Lain-Lain</span><span class="summary-val">Rp {{ number_format($salesOrder->subtotal_other_cost, 0, ',', '.') }}</span></div>
+                @endif
                 <div class="summary-row"><span>Subtotal</span><span class="summary-val">Rp {{ number_format($salesOrder->subtotal, 0, ',', '.') }}</span></div>
                 <div class="summary-row"><span>PPN ({{ number_format($salesOrder->tax_percentage, 0) }}%)</span><span class="summary-val">Rp {{ number_format($salesOrder->tax_amount, 0, ',', '.') }}</span></div>
                 <div class="summary-row total-row"><span>TOTAL</span><span class="summary-val">Rp {{ number_format($salesOrder->total, 0, ',', '.') }}</span></div>
