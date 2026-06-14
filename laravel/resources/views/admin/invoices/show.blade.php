@@ -112,6 +112,7 @@
                         <span class="info-label">Alamat</span>
                         <div class="info-value" style="white-space:pre-wrap;">{{ $invoice->client_address }}</div>      
                     </div>
+                    @endif  
                 </div>
             </div>
         </div>

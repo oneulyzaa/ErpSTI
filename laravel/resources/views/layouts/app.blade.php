@@ -99,7 +99,7 @@
         #mobileSidebar .nav-link {
             display: flex; align-items: center; gap: 10px;
             padding: 9px 12px; border-radius: 8px;
-            color: #fff; font-size: 14px; font-weight: 500;
+            color: #000000; font-size: 14px; font-weight: 500;
             transition: all .2s;
         }
         #mobileSidebar .nav-link i { font-size: 17px; flex-shrink: 0; }
