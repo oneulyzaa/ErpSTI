@@ -11,6 +11,7 @@ class Quotation extends Model
 
     protected $fillable = [
         'quote_number',
+        'nomor_po',
         'project_name',
         'client_id',
         'date',
@@ -25,6 +26,7 @@ class Quotation extends Model
         'description_of_work',
         'subtotal_material',
         'subtotal_labor',
+        'subtotal_other_cost',
         'subtotal',
         'total',
         'status',
@@ -32,12 +34,13 @@ class Quotation extends Model
     ];
 
     protected $casts = [
-        'date'             => 'date',
-        'valid_until'      => 'date',
-        'subtotal_material'=> 'decimal:2',
-        'subtotal_labor'   => 'decimal:2',
-        'subtotal'         => 'decimal:2',
-        'total'            => 'decimal:2',
+        'date' => 'date',
+        'valid_until' => 'date',
+        'subtotal_material' => 'decimal:2',
+        'subtotal_labor' => 'decimal:2',
+        'subtotal_other_cost' => 'decimal:2',
+        'subtotal' => 'decimal:2',
+        'total' => 'decimal:2',
     ];
 
     public function client()
@@ -49,17 +52,22 @@ class Quotation extends Model
     {
         return $this->hasMany(QuotationItem::class)->orderBy('sort_order');
     }
-
     public function labors()
     {
         return $this->hasMany(QuotationLabor::class)->orderBy('sort_order');
     }
 
+    public function otherCosts()
+    {
+        return $this->hasMany(QuotationOtherCost::class)->orderBy('sort_order');
+    }
+
+
     public static function generateQuoteNumber(): string
     {
         $prefix = 'QUO-' . now()->format('Ym') . '-';
-        $last   = static::where('quote_number', 'like', $prefix . '%')
-            ->orderByDesc('quote_number')
+        $last = static::where('quote_number', 'like', $prefix . '%')
+            ->orderByDesc('id')
             ->value('quote_number');
 
         $next = $last ? (int) substr($last, -4) + 1 : 1;

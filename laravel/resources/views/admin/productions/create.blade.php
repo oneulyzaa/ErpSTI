@@ -158,6 +158,16 @@
                         @endforeach
                     @elseif($selected)
                         @foreach($selected->items as $pIdx => $soItem)
+                            @php
+                                $soMaterials = $soItem->materials->map(function($mat) {
+                                    return [
+                                        'asset_id' => $mat->asset_id,
+                                        'nama_bahan_baku' => $mat->material_name,
+                                        'qty_required' => $mat->qty_required,
+                                        'satuan' => $mat->satuan,
+                                    ];
+                                })->toArray();
+                            @endphp
                             @include('admin.productions._product_card', [
                                 'pIdx' => $pIdx,
                                 'pItem' => [
@@ -165,7 +175,7 @@
                                     'product_qty' => $soItem->qty,
                                     'unit' => $soItem->unit,
                                     'sales_order_item_id' => $soItem->id,
-                                    'materials' => [],
+                                    'materials' => $soMaterials,
                                 ],
                                 'assets' => $assets ?? [],
                                 'isEdit' => false,
@@ -244,7 +254,12 @@ document.getElementById('sales_order_id')?.addEventListener('change', async func
                     product_qty: item.qty,
                     unit: item.unit,
                     sales_order_item_id: item.id,
-                    materials: [],
+                    materials: (item.materials || []).map(m => ({
+                        asset_id: m.asset_id || '',
+                        nama_bahan_baku: m.material_name || '',
+                        qty_required: m.qty_required || 1,
+                        satuan: m.satuan || 'pcs',
+                    })),
                 });
             });
         }
@@ -306,6 +321,41 @@ function addProductCard(item = {}) {
         </div>
     `;
     container.appendChild(card);
+
+    // Seed materials from SO if present
+    const materials = item.materials || [];
+    if (materials.length) {
+        const addBtn = card.querySelector('.btn-outline-primary');
+        materials.forEach(mat => {
+            const tbody = card.querySelector('tbody[id^="mattbody-"]');
+            if (!tbody) return;
+            const mSeq = mIdx['p' + idx] = (mIdx['p' + idx] || 0) + 1;
+
+            const tr = document.createElement('tr');
+            tr.dataset.idx = mSeq;
+            tr.innerHTML = `
+                <td class="item-no" id="mno-${idx}-${mSeq}"></td>
+                <td>
+                    <select name="items[${idx}][materials][${mSeq}][asset_id]" class="form-select form-select-sm material-select"
+                            onchange="onMatSelect(this, ${idx}, ${mSeq})"
+                            style="font-size:12px;">
+                        <option value="">-- Pilih Bahan Baku --</option>
+                        ${assets.map(a => {
+                            const sel = (mat.asset_id == a.id) ? 'selected' : '';
+                            return `<option value="${a.id}" data-nama="${esc(a.nama_aset)}" data-satuan="${esc(a.satuan)}" ${sel}>${esc(a.nama_aset)}</option>`;
+                        }).join('')}
+                    </select>
+                    <input type="hidden" name="items[${idx}][materials][${mSeq}][nama_bahan_baku]" class="mat-name-hidden" value="${esc(mat.nama_bahan_baku || '')}">
+                </td>
+                <td><input type="text" name="items[${idx}][materials][${mSeq}][satuan]" class="form-control form-control-sm mat-satuan" style="font-size:12px;text-align:center;" value="${esc(mat.satuan || 'pcs')}"></td>
+                <td><input type="number" name="items[${idx}][materials][${mSeq}][qty_required]" class="form-control form-control-sm" style="font-size:12px;text-align:right;" min="0" step="any" value="${mat.qty_required || 1}"></td>
+                <td><button type="button" class="btn-remove-row" onclick="removeMatRow(this)"><i class="bi bi-x-lg"></i></button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+        reorderMatNums(card.querySelector('tbody[id^="mattbody-"]'));
+    }
+
     updateProductNumbers();
     updateSummary();
     return card;

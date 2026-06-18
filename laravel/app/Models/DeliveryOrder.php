@@ -28,7 +28,7 @@ class DeliveryOrder extends Model
     ];
 
     protected $casts = [
-        'date'          => 'date',
+        'date' => 'date',
         'delivery_date' => 'date',
     ];
 
@@ -50,8 +50,8 @@ class DeliveryOrder extends Model
     public static function generateDONumber(): string
     {
         $prefix = 'DO-' . now()->format('Ym') . '-';
-        $last   = static::where('do_number', 'like', $prefix . '%')
-            ->orderByDesc('do_number')
+        $last = static::where('do_number', 'like', $prefix . '%')
+            ->orderByDesc('id')
             ->value('do_number');
 
         $next = $last ? (int) substr($last, -4) + 1 : 1;

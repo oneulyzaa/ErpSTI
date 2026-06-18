@@ -1,0 +1,28 @@
+# This is an example configuration file
+# To learn more, see the full config.yaml reference: https://docs.continue.dev/reference
+
+name: Example Config
+version: 1.0.0
+schema: v1
+
+# Define which models can be used
+# https://docs.continue.dev/customization/models
+models:
+  - title: SumoPod deepseek-v4-pro
+    provider: openai
+    model: deepseek-v4-pro
+    apiKey: sk-DYVH5DI5fdBZhusebC1IQg
+    apiBase: https://ai.sumopod.com/v1
+    roles:
+      - chat
+      - edit
+      - apply
+      - summarize
+      - rerank
+      - embed
+      - autocomplete
+
+# MCP Servers that Continue can access
+# https://docs.continue.dev/customization/mcp-tools
+mcpServers:
+  - uses: anthropic/memory-mcp

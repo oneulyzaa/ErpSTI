@@ -18,13 +18,18 @@ class QuotationItem extends Model
     ];
 
     protected $casts = [
-        'qty'        => 'decimal:2',
+        'qty' => 'decimal:2',
         'unit_price' => 'decimal:2',
-        'subtotal'   => 'decimal:2',
+        'subtotal' => 'decimal:2',
     ];
 
     public function quotation()
     {
         return $this->belongsTo(Quotation::class);
+    }
+
+    public function materials()
+    {
+        return $this->hasMany(QuotationItemMaterial::class)->orderBy('sort_order');
     }
 }

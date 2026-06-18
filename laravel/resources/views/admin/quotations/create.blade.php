@@ -1,10 +1,12 @@
 @extends('layouts.app')
 
 @php
-    $isEdit      = isset($quotation);
-    $action      = $isEdit ? route('admin.quotations.update', $quotation) : route('admin.quotations.store');
-    $oldItems    = old('items',  $isEdit ? $quotation->items->toArray()  : []);
-    $oldLabors   = old('labors', $isEdit ? $quotation->labors->toArray() : $defaultLabors);
+    $isEdit        = isset($quotation);
+    $action        = $isEdit ? route('admin.quotations.update', $quotation) : route('admin.quotations.store');
+    $oldItems      = old('items',       $isEdit ? $quotation->items->toArray()      : []);
+    $oldLabors     = old('labors',      $isEdit ? $quotation->labors->toArray()     : $defaultLabors);
+    $oldOtherCosts = old('other_costs', $isEdit ? $quotation->otherCosts->toArray() : []);
+    $assets        = $assets ?? [];
 @endphp
 
 @section('title', $isEdit ? 'Edit Quotation' : 'Buat Quotation Baru')
@@ -40,8 +42,17 @@
     .summary-row.total-row .summary-val { font-size: 17px; color: #1B5DBC; }
     .table-section-header th { background: #1e3a5f !important; color: #fff !important; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
     .labor-header th { background: #1B5DBC !important; color: #fff !important; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
+    .mat-section-header th { background: #2c4f8a !important; color: #fff !important; font-size: 10px; text-transform: uppercase; letter-spacing: .05em; }
     .client-field-group { background: #f8fafc; border-radius: 8px; padding: 14px; border: 1px solid #e2e8f0; }
-    .modal-client-field { margin-bottom: 8px; }
+    .product-card {
+        border: 1px solid #e2e8f0; border-radius: 8px;
+        margin-bottom: 12px; overflow: hidden;
+    }
+    .product-card-header {
+        background: #f8fafc; padding: 10px 14px;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex; align-items: center; justify-content: space-between;
+    }
 </style>
 @endpush
 
@@ -71,7 +82,7 @@
                     <span class="fw-semibold">Informasi Quotation</span>
                 </div>
                 <div class="card-body">
-                    <div class="section-label">Nomor Quotation</div>
+                    <div class="section-label">Nomor & PO</div>
                     <div class="row g-3 mb-3">
                         <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">No. Quotation <span class="text-danger">*</span></label>
@@ -80,6 +91,24 @@
                                    value="{{ old('quote_number', $isEdit ? $quotation->quote_number : $quoteNumber) }}" required>
                             @error('quote_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
+                        <div class="col-12 col-sm-4">
+                            <label class="form-label fw-semibold" style="font-size:13px">Nomor PO (Referensi)</label>
+                            <input type="text" name="nomor_po"
+                                   class="form-control form-control-sm"
+                                   value="{{ old('nomor_po', $isEdit ? $quotation->nomor_po : '') }}"
+                                   placeholder="PO-XXX-XXX">
+                        </div>
+                        <div class="col-12 col-sm-4">
+                            <label class="form-label fw-semibold" style="font-size:13px">Status <span class="text-danger">*</span></label>
+                            <select name="status" class="form-select form-select-sm" required>
+                                @foreach(['draft'=>'Draft','sent'=>'Terkirim','approved'=>'Disetujui','rejected'=>'Ditolak','expired'=>'Kadaluarsa'] as $v=>$l)
+                                    <option value="{{ $v }}" {{ old('status', $isEdit ? $quotation->status : 'draft') === $v ? 'selected' : '' }}>{{ $l }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
                         <div class="col-12 col-sm-5">
                             <label class="form-label fw-semibold" style="font-size:13px">
                                 Nama Perusahaan yang Dituju <span class="text-danger">*</span>
@@ -103,25 +132,14 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="col-12 col-sm-3">
-                            <label class="form-label fw-semibold" style="font-size:13px">Status <span class="text-danger">*</span></label>
-                            <select name="status" class="form-select form-select-sm" required>
-                                @foreach(['draft'=>'Draft','sent'=>'Terkirim','approved'=>'Disetujui','rejected'=>'Ditolak','expired'=>'Kadaluarsa'] as $v=>$l)
-                                    <option value="{{ $v }}" {{ old('status', $isEdit ? $quotation->status : 'draft') === $v ? 'selected' : '' }}>{{ $l }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="row g-3 mb-4">
-                        <div class="col-12 col-sm-6">
+                        <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">Tanggal Dibuat <span class="text-danger">*</span></label>
                             <input type="date" name="date" class="form-control form-control-sm @error('date') is-invalid @enderror"
                                    value="{{ old('date', $isEdit ? $quotation->date->format('Y-m-d') : now()->format('Y-m-d')) }}" required>
                             @error('date')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
-                        <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold" style="font-size:13px">Tanggal Masa Berlaku <span class="text-danger">*</span></label>
+                        <div class="col-12 col-sm-3">
+                            <label class="form-label fw-semibold" style="font-size:13px">Berlaku Sampai <span class="text-danger">*</span></label>
                             <input type="date" name="valid_until" class="form-control form-control-sm @error('valid_until') is-invalid @enderror"
                                    value="{{ old('valid_until', $isEdit ? $quotation->valid_until->format('Y-m-d') : now()->addDays(30)->format('Y-m-d')) }}" required>
                             @error('valid_until')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -138,7 +156,6 @@
                         </div>
                     </div>
 
-
                     <input type="hidden" name="client_name" id="client_name" value="{{ old('client_name', $isEdit ? $quotation->client_name : '') }}">
                     <input type="hidden" name="client_company" id="client_company" value="{{ old('client_company', $isEdit ? $quotation->client_company : '') }}">
                     <input type="hidden" name="client_email" id="client_email" value="{{ old('client_email', $isEdit ? $quotation->client_email : '') }}">
@@ -146,7 +163,6 @@
                     <input type="hidden" name="client_attention" id="client_attention" value="{{ old('client_attention', $isEdit ? $quotation->client_attention : '') }}">
                     <input type="hidden" name="client_cc" id="client_cc" value="{{ old('client_cc', $isEdit ? $quotation->client_cc : '') }}">
                     <input type="hidden" name="description_of_work" id="description_of_work" value="{{ old('description_of_work', $isEdit ? $quotation->description_of_work : '') }}">
-
 
                     <div id="client-preview" class="client-field-group {{ old('client_id', $isEdit ? $quotation->client_id : '') ? '' : 'd-none' }}">
                         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:8px;">Data Perusahaan Tujuan</div>
@@ -169,36 +185,22 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
 
+            {{-- ── PRODUK LIST ── --}}
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
-                    <span class="fw-semibold">Produksi</span>
-                    <button type="button" class="btn btn-primary btn-sm d-flex align-items-center gap-1" id="btn-add-item">
+                    <span class="fw-semibold">Daftar Produk</span>
+                    <button type="button" class="btn btn-primary btn-sm d-flex align-items-center gap-1" id="btn-add-product">
                         <i class="bi bi-plus-lg"></i> Tambah Produk
                     </button>
                 </div>
-                <div class="table-responsive">
-                    <table class="table mb-0" style="font-size:13px;">
-                        <thead>
-                            <tr class="table-section-header">
-                                <th style="width:36px;">#</th>
-                                <th style="min-width:180px;">Nama Produk <span class="text-warning">*</span></th>
-                                <th style="min-width:140px;">Deskripsi</th>
-                                <th style="width:80px;text-align:center;">Satuan</th>
-                                <th style="width:80px;text-align:right;">Qty</th>
-                                <th style="width:130px;text-align:right;">Harga Satuan</th>
-                                <th style="width:130px;text-align:right;">Sub Total</th>
-                                <th style="width:36px;"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="items-tbody"></tbody>
-                    </table>
+                <div class="card-body" id="products-container">
+                    {{-- Product cards will be rendered here by JS --}}
                 </div>
                 <div class="card-footer bg-white d-flex align-items-center justify-content-between py-2">
-                    <button type="button" class="btn btn-outline-primary btn-sm" id="btn-add-item-2">
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="btn-add-product-2">
                         <i class="bi bi-plus-lg"></i> Tambah Produk
                     </button>
                     <div class="fw-semibold" style="font-size:13px;">
@@ -207,6 +209,7 @@
                 </div>
             </div>
 
+            {{-- Labor --}}
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
                     <span class="fw-semibold">Biaya Labor</span>
@@ -241,10 +244,44 @@
                 </div>
             </div>
 
+            {{-- Biaya Lain-Lain --}}
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
+                    <span class="fw-semibold">Biaya Lain-Lain</span>
+                    <button type="button" class="btn btn-sm d-flex align-items-center gap-1"
+                            style="background:#1B5DBC;color:#fff;" id="btn-add-other-cost">
+                        <i class="bi bi-plus-lg"></i> Tambah Biaya
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table mb-0" style="font-size:13px;">
+                        <thead>
+                            <tr class="labor-header">
+                                <th style="width:36px;">#</th>
+                                <th style="min-width:180px;">Nama Biaya <span class="text-warning">*</span></th>
+                                <th style="width:80px;text-align:center;">Qty</th>
+                                <th style="width:140px;text-align:right;">Rate</th>
+                                <th style="width:140px;text-align:right;">Sub Total</th>
+                                <th style="width:36px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="other-costs-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="card-footer bg-white d-flex align-items-center justify-content-between py-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-add-other-cost-2">
+                        <i class="bi bi-plus-lg"></i> Tambah Biaya
+                    </button>
+                    <div class="fw-semibold" style="font-size:13px;">
+                        Total Biaya Lain-Lain: <span class="ms-2" id="disp-oth" style="font-family:monospace;color:#1B5DBC;">Rp 0</span>
+                    </div>
+                </div>
+            </div>
+
         </div>{{-- end left --}}
 
+        {{-- RIGHT --}}
         <div class="col-12 col-xl-4 d-flex flex-column gap-3">
-
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-bottom py-3">
                     <span class="fw-semibold">Ringkasan</span>
@@ -252,14 +289,16 @@
                 <div class="card-body">
                     <div class="summary-row"><span>Total Produksi</span><span class="summary-val" id="sum-mat">Rp 0</span></div>
                     <div class="summary-row"><span>Total Labor</span><span class="summary-val" id="sum-lab">Rp 0</span></div>
+                    <div class="summary-row"><span>Total Biaya Lain-Lain</span><span class="summary-val" id="sum-oth">Rp 0</span></div>
                     <div class="summary-row total-row" style="border-top:2px solid #e2e8f0;margin-top:4px;padding-top:12px;">
                         <span style="font-size:17px;font-weight:700;color:#1e293b;">GRAND TOTAL</span>
                         <span class="summary-val" id="sum-total" style="font-size:17px;color:#1B5DBC;">Rp 0</span>
                     </div>
-                    <input type="hidden" name="_subtotal_material" id="h-mat">
-                    <input type="hidden" name="_subtotal_labor"    id="h-lab">
-                    <input type="hidden" name="_subtotal"          id="h-sub">
-                    <input type="hidden" name="_total"             id="h-total">
+                    <input type="hidden" name="_subtotal_material"   id="h-mat">
+                    <input type="hidden" name="_subtotal_labor"      id="h-lab">
+                    <input type="hidden" name="_subtotal_other_cost" id="h-oth">
+                    <input type="hidden" name="_subtotal"            id="h-sub">
+                    <input type="hidden" name="_total"               id="h-total">
                 </div>
             </div>
 
@@ -280,11 +319,11 @@
                 </button>
                 <a href="{{ route('admin.quotations.index') }}" class="btn btn-outline-secondary text-center">Batal</a>
             </div>
-
-        </div>{{-- end right --}}
+        </div>
     </div>
 </form>
 
+{{-- Quick Add Client Modal --}}
 <div class="modal fade" id="quickAddClientModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -337,14 +376,63 @@
     </div>
 </div>
 
+{{-- Quick Add Material/Asset Modal --}}
+<div class="modal fade" id="quickAddMaterialModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tambah Material Baru</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="quick-material-form">
+                @csrf
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold" style="font-size:13px">Nama Material <span class="text-danger">*</span></label>
+                            <input type="text" name="nama_aset" class="item-input" required placeholder="Nama material/bahan">
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label fw-semibold" style="font-size:13px">Harga Satuan (Rp)</label>
+                            <input type="text" name="harga_display" id="harga-display" class="item-input" value="0" placeholder="0"
+                                   oninput="formatRupiahInput(this)" style="text-align:right;">
+                            <input type="hidden" name="harga" id="harga-hidden" value="0">
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label fw-semibold" style="font-size:13px">Satuan</label>
+                            <input type="text" name="satuan" class="item-input" value="pcs" placeholder="pcs">
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label fw-semibold" style="font-size:13px">Stok</label>
+                            <input type="number" name="stok" class="item-input" min="0" value="0" placeholder="0">
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label fw-semibold" style="font-size:13px">Supplier</label>
+                            <input type="text" name="supplier_from" class="item-input" placeholder="Nama supplier">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary" id="btn-save-material">
+                        <i class="bi bi-check-lg"></i> Simpan Material
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
 <script>
 /* ── seed data ── */
-const initItems  = @json($oldItems);
-const initLabors = @json($oldLabors);
-let iIdx = 0, lIdx = 0;
+const initItems      = @json($oldItems);
+const initLabors     = @json($oldLabors);
+const initOtherCosts = @json($oldOtherCosts);
+const assets         = @json($assets);
+let pIdx = 0, lIdx = 0, oIdx = 0, mIdx = {};
 
 const fmt = n => 'Rp ' + Math.round(n).toLocaleString('id-ID');
 const esc = s => String(s ?? '').replace(/"/g,'"').replace(/</g,'<');
@@ -362,22 +450,18 @@ document.getElementById('client-select')?.addEventListener('change', function() 
         document.getElementById('client_address').value = '';
         return;
     }
-
     const nama  = opt.dataset.nama || '';
     const kontak = opt.dataset.kontak || '';
     const email = opt.dataset.email || '';
     const alamat = opt.dataset.alamat || '';
-
     document.getElementById('client_name').value = kontak || nama;
     document.getElementById('client_company').value = nama;
     document.getElementById('client_email').value = email;
     document.getElementById('client_address').value = alamat;
-
     document.getElementById('preview-company').textContent = nama;
     document.getElementById('preview-contact').textContent = kontak || '-';
     document.getElementById('preview-email').textContent = email || '-';
     document.getElementById('preview-address').textContent = alamat || '-';
-
     preview.classList.remove('d-none');
 });
 
@@ -387,7 +471,6 @@ document.getElementById('quick-client-form')?.addEventListener('submit', functio
     const btn = document.getElementById('btn-save-client');
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Menyimpan...';
-
     const formData = new FormData(this);
     fetch('{{ route("admin.quotations.quick-add-client") }}', {
         method: 'POST',
@@ -397,7 +480,6 @@ document.getElementById('quick-client-form')?.addEventListener('submit', functio
     .then(r => r.json())
     .then(data => {
         if (data.success) {
-            // Add new option to select
             const sel = document.getElementById('client-select');
             const opt = document.createElement('option');
             opt.value = data.client.id;
@@ -409,8 +491,6 @@ document.getElementById('quick-client-form')?.addEventListener('submit', functio
             sel.appendChild(opt);
             sel.value = data.client.id;
             sel.dispatchEvent(new Event('change'));
-
-            // Close modal
             const modal = bootstrap.Modal.getInstance(document.getElementById('quickAddClientModal'));
             modal.hide();
             this.reset();
@@ -418,57 +498,266 @@ document.getElementById('quick-client-form')?.addEventListener('submit', functio
             alert('Gagal menyimpan client: ' + (data.message || 'Unknown error'));
         }
     })
-    .catch(err => {
-        alert('Terjadi kesalahan: ' + err.message);
-    })
+    .catch(err => { alert('Terjadi kesalahan: ' + err.message); })
     .finally(() => {
         btn.disabled = false;
         btn.innerHTML = '<i class="bi bi-check-lg"></i> Simpan Client';
     });
 });
 
-/* ══ PRODUKSI (ITEM/MATERIAL) rows ══════════════════════ */
-function createItemRow(item = {}) {
-    const idx   = iIdx++;
+/* ══ Format Rupiah Input ════════════════════════════ */
+function formatRupiahInput(el) {
+    let val = el.value.replace(/[^0-9]/g, '');
+    if (val === '') { el.value = ''; document.getElementById('harga-hidden').value = '0'; return; }
+    document.getElementById('harga-hidden').value = val;
+    el.value = parseInt(val, 10).toLocaleString('id-ID');
+}
+
+/* ══ Modal: Quick Add Material ═══════════════════════ */
+document.getElementById('quick-material-form')?.addEventListener('submit', function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btn-save-material');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Menyimpan...';
+    // Sync hidden harga before building FormData
+    document.getElementById('harga-hidden').value = document.getElementById('harga-display').value.replace(/[^0-9]/g, '') || '0';
+    const formData = new FormData(this);
+    fetch('{{ route("admin.quotations.quick-add-asset") }}', {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        body: formData
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            // Add to global assets array
+            assets.push(data.asset);
+            // Refresh all material select dropdowns
+            refreshAllMatSelects();
+            const modal = bootstrap.Modal.getInstance(document.getElementById('quickAddMaterialModal'));
+            modal.hide();
+            this.reset();
+            document.querySelector('#quick-material-form [name="satuan"]').value = 'pcs';
+            document.getElementById('harga-display').value = '0';
+            document.getElementById('harga-hidden').value = '0';
+        } else {
+            alert('Gagal menyimpan material: ' + (data.message || 'Unknown error'));
+        }
+    })
+    .catch(err => { alert('Terjadi kesalahan: ' + err.message); })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-lg"></i> Simpan Material';
+    });
+});
+
+function refreshAllMatSelects() {
+    document.querySelectorAll('.material-select').forEach(select => {
+        const currentVal = select.value;
+        select.innerHTML = '<option value="">-- Pilih Material --</option>' +
+            assets.map(a => `<option value="${a.id}" data-nama="${esc(a.nama_aset)}" data-satuan="${esc(a.satuan)}" data-harga="${a.harga || 0}">${esc(a.nama_aset)}</option>`).join('');
+        if (currentVal) select.value = currentVal;
+    });
+}
+
+/* ══ PRODUCT CARDS ═══════════════════════════════════ */
+function createProductCard(item = {}) {
+    const idx = pIdx++;
+    mIdx['p' + idx] = 0;
     const qty   = parseFloat(item.qty ?? 1) || 0;
     const price = parseFloat(item.unit_price ?? 0) || 0;
+    const materials = item.materials || [];
+
+    const card = document.createElement('div');
+    card.className = 'product-card';
+    card.dataset.idx = idx;
+    card.innerHTML = `
+        <div class="product-card-header">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <span class="fw-semibold" style="font-size:14px;min-width:40px;" id="pnum-${idx}">#1</span>
+                <input type="text" name="items[${idx}][material_name]" class="form-control form-control-sm" required
+                       style="width:180px;" value="${esc(item.material_name || '')}" placeholder="Nama Produk">
+                <input type="text" name="items[${idx}][description]" class="form-control form-control-sm"
+                       style="width:160px;" value="${esc(item.description || '')}" placeholder="Deskripsi (opsional)">
+                <input type="text" name="items[${idx}][unit]" class="form-control form-control-sm" required
+                       style="width:80px;text-align:center;" value="${esc(item.unit || 'Unit')}" placeholder="Satuan">
+                <input type="number" name="items[${idx}][qty]" class="form-control form-control-sm item-qty" required
+                       style="width:80px;text-align:right;" min="0" step="any" value="${qty}" placeholder="Qty">
+                <input type="number" name="items[${idx}][unit_price]" class="form-control form-control-sm item-price" required
+                       style="width:130px;text-align:right;" min="0" step="any" value="${price}" placeholder="Harga Satuan">
+                <span class="subtotal-cell" id="isub-${idx}">${fmt(qty * price)}</span>
+                <button type="button" class="btn-remove-row" onclick="removeProduct(this)"><i class="bi bi-x-lg"></i></button>
+            </div>
+        </div>
+        <div class="p-3">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span style="font-size:12px;font-weight:600;color:#1B5DBC;">MATERIAL</span>
+                <div class="d-flex gap-1">
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="addMaterialRow(this, ${idx})">
+                        <i class="bi bi-plus-lg"></i> Tambah Material
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#quickAddMaterialModal" title="Tambah Material Baru">
+                        <i class="bi bi-plus-lg"></i>
+                    </button>
+                </div>
+            </div>
+            <table class="table table-sm mb-0" style="font-size:12px;">
+                <thead>
+                    <tr class="mat-section-header">
+                        <th style="width:28px;">#</th>
+                        <th style="min-width:150px;">Nama Material</th>
+                        <th style="width:70px;text-align:center;">Satuan</th>
+                        <th style="width:90px;text-align:right;">Qty</th>
+                        <th style="width:110px;text-align:right;">Harga Satuan</th>
+                        <th style="width:100px;text-align:right;">Subtotal</th>
+                        <th style="width:28px;"></th>
+                    </tr>
+                </thead>
+                <tbody id="mattbody-${idx}"></tbody>
+            </table>
+        </div>
+    `;
+
+    // Bind qty/price change events
+    setTimeout(() => {
+        const qtyEl = card.querySelector('.item-qty');
+        const priceEl = card.querySelector('.item-price');
+        qtyEl?.addEventListener('input', () => { updateProductSubtotal(card); recalc(); });
+        priceEl?.addEventListener('input', () => { updateProductSubtotal(card); recalc(); });
+    }, 0);
+
+    return { card, idx, materials };
+}
+
+function updateProductSubtotal(card) {
+    const idx = card.dataset.idx;
+    const qty = parseFloat(card.querySelector('.item-qty')?.value) || 0;
+    const price = parseFloat(card.querySelector('.item-price')?.value) || 0;
+    const subEl = card.querySelector(`#isub-${idx}`);
+    if (subEl) subEl.textContent = fmt(qty * price);
+}
+
+function addProductCard(item = {}) {
+    const container = document.getElementById('products-container');
+    const { card, idx, materials } = createProductCard(item);
+    container.appendChild(card);
+    updateProductNumbers();
+
+    // Add existing material rows
+    if (materials.length) {
+        const tbody = card.querySelector(`#mattbody-${idx}`);
+        materials.forEach((mat, mi) => {
+            mIdx['p' + idx] = mi;
+            const tr = createMaterialRow(idx, mat);
+            tbody.appendChild(tr);
+        });
+        mIdx['p' + idx] = materials.length;
+        reorderMatNums(card.querySelector(`#mattbody-${idx}`));
+    }
+
+    recalc();
+    return card;
+}
+
+function removeProduct(btn) {
+    btn.closest('.product-card').remove();
+    updateProductNumbers();
+    recalc();
+}
+
+function updateProductNumbers() {
+    document.querySelectorAll('#products-container .product-card').forEach((card, i) => {
+        const num = card.querySelector('[id^="pnum-"]');
+        if (num) num.textContent = '#' + (i + 1);
+    });
+}
+
+/* ══ MATERIAL ROWS ═══════════════════════════════════ */
+function createMaterialRow(pIdx, mat = {}) {
+    const m = mIdx['p' + pIdx] || 0;
+    mIdx['p' + pIdx] = m + 1;
+
+    const qty   = parseFloat(mat.qty_required ?? 1) || 0;
+    const price = parseFloat(mat.unit_price ?? 0) || 0;
     const sub   = qty * price;
 
     const tr = document.createElement('tr');
-    tr.dataset.idx = idx;
+    tr.dataset.midx = m;
     tr.innerHTML = `
-        <td class="item-no" id="ino-${idx}"></td>
-        <td><input type="text"   name="items[${idx}][material_name]" class="item-input" required value="${esc(item.material_name)}" placeholder="Nama produk"></td>
-        <td><input type="text"   name="items[${idx}][description]"   class="item-input" value="${esc(item.description)}" placeholder="Keterangan"></td>
-        <td><input type="text"   name="items[${idx}][unit]"          class="item-input" value="${esc(item.unit ?? 'Unit')}" style="text-align:center;" required></td>
-        <td><input type="number" name="items[${idx}][qty]"           class="item-input item-qty"   min="0" step="any" value="${qty}"  style="text-align:right;" required></td>
-        <td><input type="number" name="items[${idx}][unit_price]"    class="item-input item-price" min="0" step="any" value="${price}" style="text-align:right;" required></td>
-        <td class="subtotal-cell" id="isub-${idx}">${fmt(sub)}</td>
-        <td><button type="button" class="btn-remove-row" onclick="removeItemRow(this)"><i class="bi bi-x-lg"></i></button></td>
+        <td class="item-no" id="mno-${pIdx}-${m}"></td>
+        <td>
+            <select name="items[${pIdx}][materials][${m}][asset_id]" class="form-select form-select-sm material-select"
+                    onchange="onMatSelect(this, ${pIdx}, ${m})" style="font-size:12px;">
+                <option value="">-- Pilih Material --</option>
+                ${assets.map(a => `<option value="${a.id}" data-nama="${esc(a.nama_aset)}" data-satuan="${esc(a.satuan)}" data-harga="${a.harga || 0}" ${(mat.asset_id == a.id) ? 'selected' : ''}>${esc(a.nama_aset)}</option>`).join('')}
+            </select>
+            <input type="hidden" name="items[${pIdx}][materials][${m}][material_name]" class="mat-name-hidden" value="${esc(mat.material_name || '')}">
+        </td>
+        <td><input type="text" name="items[${pIdx}][materials][${m}][satuan]" class="form-control form-control-sm mat-satuan" style="font-size:12px;text-align:center;" value="${esc(mat.satuan || 'pcs')}"></td>
+        <td><input type="number" name="items[${pIdx}][materials][${m}][qty_required]" class="form-control form-control-sm mat-qty" style="font-size:12px;text-align:right;" min="0" step="any" value="${qty}"></td>
+        <td><input type="number" name="items[${pIdx}][materials][${m}][unit_price]" class="form-control form-control-sm mat-price" style="font-size:12px;text-align:right;" min="0" step="any" value="${price}"></td>
+        <td class="subtotal-cell" id="msub-${pIdx}-${m}">${fmt(sub)}</td>
+        <td><button type="button" class="btn-remove-row" onclick="removeMatRow(this)"><i class="bi bi-x-lg"></i></button></td>
     `;
-    tr.querySelector('.item-qty').addEventListener('input',   () => updateItemRow(tr));
-    tr.querySelector('.item-price').addEventListener('input', () => updateItemRow(tr));
+
+    // Bind events
+    setTimeout(() => {
+        tr.querySelector('.mat-qty')?.addEventListener('input', () => { updateMatRow(tr); recalc(); });
+        tr.querySelector('.mat-price')?.addEventListener('input', () => { updateMatRow(tr); recalc(); });
+    }, 0);
+
     return tr;
 }
-function updateItemRow(tr) {
-    const idx   = tr.dataset.idx;
-    const qty   = parseFloat(tr.querySelector('.item-qty').value)   || 0;
-    const price = parseFloat(tr.querySelector('.item-price').value) || 0;
-    tr.querySelector(`#isub-${idx}`).textContent = fmt(qty * price);
-    recalc();
-}
-function removeItemRow(btn) {
-    btn.closest('tr').remove();
-    reorderNums('items-tbody', 'ino-');
-    recalc();
-}
-function addItemRow(item = {}) {
-    const tbody = document.getElementById('items-tbody');
-    const tr = createItemRow(item);
+
+function addMaterialRow(btn, pIdx) {
+    const tbody = btn.closest('.product-card').querySelector('tbody[id^="mattbody-"]');
+    if (!tbody) return;
+    const tr = createMaterialRow(pIdx);
     tbody.appendChild(tr);
-    reorderNums('items-tbody', 'ino-');
+    reorderMatNums(tbody);
     recalc();
-    tr.querySelector('.item-input').focus();
+}
+
+function onMatSelect(select, pIdx, m) {
+    const opt = select.options[select.selectedIndex];
+    const tr = select.closest('tr');
+    const hidden = tr.querySelector('.mat-name-hidden');
+    const satuanInput = tr.querySelector('.mat-satuan');
+    const priceInput = tr.querySelector('.mat-price');
+    if (!opt.value) {
+        if (hidden) hidden.value = '';
+        if (satuanInput) satuanInput.value = 'pcs';
+        if (priceInput) priceInput.value = '0';
+        updateMatRow(tr);
+        recalc();
+        return;
+    }
+    if (hidden) hidden.value = opt.dataset.nama || '';
+    if (satuanInput && opt.dataset.satuan) satuanInput.value = opt.dataset.satuan;
+    if (priceInput && opt.dataset.harga) priceInput.value = parseFloat(opt.dataset.harga) || 0;
+    updateMatRow(tr);
+    recalc();
+}
+
+function updateMatRow(tr) {
+    const qty = parseFloat(tr.querySelector('.mat-qty')?.value) || 0;
+    const price = parseFloat(tr.querySelector('.mat-price')?.value) || 0;
+    const subEl = tr.querySelector('[id^="msub-"]');
+    if (subEl) subEl.textContent = fmt(qty * price);
+}
+
+function removeMatRow(btn) {
+    const tbody = btn.closest('tbody');
+    btn.closest('tr').remove();
+    reorderMatNums(tbody);
+    recalc();
+}
+
+function reorderMatNums(tbody) {
+    tbody.querySelectorAll('tr').forEach((tr, i) => {
+        const el = tr.querySelector('[id^="mno-"]');
+        if (el) el.textContent = i + 1;
+    });
 }
 
 /* ══ LABOR rows ═════════════════════════════════════════ */
@@ -516,6 +805,47 @@ function addLaborRow(labor = {}) {
     recalc();
 }
 
+/* ══ OTHER COSTS rows ══════════════════════════════════ */
+function createOtherCostRow(cost = {}) {
+    const idx  = oIdx++;
+    const qty  = parseFloat(cost.qty  ?? 1) || 0;
+    const rate = parseFloat(cost.rate ?? 0) || 0;
+    const sub  = qty * rate;
+
+    const tr = document.createElement('tr');
+    tr.dataset.idx = idx;
+    tr.innerHTML = `
+        <td class="item-no" id="ono-${idx}"></td>
+        <td><input type="text"   name="other_costs[${idx}][cost_name]" class="item-input" required value="${esc(cost.cost_name)}" placeholder="Nama biaya"></td>
+        <td><input type="number" name="other_costs[${idx}][qty]"       class="item-input oc-qty"   min="0" step="any" value="${qty}"  style="text-align:center;" required></td>
+        <td><input type="number" name="other_costs[${idx}][rate]"      class="item-input oc-rate"  min="0" step="any" value="${rate}" style="text-align:right;" required></td>
+        <td class="subtotal-cell" id="osub-${idx}">${fmt(sub)}</td>
+        <td><button type="button" class="btn-remove-row" onclick="removeOtherCostRow(this)"><i class="bi bi-x-lg"></i></button></td>
+    `;
+    tr.querySelector('.oc-qty').addEventListener('input',  () => updateOtherCostRow(tr));
+    tr.querySelector('.oc-rate').addEventListener('input', () => updateOtherCostRow(tr));
+    return tr;
+}
+function updateOtherCostRow(tr) {
+    const idx  = tr.dataset.idx;
+    const qty  = parseFloat(tr.querySelector('.oc-qty').value)  || 0;
+    const rate = parseFloat(tr.querySelector('.oc-rate').value) || 0;
+    tr.querySelector(`#osub-${idx}`).textContent = fmt(qty * rate);
+    recalc();
+}
+function removeOtherCostRow(btn) {
+    btn.closest('tr').remove();
+    reorderNums('other-costs-tbody', 'ono-');
+    recalc();
+}
+function addOtherCostRow(cost = {}) {
+    const tbody = document.getElementById('other-costs-tbody');
+    const tr = createOtherCostRow(cost);
+    tbody.appendChild(tr);
+    reorderNums('other-costs-tbody', 'ono-');
+    recalc();
+}
+
 /* ══ Helpers ════════════════════════════════════════════ */
 function reorderNums(tbodyId, prefix) {
     document.querySelectorAll(`#${tbodyId} tr`).forEach((tr, i) => {
@@ -525,43 +855,72 @@ function reorderNums(tbodyId, prefix) {
 }
 
 function recalc() {
-    let mat = 0, lab = 0;
-    document.querySelectorAll('#items-tbody tr').forEach(tr => {
-        mat += (parseFloat(tr.querySelector('.item-qty')?.value)   || 0)
-             * (parseFloat(tr.querySelector('.item-price')?.value) || 0);
+    let mat = 0, lab = 0, oth = 0;
+
+    // Product subtotal (qty * unit_price)
+    document.querySelectorAll('#products-container .product-card').forEach(card => {
+        const qty   = parseFloat(card.querySelector('.item-qty')?.value)   || 0;
+        const price = parseFloat(card.querySelector('.item-price')?.value) || 0;
+        mat += qty * price;
     });
+
+    // Material subtotals
+    document.querySelectorAll('#products-container .mat-qty').forEach(el => {
+        const tr = el.closest('tr');
+        const qty   = parseFloat(el.value) || 0;
+        const price = parseFloat(tr.querySelector('.mat-price')?.value) || 0;
+        mat += qty * price;
+    });
+
     document.querySelectorAll('#labors-tbody tr').forEach(tr => {
         lab += (parseInt(tr.querySelector('.labor-mp')?.value)     || 0)
              * (parseFloat(tr.querySelector('.labor-days')?.value) || 0)
              * (parseFloat(tr.querySelector('.labor-rate')?.value) || 0);
     });
-    const total = mat + lab;
+
+    document.querySelectorAll('#other-costs-tbody tr').forEach(tr => {
+        oth += (parseFloat(tr.querySelector('.oc-qty')?.value)  || 0)
+             * (parseFloat(tr.querySelector('.oc-rate')?.value) || 0);
+    });
+
+    const total = mat + lab + oth;
 
     document.getElementById('disp-mat').textContent = fmt(mat);
     document.getElementById('disp-lab').textContent = fmt(lab);
+    document.getElementById('disp-oth').textContent = fmt(oth);
     document.getElementById('sum-mat').textContent  = fmt(mat);
     document.getElementById('sum-lab').textContent  = fmt(lab);
+    document.getElementById('sum-oth').textContent  = fmt(oth);
     document.getElementById('sum-total').textContent = fmt(total);
 
     document.getElementById('h-mat').value   = mat.toFixed(2);
     document.getElementById('h-lab').value   = lab.toFixed(2);
+    document.getElementById('h-oth').value   = oth.toFixed(2);
     document.getElementById('h-sub').value   = total.toFixed(2);
     document.getElementById('h-total').value = total.toFixed(2);
 }
 
-/* ══ Boot ═══════════════════════════════════════════════ */
+/* ══ Boot ═══════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
-    (initItems.length  ? initItems  : [{}]).forEach(i => addItemRow(i));
+    // Render existing items as product cards
+    (initItems.length ? initItems : [{}]).forEach(item => addProductCard(item));
+
+    // Labors
     (initLabors.length ? initLabors : [{}]).forEach(l => addLaborRow(l));
 
-    document.getElementById('btn-add-item').addEventListener('click',   () => addItemRow());
-    document.getElementById('btn-add-item-2').addEventListener('click', () => addItemRow());
-    document.getElementById('btn-add-labor').addEventListener('click',  () => addLaborRow());
-    document.getElementById('btn-add-labor-2').addEventListener('click',() => addLaborRow());
+    // Other Costs
+    (initOtherCosts.length ? initOtherCosts : []).forEach(c => addOtherCostRow(c));
+
+    document.getElementById('btn-add-product')?.addEventListener('click',     () => addProductCard());
+    document.getElementById('btn-add-product-2')?.addEventListener('click',   () => addProductCard());
+    document.getElementById('btn-add-labor')?.addEventListener('click',       () => addLaborRow());
+    document.getElementById('btn-add-labor-2')?.addEventListener('click',     () => addLaborRow());
+    document.getElementById('btn-add-other-cost')?.addEventListener('click',  () => addOtherCostRow());
+    document.getElementById('btn-add-other-cost-2')?.addEventListener('click',() => addOtherCostRow());
 
     // Trigger client preview on load if client_id is preselected
     const sel = document.getElementById('client-select');
-    if (sel.value) sel.dispatchEvent(new Event('change'));
+    if (sel && sel.value) sel.dispatchEvent(new Event('change'));
 });
 </script>
 @endpush

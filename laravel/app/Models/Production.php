@@ -19,7 +19,7 @@ class Production extends Model
     ];
 
     protected $casts = [
-        'date'        => 'date',
+        'date' => 'date',
         'target_date' => 'date',
     ];
 
@@ -36,8 +36,8 @@ class Production extends Model
     public static function generateProductionNumber(): string
     {
         $prefix = 'PRD-' . now()->format('Ym') . '-';
-        $last   = static::where('production_number', 'like', $prefix . '%')
-            ->orderByDesc('production_number')
+        $last = static::where('production_number', 'like', $prefix . '%')
+            ->orderByDesc('id')
             ->value('production_number');
 
         $next = $last ? (int) substr($last, -4) + 1 : 1;

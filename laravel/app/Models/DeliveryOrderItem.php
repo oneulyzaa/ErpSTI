@@ -23,4 +23,9 @@ class DeliveryOrderItem extends Model
     {
         return $this->belongsTo(DeliveryOrder::class);
     }
+
+    public function materials()
+    {
+        return $this->hasMany(DeliveryOrderItemMaterial::class)->orderBy('sort_order');
+    }
 }

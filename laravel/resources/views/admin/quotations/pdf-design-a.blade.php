@@ -389,6 +389,12 @@
                         <td class="meta-label">Quote #</td>
                         <td class="meta-value">{{ $quotation->quote_number }}</td>
                     </tr>
+                    @if($quotation->nomor_po)
+                    <tr>
+                        <td class="meta-label">PO #</td>
+                        <td class="meta-value">{{ $quotation->nomor_po }}</td>
+                    </tr>
+                    @endif
                     <tr>
                         <td class="meta-label">Customer ID</td>
                         <td class="meta-value">{{ $quotation->customer_id ?? '-' }}</td>
@@ -460,39 +466,66 @@
     </table>
 
     {{-- ══════════════════════════════
-         MATERIAL TABLE
+         MATERIAL TABLE (with material details)
     ══════════════════════════════ --}}
     @php
         $items    = $quotation->items;
         $itemList = $items->values();
-        $totalMat = $items->sum('subtotal');
-        $padCount = max(0, 15 - $items->count());
+        // Calculate total: product subtotals + material subtotals
+        $totalMat = 0;
+        $tableRows = [];
+        foreach ($itemList as $i => $item) {
+            $totalMat += $item->subtotal;
+            $tableRows[] = ['type'=>'product', 'data'=>$item, 'idx'=>$i+1];
+            if ($item->materials && $item->materials->count()) {
+                foreach ($item->materials as $mi => $mat) {
+                    $totalMat += $mat->subtotal;
+                    $tableRows[] = ['type'=>'material', 'data'=>$mat, 'idx'=>($i+1).'.'.($mi+1)];
+                }
+            }
+        }
+        $rowCount = count($tableRows);
+        $padCount = max(0, 18 - $rowCount);
     @endphp
     <div class="section-bar">Produksi</div>
     <table class="mat-table">
         <thead>
             <tr>
                 <th class="col-no th-center">#</th>
-                <th class="th-left">Produk / Jasa</th>
+                <th class="th-left">Produk / Material</th>
+                <th class="th-center" style="width:38px;">Sat</th>
                 <th class="th-center" style="width:38px;">Qty</th>
                 <th class="th-right" style="width:82px;">Unit Price</th>
                 <th class="th-right" style="width:82px;">Subtotal</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($itemList as $i => $item)
-            <tr class="{{ $i % 2 === 0 ? 'row-odd' : 'row-even' }}">
-                <td class="col-no mono tc">{{ $i + 1 }}</td>
-                <td>{{ $item->material_name }}</td>
-                <td class="tr mono">{{ number_format($item->qty, 0, ',', '.') }}</td>
-                <td class="tr mono">Rp&nbsp;{{ number_format($item->unit_price, 0, ',', '.') }}</td>
-                <td class="tr mono">Rp&nbsp;{{ number_format($item->subtotal, 0, ',', '.') }}</td>
+            @foreach($tableRows as $i => $row)
+            @if($row['type'] === 'product')
+            <tr style="background:#eef2f7;font-weight:bold;">
+                <td class="col-no mono tc">{{ $row['idx'] }}</td>
+                <td>{{ $row['data']->material_name }}</td>
+                <td class="tc">{{ $row['data']->unit }}</td>
+                <td class="tr mono">{{ number_format($row['data']->qty, 0, ',', '.') }}</td>
+                <td class="tr mono">Rp&nbsp;{{ number_format($row['data']->unit_price, 0, ',', '.') }}</td>
+                <td class="tr mono">Rp&nbsp;{{ number_format($row['data']->subtotal, 0, ',', '.') }}</td>
             </tr>
+            @else
+            <tr class="{{ $i % 2 === 0 ? 'row-odd' : 'row-even' }}">
+                <td class="col-no mono tc muted" style="font-size:7px;">{{ $row['idx'] }}</td>
+                <td style="padding-left:16px;">{{ $row['data']->material_name }}</td>
+                <td class="tc">{{ $row['data']->satuan }}</td>
+                <td class="tr mono">{{ number_format($row['data']->qty_required, 2, ',', '.') }}</td>
+                <td class="tr mono">Rp&nbsp;{{ number_format($row['data']->unit_price, 0, ',', '.') }}</td>
+                <td class="tr mono">Rp&nbsp;{{ number_format($row['data']->subtotal, 0, ',', '.') }}</td>
+            </tr>
+            @endif
             @endforeach
             @for($p = 0; $p < $padCount; $p++)
-            @php $idx = $items->count() + $p; @endphp
+            @php $idx = $rowCount + $p; @endphp
             <tr class="{{ $idx % 2 === 0 ? 'row-odd' : 'row-even' }}">
                 <td class="col-no"></td>
+                <td></td>
                 <td></td>
                 <td class="tr mono muted">-</td>
                 <td class="tr mono muted">Rp&nbsp;-</td>
@@ -500,7 +533,7 @@
             </tr>
             @endfor
             <tr class="total-mat-row">
-                <td colspan="4" class="tr" style="font-size:8px;letter-spacing:.5px;color:#2c4f8a;">
+                <td colspan="5" class="tr" style="font-size:8px;letter-spacing:.5px;color:#2c4f8a;">
                     TOTAL PRODUKSI
                 </td>
                 <td class="tr mono">Rp&nbsp;{{ number_format($totalMat, 0, ',', '.') }}</td>
@@ -557,10 +590,49 @@
     </table>
 
     {{-- ══════════════════════════════
+         BIAYA LAIN-LAIN TABLE
+    ══════════════════════════════ --}}
+    @php
+        $otherCosts = $quotation->otherCosts ?? collect();
+        $totalOth   = $otherCosts->sum('subtotal');
+    @endphp
+    @if($otherCosts->count())
+    <div class="section-bar" style="background:#4a7bd4;">Biaya Lain-Lain</div>
+    <table class="lab-table">
+        <thead>
+            <tr>
+                <th class="th-center" style="width:22px;">#</th>
+                <th class="th-left">Nama Biaya</th>
+                <th class="th-center" style="width:40px;">Qty</th>
+                <th class="th-right" style="width:82px;">Rate</th>
+                <th class="th-right" style="width:82px;">Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($otherCosts as $i => $cost)
+            <tr class="{{ $i % 2 === 0 ? 'row-odd' : 'row-even' }}">
+                <td class="tc mono">{{ $i + 1 }}</td>
+                <td>{{ $cost->cost_name }}</td>
+                <td class="tc mono">{{ number_format($cost->qty, 2, ',', '.') }}</td>
+                <td class="tr mono">Rp&nbsp;{{ number_format($cost->rate, 0, ',', '.') }}</td>
+                <td class="tr mono">Rp&nbsp;{{ number_format($cost->subtotal, 0, ',', '.') }}</td>
+            </tr>
+            @endforeach
+            <tr class="total-lab-row">
+                <td colspan="4" class="tr" style="font-size:8px;letter-spacing:.5px;color:#1B5DBC;">
+                    TOTAL BIAYA LAIN-LAIN
+                </td>
+                <td class="tr mono">Rp&nbsp;{{ number_format($totalOth, 0, ',', '.') }}</td>
+            </tr>
+        </tbody>
+    </table>
+    @endif
+
+    {{-- ══════════════════════════════
          GRAND TOTAL
     ══════════════════════════════ --}}
     @php
-        $grandTotal = $totalMat + $totalLab;
+        $grandTotal = $totalMat + $totalLab + $totalOth;
     @endphp
     <table class="grand-wrap">
         <tr>
@@ -575,6 +647,12 @@
                         <td class="grand-lbl">Total Labor</td>
                         <td class="grand-val mono">Rp&nbsp;{{ number_format($totalLab, 0, ',', '.') }}</td>
                     </tr>
+                    @if($totalOth > 0)
+                    <tr>
+                        <td class="grand-lbl">Total Biaya Lain-Lain</td>
+                        <td class="grand-val mono">Rp&nbsp;{{ number_format($totalOth, 0, ',', '.') }}</td>
+                    </tr>
+                    @endif
                     <tr class="grand-total-row">
                         <td>GRAND TOTAL</td>
                         <td class="grand-val">Rp&nbsp;{{ number_format($grandTotal, 0, ',', '.') }}</td>

@@ -30,7 +30,7 @@ Route::middleware('auth')->prefix('admin')->as('admin.')->group(function () {
 
     // master data aset using MasterAsetController
     Route::resource('master-assets', MasterAssetController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
-    
+
     // master data aset using MasterClientController
     Route::resource('master-clients', MasterClientController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
 
@@ -62,7 +62,10 @@ Route::middleware('auth')->prefix('admin')->as('admin.')->group(function () {
     // ─── Production Plan ─────────────────────────────────────────
     Route::get('productions/{production}/pdf', [ProductionController::class, 'pdf'])->name('productions.pdf');
     Route::get('productions/sales-order-items/{salesOrder}', [ProductionController::class, 'getSoItems'])->name('productions.so-items');
-    Route::resource('productions', ProductionController::class);
+    Route::resource('productions', ProductionController::class)->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy']);
+
+    // ─── Quick-add asset/material from quotation page ───────────
+    Route::post('quotations/quick-add-asset', [QuotationController::class, 'quickAddAsset'])->name('quotations.quick-add-asset');
 
     // ─── Invoice ─────────────────────────────────────────────────
     Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->name('invoices.pdf');

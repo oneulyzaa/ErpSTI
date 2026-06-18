@@ -18,13 +18,18 @@ class SalesOrderItem extends Model
     ];
 
     protected $casts = [
-        'qty'        => 'decimal:2',
+        'qty' => 'decimal:2',
         'unit_price' => 'decimal:2',
-        'subtotal'   => 'decimal:2',
+        'subtotal' => 'decimal:2',
     ];
 
     public function salesOrder()
     {
         return $this->belongsTo(SalesOrder::class);
+    }
+
+    public function materials()
+    {
+        return $this->hasMany(SalesOrderItemMaterial::class)->orderBy('sort_order');
     }
 }
