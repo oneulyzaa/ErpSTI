@@ -373,7 +373,7 @@
         @endif
     </table>
 
-    {{-- ═══ ITEM PRODUKSI ═══ --}}
+    {{-- ═══ ITEM PRODUKSI (RINGKAS) ═══ --}}
     @if($invoice->items->isNotEmpty())
     <div class="section-bar bar-production">Item Produksi</div>
     <table class="item-table">
@@ -383,15 +383,24 @@
                 <th class="th-l">Nama Item</th>
                 <th class="col-unit th-c">Sat.</th>
                 <th class="col-qty th-r">Qty</th>
-                <th class="col-up th-r">Harga Satuan</th>
                 <th class="col-sub th-r">Subtotal</th>
             </tr>
         </thead>
         <tbody>
+            @php
+                $totalProduksi = 0;
+            @endphp
             @foreach($invoice->items as $i => $item)
-            @php $hasMaterials = $item->materials && $item->materials->count(); @endphp
-
-            {{-- Baris induk item --}}
+            @php
+                $hasMaterials = $item->materials && $item->materials->count();
+                // Hitung subtotal: jika punya material, gunakan total material, jika tidak gunakan subtotal item
+                if ($hasMaterials) {
+                    $subtotalItem = $item->materials->sum('subtotal');
+                } else {
+                    $subtotalItem = $item->subtotal;
+                }
+                $totalProduksi += $subtotalItem;
+            @endphp
             <tr class="{{ $i % 2 === 0 ? 'row-odd' : 'row-even' }}">
                 <td class="th-c" style="color:#999;">{{ $i + 1 }}</td>
                 <td>
@@ -399,88 +408,23 @@
                     @if($item->description)
                         <div class="item-desc">{{ $item->description }}</div>
                     @endif
-                    @if($hasMaterials)
-                        <div class="accum-hint">* qty &amp; harga diakumulasi dari material</div>
-                    @endif
                 </td>
                 <td class="th-c">{{ $item->unit }}</td>
-                <td class="th-r">
-                    {{ number_format($item->qty, 2, ',', '.') }}
-                    {{-- @if($hasMaterials)
-                        —
-                    @else
-                    @endif --}}
-                </td>
-                <td class="th-r" style="color:{{ $hasMaterials ? '#bbb' : 'inherit' }};">
-                    @if($hasMaterials)
-                        —
-                    @else
-                        Rp {{ number_format($item->unit_price, 0, ',', '.') }}
-                    @endif
-                </td>
-                <td class="th-r" style="font-weight:{{ $hasMaterials ? 'normal' : 'bold' }};color:{{ $hasMaterials ? '#bbb' : 'inherit' }};">
-                    @if($hasMaterials)
-                        —
-                    @else
-                        Rp {{ number_format($item->subtotal, 0, ',', '.') }}
-                    @endif
-                </td>
+                <td class="th-r">{{ number_format($item->qty, 2, ',', '.') }}</td>
+                <td class="th-r" style="font-weight:bold;">Rp {{ number_format($subtotalItem, 0, ',', '.') }}</td>
             </tr>
-
-            {{-- Baris sub-tabel material (jika ada) --}}
-            @if($hasMaterials)
-            <tr class="mat-wrap">
-                <td colspan="6" style="padding:0;border:0.5px solid #dde3ef;">
-                    <table class="mat-table">
-                        <thead>
-                            <tr>
-                                <th style="width:20px;" class="th-c"></th>
-                                <th class="th-l mat-indent">Material / Bahan Baku</th>
-                                <th style="width:30px;" class="th-c">Sat.</th>
-                                <th style="width:42px;" class="th-r">Qty</th>
-                                <th style="width:88px;" class="th-r">Harga / Unit</th>
-                                <th style="width:88px;" class="th-r">Subtotal</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($item->materials as $m => $mat)
-                            <tr class="{{ $m % 2 === 0 ? 'mat-row-odd' : 'mat-row-even' }}">
-                                <td class="th-c" style="color:#bbb;font-size:6.5px;">{{ $m + 1 }}</td>
-                                <td class="mat-indent">{{ $mat->material_name }}</td>
-                                <td class="th-c">{{ $mat->satuan }}</td>
-                                <td class="th-r">{{ number_format($mat->qty_required, 2, ',', '.') }}</td>
-                                <td class="th-r">Rp {{ number_format($mat->unit_price, 0, ',', '.') }}</td>
-                                <td class="th-r">Rp {{ number_format($mat->subtotal, 0, ',', '.') }}</td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="5" style="text-align:right;font-weight:bold;font-size:7.5px;background:#eef2fb;color:#333;border-top:0.5px solid #ccd3e8;">
-                                    Total Material
-                                </td>
-                                <td style="text-align:right;font-weight:bold;font-size:7.5px;background:#eef2fb;border-top:0.5px solid #ccd3e8;">
-                                    Rp {{ number_format($item->materials->sum('subtotal'), 0, ',', '.') }}
-                                </td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </td>
-            </tr>
-            @endif
-
             @endforeach
         </tbody>
         <tfoot>
             <tr class="total-row">
-                <td colspan="5" class="th-r">Total Produksi</td>
-                <td class="th-r">Rp {{ number_format($invoice->subtotal, 0, ',', '.') }}</td>
+                <td colspan="4" class="th-r">Total Produksi</td>
+                <td class="th-r">Rp {{ number_format($totalProduksi, 0, ',', '.') }}</td>
             </tr>
         </tfoot>
     </table>
     @endif
 
-    {{-- ═══ BIAYA TENAGA KERJA ═══ --}}
+    {{-- ═══ BIAYA TENAGA KERJA (RINGKAS) ═══ --}}
     @php
         $labors   = $invoice->labors   ?? collect();
         $totalLab = $labors->sum('subtotal');
@@ -492,9 +436,6 @@
             <tr>
                 <th class="bar-labor col-no th-c">#</th>
                 <th class="bar-labor th-l">Nama Pekerjaan</th>
-                <th class="bar-labor col-unit th-c">MP</th>
-                <th class="bar-labor col-unit th-c">Hari</th>
-                <th class="bar-labor col-up th-r">Rate / Hari</th>
                 <th class="bar-labor col-sub th-r">Subtotal</th>
             </tr>
         </thead>
@@ -503,23 +444,20 @@
             <tr class="{{ $i % 2 === 0 ? 'row-odd' : 'row-even' }}">
                 <td class="th-c" style="color:#999;">{{ $i + 1 }}</td>
                 <td style="font-weight:bold;">{{ $labor->labor_name }}</td>
-                <td class="th-c">{{ number_format($labor->mp, 0, ',', '.') }}</td>
-                <td class="th-c">{{ number_format($labor->days, 0, ',', '.') }}</td>
-                <td class="th-r">Rp {{ number_format($labor->rate, 0, ',', '.') }}</td>
                 <td class="th-r">Rp {{ number_format($labor->subtotal, 0, ',', '.') }}</td>
             </tr>
             @endforeach
         </tbody>
         <tfoot>
             <tr class="total-row labor">
-                <td colspan="5" class="th-r">Total Tenaga Kerja</td>
+                <td colspan="2" class="th-r">Total Tenaga Kerja</td>
                 <td class="th-r">Rp {{ number_format($totalLab, 0, ',', '.') }}</td>
             </tr>
         </tfoot>
     </table>
     @endif
 
-    {{-- ═══ BIAYA LAIN-LAIN ═══ --}}
+    {{-- ═══ BIAYA LAIN-LAIN (RINGKAS) ═══ --}}
     @php
         $otherCosts = $invoice->otherCosts ?? collect();
         $totalOth   = $otherCosts->sum('subtotal');
@@ -531,8 +469,6 @@
             <tr>
                 <th class="bar-other col-no th-c">#</th>
                 <th class="bar-other th-l">Nama Biaya</th>
-                <th class="bar-other col-qty th-c">Qty</th>
-                <th class="bar-other col-up th-r">Rate</th>
                 <th class="bar-other col-sub th-r">Subtotal</th>
             </tr>
         </thead>
@@ -541,15 +477,13 @@
             <tr class="{{ $i % 2 === 0 ? 'row-odd' : 'row-even' }}">
                 <td class="th-c" style="color:#999;">{{ $i + 1 }}</td>
                 <td style="font-weight:bold;">{{ $cost->cost_name }}</td>
-                <td class="th-c">{{ number_format($cost->qty, 2, ',', '.') }}</td>
-                <td class="th-r">Rp {{ number_format($cost->rate, 0, ',', '.') }}</td>
                 <td class="th-r">Rp {{ number_format($cost->subtotal, 0, ',', '.') }}</td>
             </tr>
             @endforeach
         </tbody>
         <tfoot>
             <tr class="total-row other">
-                <td colspan="4" class="th-r">Total Biaya Lain-Lain</td>
+                <td colspan="2" class="th-r">Total Biaya Lain-Lain</td>
                 <td class="th-r">Rp {{ number_format($totalOth, 0, ',', '.') }}</td>
             </tr>
         </tfoot>

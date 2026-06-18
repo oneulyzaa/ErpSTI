@@ -434,7 +434,7 @@ document.getElementById('quotation_id')?.addEventListener('change', async functi
         document.getElementById('client_cc').value          = data.client_cc || '';
         document.getElementById('client_email').value       = data.client_email || '';
         document.getElementById('description_of_work').value = data.description_of_work || '';
-        document.getElementById('nomor_po').value            = data.nomor_po || '';
+        // document.getElementById('nomor_po').value            = data.nomor_po || '';
 
         // Fill discount
         const discountEl        = document.getElementById('discount');
