@@ -70,6 +70,14 @@
                                    value="{{ old('invoice_number', $isEdit ? $receipt->invoice_number : '') }}">
                         </div>
                         <div class="col-12 col-sm-4">
+                            <label class="form-label fw-semibold" style="font-size:13px">Nomor PO</label>
+                            <input type="text" name="nomor_po" id="nomor_po" class="form-control form-control-sm"
+                                   value="{{ old('nomor_po', $isEdit ? $receipt->nomor_po : '') }}"
+                                   placeholder="Auto-load dari Invoice">
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">Status <span class="text-danger">*</span></label>
                             <select name="status" class="form-select form-select-sm" required>
                                 @foreach(['draft'=>'Draft','confirmed'=>'Confirmed','cancelled'=>'Cancelled'] as $v=>$l)
@@ -155,6 +163,19 @@
                                value="{{ old('amount', $isEdit ? $receipt->amount : 0) }}" min="0" step="any" required
                                oninput="document.getElementById('display-amount').textContent = 'Rp ' + (parseFloat(this.value) || 0).toLocaleString('id-ID', {minimumFractionDigits:0, maximumFractionDigits:2})">
                     </div>
+                    <div class="mt-3">
+                        <label class="form-label fw-semibold" style="font-size:13px">Diskon</label>
+                        <div class="input-group">
+                            <div class="input-group-text" style="background:#f1f5f9;font-size:13px;">Rp</div>
+                            <input type="text" id="discount-display"
+                                   class="form-control form-control-sm text-center"
+                                   style="font-family:monospace;"
+                                   placeholder="0"
+                                   oninput="formatNumberInput(this, 'input-discount')">
+                            <input type="hidden" name="discount" id="input-discount"
+                                   value="{{ old('discount', $isEdit ? $receipt->discount : 0) }}">
+                        </div>
+                    </div>
                     <div class="mt-3 text-start" style="font-size:12px;color:#94a3b8;" id="invoice-info">
                         @if($isEdit && $receipt->invoice)
                         Invoice: {{ $receipt->invoice->invoice_number }} — Total: Rp {{ number_format($receipt->invoice->total, 0, ',', '.') }}
@@ -189,6 +210,23 @@
 
 @push('scripts')
 <script>
+// Number formatting helper
+function formatNumberInput(el, hiddenId) {
+    let val = el.value.replace(/[^0-9]/g, '');
+    if (val === '') val = '0';
+    document.getElementById(hiddenId).value = parseFloat(val);
+    el.value = parseFloat(val).toLocaleString('id-ID');
+}
+
+/* ══ Format discount initial value ═══════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+    const discountEl = document.getElementById('input-discount');
+    const discountDisplayEl = document.getElementById('discount-display');
+    if (discountEl && discountDisplayEl) {
+        discountDisplayEl.value = parseFloat(discountEl.value || 0).toLocaleString('id-ID');
+    }
+});
+
 /* ══ Auto-load from Invoice via AJAX ═══════════════════ */
 document.getElementById('invoice_id')?.addEventListener('change', async function() {
     const opt = this.options[this.selectedIndex];
@@ -202,6 +240,7 @@ document.getElementById('invoice_id')?.addEventListener('change', async function
         const data = await res.json();
 
         document.getElementById('invoice_number').value   = data.invoice_number || '';
+        document.getElementById('nomor_po').value         = data.nomor_po || '';
         document.getElementById('client_name').value      = data.client_name || '';
         document.getElementById('client_company').value   = data.client_company || '';
         document.getElementById('client_attention').value = data.client_attention || '';

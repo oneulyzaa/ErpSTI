@@ -11,7 +11,6 @@ class Quotation extends Model
 
     protected $fillable = [
         'quote_number',
-        'nomor_po',
         'project_name',
         'client_id',
         'date',
@@ -27,6 +26,7 @@ class Quotation extends Model
         'subtotal_material',
         'subtotal_labor',
         'subtotal_other_cost',
+        'discount',
         'subtotal',
         'total',
         'status',
@@ -39,6 +39,7 @@ class Quotation extends Model
         'subtotal_material' => 'decimal:2',
         'subtotal_labor' => 'decimal:2',
         'subtotal_other_cost' => 'decimal:2',
+        'discount' => 'decimal:2',
         'subtotal' => 'decimal:2',
         'total' => 'decimal:2',
     ];

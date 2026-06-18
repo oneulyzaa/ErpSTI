@@ -14,6 +14,7 @@ class DeliveryOrder extends Model
         'client_id',
         'sales_order_id',
         'so_number',
+        'nomor_po',
         'date',
         'delivery_date',
         'client_name',

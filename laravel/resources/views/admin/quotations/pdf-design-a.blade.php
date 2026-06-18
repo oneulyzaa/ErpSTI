@@ -389,12 +389,6 @@
                         <td class="meta-label">Quote #</td>
                         <td class="meta-value">{{ $quotation->quote_number }}</td>
                     </tr>
-                    @if($quotation->nomor_po)
-                    <tr>
-                        <td class="meta-label">PO #</td>
-                        <td class="meta-value">{{ $quotation->nomor_po }}</td>
-                    </tr>
-                    @endif
                     <tr>
                         <td class="meta-label">Customer ID</td>
                         <td class="meta-value">{{ $quotation->customer_id ?? '-' }}</td>
@@ -632,7 +626,8 @@
          GRAND TOTAL
     ══════════════════════════════ --}}
     @php
-        $grandTotal = $totalMat + $totalLab + $totalOth;
+        $discount   = $quotation->discount ?? 0;
+        $grandTotal = $totalMat + $totalLab + $totalOth - $discount;
     @endphp
     <table class="grand-wrap">
         <tr>
@@ -651,6 +646,12 @@
                     <tr>
                         <td class="grand-lbl">Total Biaya Lain-Lain</td>
                         <td class="grand-val mono">Rp&nbsp;{{ number_format($totalOth, 0, ',', '.') }}</td>
+                    </tr>
+                    @endif
+                    @if($discount > 0)
+                    <tr>
+                        <td class="grand-lbl">Diskon</td>
+                        <td class="grand-val mono">Rp&nbsp;{{ number_format($discount, 0, ',', '.') }}</td>
                     </tr>
                     @endif
                     <tr class="grand-total-row">

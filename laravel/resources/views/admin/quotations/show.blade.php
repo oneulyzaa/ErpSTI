@@ -33,9 +33,6 @@
         </div>
         <p class="text-muted mb-0" style="font-size:13px">
             Tanggal: {{ $quotation->date->format('d M Y') }} &nbsp;·&nbsp; Berlaku s/d: {{ $quotation->valid_until->format('d M Y') }}
-            @if($quotation->nomor_po)
-            &nbsp;·&nbsp; <strong>No. PO:</strong> {{ $quotation->nomor_po }}
-            @endif
         </p>
     </div>
     <div class="d-flex gap-2 flex-wrap">
@@ -96,12 +93,6 @@
                 <div class="p-4 border-top" style="background:#f8faff;">
                     <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:6px;">Nama Project</div>
                     <div style="font-size:14px;font-weight:600;">{{ $quotation->project_name }}</div>
-                </div>
-                @endif
-                @if($quotation->nomor_po)
-                <div class="p-4 border-top bg-light">
-                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:6px;">Nomor PO</div>
-                    <div style="font-size:14px;font-weight:600;">{{ $quotation->nomor_po }}</div>
                 </div>
                 @endif
                 @if($quotation->description_of_work)
@@ -272,6 +263,7 @@
                 <div class="summary-row"><span>Total Produksi</span><span class="summary-val">Rp {{ number_format($quotation->subtotal_material, 0, ',', '.') }}</span></div>
                 <div class="summary-row"><span>Total Labor</span><span class="summary-val">Rp {{ number_format($quotation->subtotal_labor, 0, ',', '.') }}</span></div>
                 <div class="summary-row"><span>Total Biaya Lain-Lain</span><span class="summary-val">Rp {{ number_format($quotation->subtotal_other_cost, 0, ',', '.') }}</span></div>
+                <div class="summary-row"><span>Diskon</span><span class="summary-val">Rp {{ number_format($quotation->discount ?? 0, 0, ',', '.') }}</span></div>
                 <div class="summary-row total-row"><span>GRAND TOTAL</span><span class="summary-val">Rp {{ number_format($quotation->total, 0, ',', '.') }}</span></div>
             </div>
         </div>

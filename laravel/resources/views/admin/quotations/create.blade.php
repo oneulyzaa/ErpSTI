@@ -82,7 +82,7 @@
                     <span class="fw-semibold">Informasi Quotation</span>
                 </div>
                 <div class="card-body">
-                    <div class="section-label">Nomor & PO</div>
+                    <div class="section-label">Nomor Referensi</div>
                     <div class="row g-3 mb-3">
                         <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">No. Quotation <span class="text-danger">*</span></label>
@@ -90,13 +90,6 @@
                                    class="form-control form-control-sm @error('quote_number') is-invalid @enderror"
                                    value="{{ old('quote_number', $isEdit ? $quotation->quote_number : $quoteNumber) }}" required>
                             @error('quote_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                        <div class="col-12 col-sm-4">
-                            <label class="form-label fw-semibold" style="font-size:13px">Nomor PO (Referensi)</label>
-                            <input type="text" name="nomor_po"
-                                   class="form-control form-control-sm"
-                                   value="{{ old('nomor_po', $isEdit ? $quotation->nomor_po : '') }}"
-                                   placeholder="PO-XXX-XXX">
                         </div>
                         <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">Status <span class="text-danger">*</span></label>
@@ -290,6 +283,14 @@
                     <div class="summary-row"><span>Total Produksi</span><span class="summary-val" id="sum-mat">Rp 0</span></div>
                     <div class="summary-row"><span>Total Labor</span><span class="summary-val" id="sum-lab">Rp 0</span></div>
                     <div class="summary-row"><span>Total Biaya Lain-Lain</span><span class="summary-val" id="sum-oth">Rp 0</span></div>
+                    <hr>
+                    <div class="summary-row"><span>Diskon</span>
+                        <div class="input-group" style="justify-content:flex-end;max-width:200px;">
+                            <div class="input-group-text summary-val" style="background:#f1f5f9;">Rp</div>
+                            <input type="text" class="form-control-sm summary-val" id="discount-display" placeholder="0" style="border:1px solid #cacaca !important;text-align:right;" oninput="formatNumberInput(this, 'discount')">
+                            <input type="hidden" name="discount" id="discount" value="{{ old('discount', $isEdit ? $quotation->discount : '0') }}">
+                        </div>
+                    </div>
                     <div class="summary-row total-row" style="border-top:2px solid #e2e8f0;margin-top:4px;padding-top:12px;">
                         <span style="font-size:17px;font-weight:700;color:#1e293b;">GRAND TOTAL</span>
                         <span class="summary-val" id="sum-total" style="font-size:17px;color:#1B5DBC;">Rp 0</span>
@@ -883,7 +884,9 @@ function recalc() {
              * (parseFloat(tr.querySelector('.oc-rate')?.value) || 0);
     });
 
-    const total = mat + lab + oth;
+    const discount = parseFloat(document.getElementById('discount')?.value) || 0;
+    const subtotal = mat + lab + oth;
+    const total    = subtotal - discount;
 
     document.getElementById('disp-mat').textContent = fmt(mat);
     document.getElementById('disp-lab').textContent = fmt(lab);
@@ -918,9 +921,28 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-add-other-cost')?.addEventListener('click',  () => addOtherCostRow());
     document.getElementById('btn-add-other-cost-2')?.addEventListener('click',() => addOtherCostRow());
 
+    // Discount input listener
+    document.getElementById('discount-display')?.addEventListener('input', () => recalc());
+
+    // Format discount initial value
+    const discountEl = document.getElementById('discount');
+    const discountDisplayEl = document.getElementById('discount-display');
+    if (discountEl && discountDisplayEl) {
+        discountDisplayEl.value = parseFloat(discountEl.value || 0).toLocaleString('id-ID');
+    }
+
     // Trigger client preview on load if client_id is preselected
     const sel = document.getElementById('client-select');
     if (sel && sel.value) sel.dispatchEvent(new Event('change'));
 });
+
+/* ══ Number formatting helper for discount ══ */
+function formatNumberInput(el, hiddenId) {
+    let val = el.value.replace(/[^0-9]/g, '');
+    if (val === '') val = '0';
+    document.getElementById(hiddenId).value = parseFloat(val);
+    el.value = parseFloat(val).toLocaleString('id-ID');
+    recalc();
+}
 </script>
 @endpush

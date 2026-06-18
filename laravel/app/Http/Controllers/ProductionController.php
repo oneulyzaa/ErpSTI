@@ -147,6 +147,7 @@ class ProductionController extends Controller
         return response()->json([
             'project_name' => $salesOrder->project_name,
             'client_company' => $salesOrder->client_company,
+            'nomor_po' => $salesOrder->nomor_po,
             'items' => $salesOrder->items->toArray(),
         ]);
     }

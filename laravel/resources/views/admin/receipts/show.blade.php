@@ -51,6 +51,10 @@
                         <div class="info-value">{{ $receipt->invoice_number ?: '-' }}</div>
                     </div>
                     <div class="col-6 col-md-3">
+                        <div class="info-label">Nomor PO</div>
+                        <div class="info-value">{{ $receipt->nomor_po ?: '-' }}</div>
+                    </div>
+                    <div class="col-6 col-md-3">
                         <div class="info-label">Tanggal</div>
                         <div class="info-value">{{ $receipt->date->format('d M Y') }}</div>
                     </div>
@@ -128,6 +132,14 @@
             </div>
             <div class="card-body py-4">
                 <div class="amount-big">Rp {{ number_format($receipt->amount, 0, ',', '.') }}</div>
+                @if($receipt->discount > 0)
+                <div class="text-muted mt-2" style="font-size:13px;">
+                    Diskon: Rp {{ number_format($receipt->discount, 0, ',', '.') }}
+                </div>
+                <div class="mt-1" style="font-size:13px;color:#475569;">
+                    Total Setelah Diskon: <strong style="color:#1B5DBC;">Rp {{ number_format($receipt->amount - $receipt->discount, 0, ',', '.') }}</strong>
+                </div>
+                @endif
                 <div class="text-muted mt-2" style="font-size:13px">
                     {{ $receipt->payment_method === 'cash' ? 'Tunai' : ($receipt->payment_method === 'transfer' ? 'Transfer Bank' : ($receipt->payment_method === 'cheque' ? 'Cek/Giro' : 'Lainnya')) }}
                 </div>

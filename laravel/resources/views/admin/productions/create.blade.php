@@ -95,7 +95,12 @@
                             <input type="hidden" name="so_number" id="so_number"
                                    value="{{ old('so_number', $isEdit ? $production->so_number : '') }}">
                         </div>
-                        <div class="col-12 col-sm-4">
+                        <div class="col-12 col-sm-2">
+                            <label class="form-label fw-semibold" style="font-size:13px">Nomor PO</label>
+                            <input type="text" name="nomor_po" id="nomor_po" class="form-control form-control-sm"
+                                   value="{{ old('nomor_po', $isEdit ? $production->nomor_po : ($selected->nomor_po ?? '')) }}" readonly>
+                        </div>
+                        <div class="col-12 col-sm-2">
                             <label class="form-label fw-semibold" style="font-size:13px">Status <span class="text-danger">*</span></label>
                             <select name="status" class="form-select form-select-sm" required>
                                 @foreach(['planned'=>'Planned','in_progress'=>'In Progress','completed'=>'Completed','cancelled'=>'Cancelled'] as $v=>$l)
@@ -243,6 +248,7 @@ document.getElementById('sales_order_id')?.addEventListener('change', async func
         document.getElementById('project_name').value = data.project_name || '';
         document.getElementById('client_company').value = data.client_company || '';
         document.getElementById('so_number').value = opt.text.split(' — ')[0] || '';
+        document.getElementById('nomor_po').value = data.nomor_po || '';
 
         // Clear existing products
         document.getElementById('products-container').innerHTML = '';

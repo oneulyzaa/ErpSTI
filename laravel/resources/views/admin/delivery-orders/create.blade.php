@@ -110,7 +110,7 @@
                                 <option value="">-- Pilih SO (opsional) --</option>
                                 @foreach($salesOrders as $so)
                                     <option value="{{ $so->id }}"
-                                        {{ old('sales_order_id', ($isEdit ? $deliveryOrder->sales_order_id : '')) == $so->id ? 'selected' : '' }}>
+                                        {{ old('sales_order_id', ($isEdit ? $deliveryOrder->sales_order_id : ($copySo?->id ?? ''))) == $so->id ? 'selected' : '' }}>
                                         {{ $so->so_number }} — {{ $so->client_company }}
                                     </option>
                                 @endforeach
@@ -118,6 +118,14 @@
                             <input type="hidden" name="so_number" id="so_number"
                                    value="{{ old('so_number', $isEdit ? $deliveryOrder->so_number : '') }}">
                         </div>
+                        <div class="col-12 col-sm-4">
+                            <label class="form-label fw-semibold" style="font-size:13px">Nomor PO</label>
+                            <input type="text" name="nomor_po" id="nomor_po" class="form-control form-control-sm"
+                                   value="{{ old('nomor_po', $isEdit ? $deliveryOrder->nomor_po : '') }}"
+                                   placeholder="Auto-load dari SO">
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-4">
                         <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">Status <span class="text-danger">*</span></label>
                             <select name="status" class="form-select form-select-sm" required>
@@ -311,6 +319,7 @@ document.getElementById('sales_order_id')?.addEventListener('change', async func
 
         // Fill info fields
         document.getElementById('so_number').value          = data.so_number || '';
+        document.getElementById('nomor_po').value           = data.nomor_po || '';
         document.getElementById('client_name').value        = data.client_name || '';
         document.getElementById('client_company').value     = data.client_company || '';
         document.getElementById('client_attention').value   = data.client_attention || '';

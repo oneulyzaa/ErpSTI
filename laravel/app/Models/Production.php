@@ -10,6 +10,7 @@ class Production extends Model
         'production_number',
         'sales_order_id',
         'so_number',
+        'nomor_po',
         'project_name',
         'client_company',
         'date',

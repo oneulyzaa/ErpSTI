@@ -57,6 +57,10 @@
                         <div class="info-value">{{ $invoice->so_number ?: '-' }}</div>
                     </div>
                     <div class="col-12 col-sm-4">
+                        <span class="info-label">Nomor PO</span>
+                        <div class="info-value">{{ $invoice->nomor_po ?: '-' }}</div>
+                    </div>
+                    <div class="col-12 col-sm-4">
                         <span class="info-label">Status</span>
                         <div class="info-value mt-1">
                             <span class="badge badge-{{ $invoice->status }} px-2 py-1" style="font-size:12px;">{{ ucfirst($invoice->status) }}</span>
@@ -329,6 +333,12 @@
                     <span style="font-size:13px;color:#475569;">PPN ({{ $invoice->tax_percentage }}%)</span>
                     <span class="total-value" style="font-size:13px;">Rp {{ number_format($invoice->tax_amount, 0, ',', '.') }}</span>
                 </div>
+                @if($invoice->discount > 0)
+                <div class="d-flex justify-content-between align-items-center px-3 py-2" style="border-bottom:1px solid #f1f5f9;">
+                    <span style="font-size:13px;color:#475569;">Diskon</span>
+                    <span class="total-value" style="font-size:13px;">Rp {{ number_format($invoice->discount, 0, ',', '.') }}</span>
+                </div>
+                @endif
                 <div class="d-flex justify-content-between align-items-center px-3 py-3" style="background:#f8faff;border-radius:0 0 .5rem .5rem;">
                     <strong style="font-size:15px;">Total</strong>
                     <strong class="total-value" style="font-size:17px;">Rp {{ number_format($invoice->total, 0, ',', '.') }}</strong>

@@ -16,7 +16,7 @@ class SalesOrderController extends Controller
 {
     // ─── Default labor list ───────────────────────────────────────────────────
     private array $defaultLabors = [
-        ['labor_name' => 'Mechanical Design', 'mp' => 1, 'days' => 1, 'rate' => 1500000],
+        ['labor_name' => 'Mechanical Design', 'mp' =>  1, 'days' => 1, 'rate' => 1500000],
         ['labor_name' => 'Electrical Design', 'mp' => 1, 'days' => 1, 'rate' => 1500000],
         ['labor_name' => 'Assembling', 'mp' => 2, 'days' => 1, 'rate' => 1000000],
         ['labor_name' => 'Wiring', 'mp' => 2, 'days' => 1, 'rate' => 1000000],
@@ -67,14 +67,17 @@ class SalesOrderController extends Controller
         $validated = $this->resolveClientData($validated);
 
         DB::transaction(function () use ($validated, $request) {
+            $discount = (float) ($validated['discount'] ?? 0);
             [$subMat, $subLab, $subOth, $subtotal, $taxAmount, $total] = $this->calculateTotals(
                 $request->items ?? [],
                 $request->labors ?? [],
                 $request->other_costs ?? [],
-                $validated['tax_percentage']
+                $validated['tax_percentage'],
+                $discount
             );
 
             $salesOrder = SalesOrder::create(array_merge($validated, [
+                'discount' => $discount,
                 'subtotal_material' => $subMat,
                 'subtotal_labor' => $subLab,
                 'subtotal_other_cost' => $subOth,
@@ -117,14 +120,17 @@ class SalesOrderController extends Controller
         $validated = $this->resolveClientData($validated);
 
         DB::transaction(function () use ($validated, $request, $salesOrder) {
+            $discount = (float) ($validated['discount'] ?? 0);
             [$subMat, $subLab, $subOth, $subtotal, $taxAmount, $total] = $this->calculateTotals(
                 $request->items ?? [],
                 $request->labors ?? [],
                 $request->other_costs ?? [],
-                $validated['tax_percentage']
+                $validated['tax_percentage'],
+                $discount
             );
 
             $salesOrder->update(array_merge($validated, [
+                'discount' => $discount,
                 'subtotal_material' => $subMat,
                 'subtotal_labor' => $subLab,
                 'subtotal_other_cost' => $subOth,
@@ -207,6 +213,7 @@ class SalesOrderController extends Controller
             'client_email' => $client?->email_perusahaan ?? $quotation->client_email,
             'client_address' => $client?->alamat_pengiriman_perusahaan ?? $quotation->client_address,
             'description_of_work' => $quotation->description_of_work,
+            'discount' => $quotation->discount,
             'items' => $quotation->items->toArray(),
             'labors' => $quotation->labors->toArray(),
             'other_costs' => $quotation->otherCosts->toArray(),
@@ -247,6 +254,7 @@ class SalesOrderController extends Controller
             'client_id' => 'nullable|exists:clients,id',
             'quotation_id' => 'nullable|exists:quotations,id',
             'quote_number' => 'nullable|string|max:255',
+            'nomor_po' => 'nullable|string|max:255',
             'date' => 'required|date',
             'delivery_date' => 'nullable|date|after_or_equal:date',
             'customer_id' => 'nullable|string|max:100',
@@ -257,6 +265,7 @@ class SalesOrderController extends Controller
             'client_email' => 'nullable|email|max:255',
             'client_address' => 'nullable|string|max:255',
             'description_of_work' => 'nullable|string',
+            'discount' => 'nullable|numeric|min:0',
             'tax_percentage' => 'required|numeric|min:0|max:100',
             'status' => 'required|in:draft,confirmed,in_progress,completed,cancelled',
             'notes' => 'nullable|string',
@@ -282,7 +291,7 @@ class SalesOrderController extends Controller
         ]);
     }
 
-    private function calculateTotals(array $items, array $labors, array $otherCosts = [], float $taxPct = 0): array
+    private function calculateTotals(array $items, array $labors, array $otherCosts = [], float $taxPct = 0, float $discount = 0): array
     {
         $subMat = collect($items)->sum(function ($i) {
             $itemSub = ($i['qty'] ?? 0) * ($i['unit_price'] ?? 0);
@@ -291,7 +300,7 @@ class SalesOrderController extends Controller
         });
         $subLab = collect($labors)->sum(fn($l) => ($l['mp'] ?? 0) * ($l['days'] ?? 0) * ($l['rate'] ?? 0));
         $subOth = collect($otherCosts)->sum(fn($c) => ($c['qty'] ?? 0) * ($c['rate'] ?? 0));
-        $subtotal = $subMat + $subLab + $subOth;
+        $subtotal = $subMat + $subLab + $subOth - $discount;
         $taxAmount = $subtotal * ($taxPct / 100);
         $total = $subtotal + $taxAmount;
         return [$subMat, $subLab, $subOth, $subtotal, $taxAmount, $total];

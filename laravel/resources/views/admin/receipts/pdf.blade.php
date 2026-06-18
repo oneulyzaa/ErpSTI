@@ -202,6 +202,12 @@
                         <td class="meta-label">Receipt No</td>
                         <td class="meta-value">{{ $receipt->receipt_number }}</td>
                     </tr>
+                    @if($receipt->nomor_po)
+                    <tr>
+                        <td class="meta-label">Nomor PO</td>
+                        <td class="meta-value">{{ $receipt->nomor_po }}</td>
+                    </tr>
+                    @endif
                 </table>
             </td>
         </tr>
@@ -245,10 +251,21 @@
             @endfor
         </tbody>
         <tfoot>
+            @if($receipt->discount > 0)
             <tr class="total-row">
-                <td colspan="2" style="text-align:right;font-weight:bold;border:1px solid #aaa;"></td>
+                <td colspan="2" style="text-align:right;border:1px solid #aaa;">Diskon &nbsp;</td>
+                <td style="text-align:right;border:1px solid #aaa;">
+                    Rp &nbsp;{{ number_format($receipt->discount, 0, ',', '.') }}
+                </td>
+                <td style="border:1px solid #aaa;"></td>
+            </tr>
+            @endif
+            <tr class="total-row">
+                <td colspan="2" style="text-align:right;font-weight:bold;border:1px solid #aaa;">
+                    {{ $receipt->discount > 0 ? 'Total Setelah Diskon' : '' }}
+                </td>
                 <td style="text-align:right;font-weight:bold;border:1px solid #aaa;">
-                    Rp &nbsp;{{ number_format($receipt->amount, 0, ',', '.') }}
+                    Rp &nbsp;{{ number_format($receipt->amount - $receipt->discount, 0, ',', '.') }}
                 </td>
                 <td style="border:1px solid #aaa;"></td>
             </tr>

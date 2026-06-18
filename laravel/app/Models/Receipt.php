@@ -13,6 +13,7 @@ class Receipt extends Model
         'receipt_number',
         'invoice_id',
         'invoice_number',
+        'nomor_po',
         'date',
         'client_name',
         'client_company',
@@ -21,6 +22,7 @@ class Receipt extends Model
         'description',
         'amount',
         'subtotal_other_cost',
+        'discount',
         'payment_method',
         'payment_reference',
         'status',
@@ -31,6 +33,7 @@ class Receipt extends Model
         'date' => 'date',
         'amount' => 'decimal:2',
         'subtotal_other_cost' => 'decimal:2',
+        'discount' => 'decimal:2',
     ];
     public function invoice()
     {

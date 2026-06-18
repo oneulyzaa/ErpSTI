@@ -310,6 +310,12 @@
                         <td class="meta-value">{{ $invoice->so_number }}</td>
                     </tr>
                     @endif
+                    @if($invoice->nomor_po)
+                    <tr>
+                        <td class="meta-label">Nomor PO</td>
+                        <td class="meta-value">{{ $invoice->nomor_po }}</td>
+                    </tr>
+                    @endif
                     <tr>
                         <td class="meta-label">Status</td>
                         <td class="meta-value">
@@ -610,6 +616,12 @@
                         <td class="s-lbl">PPN ({{ number_format($invoice->tax_percentage, 0) }}%)</td>
                         <td class="s-val">Rp {{ number_format($invoice->tax_amount, 0, ',', '.') }}</td>
                     </tr>
+                    @if($invoice->discount > 0)
+                    <tr>
+                        <td class="s-lbl">Diskon</td>
+                        <td class="s-val">Rp {{ number_format($invoice->discount, 0, ',', '.') }}</td>
+                    </tr>
+                    @endif
                     <tr class="s-total">
                         <td class="s-lbl" style="font-weight:bold;">TOTAL</td>
                         <td class="s-val">Rp {{ number_format($invoice->total, 0, ',', '.') }}</td>

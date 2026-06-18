@@ -85,6 +85,13 @@
                             @error('so_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-12 col-sm-4">
+                            <label class="form-label fw-semibold" style="font-size:13px">Nomor PO</label>
+                            <input type="text" name="nomor_po"
+                                   class="form-control form-control-sm @error('nomor_po') is-invalid @enderror"
+                                   value="{{ old('nomor_po', $isEdit ? $salesOrder->nomor_po : '') }}">
+                            @error('nomor_po')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">Referensi Quotation</label>
                             <select name="quotation_id" id="quotation_id" class="form-select form-select-sm"
                                     data-url-template="{{ route('admin.sales-orders.quotation-data', ['quotation' => '__ID__']) }}">
@@ -99,6 +106,8 @@
                             <input type="hidden" name="quote_number" id="quote_number"
                                    value="{{ old('quote_number', $isEdit ? $salesOrder->quote_number : ($copyQuote ? $quotation->quote_number : '')) }}">
                         </div>
+                    </div>
+                    <div class="row g-3 mb-3">
                         <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">Status <span class="text-danger">*</span></label>
                             <select name="status" class="form-select form-select-sm" required>
@@ -303,10 +312,22 @@
                             <div style="font-size:13px;margin-bottom:4px;">PPN (%)</div>
                             <input type="number" name="tax_percentage" id="tax_percentage"
                                    class="form-control form-control-sm" min="0" max="100" step="0.01"
-                                   value="{{ old('tax_percentage', $isEdit ? $salesOrder->tax_percentage : 11) }}"
+                                   value="{{ old('tax_percentage', $isEdit ? $salesOrder->tax_percentage : 0) }}"
                                    style="width:80px;">
                         </div>
                         <span class="summary-val mt-4" id="sum-tax">Rp 0</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Diskon</span>
+                        <div class="input-group" style="max-width:160px;">
+                            <div class="input-group-text" style="background:#f1f5f9;font-size:13px;">Rp</div>
+                            <input type="text" id="discount-display"
+                                   class="form-control form-control-sm" placeholder="0"
+                                   style="text-align:right;"
+                                   oninput="formatNumberInput(this, 'discount')">
+                            <input type="hidden" name="discount" id="discount"
+                                   value="{{ old('discount', $isEdit ? $salesOrder->discount : 0) }}">
+                        </div>
                     </div>
                     <div class="summary-row total-row">
                         <span>TOTAL</span>
@@ -413,6 +434,15 @@ document.getElementById('quotation_id')?.addEventListener('change', async functi
         document.getElementById('client_cc').value          = data.client_cc || '';
         document.getElementById('client_email').value       = data.client_email || '';
         document.getElementById('description_of_work').value = data.description_of_work || '';
+        document.getElementById('nomor_po').value            = data.nomor_po || '';
+
+        // Fill discount
+        const discountEl        = document.getElementById('discount');
+        const discountDisplayEl = document.getElementById('discount-display');
+        if (discountEl && discountDisplayEl) {
+            discountEl.value = data.discount ?? 0;
+            discountDisplayEl.value = parseFloat(data.discount || 0).toLocaleString('id-ID');
+        }
 
         // Clear & load items
         document.getElementById('items-container').innerHTML = '';
@@ -701,9 +731,10 @@ function recalc() {
         oth += (parseFloat(tr.querySelector('.oc-qty')?.value)  || 0)
              * (parseFloat(tr.querySelector('.oc-rate')?.value) || 0);
     });
+    const discount = parseFloat(document.getElementById('discount')?.value) || 0;
     const sub   = mat + lab + oth;
     const tax   = sub * ((parseFloat(document.getElementById('tax_percentage').value) || 0) / 100);
-    const total = sub + tax;
+    const total = sub + tax - discount;
 
     document.getElementById('disp-mat').textContent = fmt(mat);
     document.getElementById('disp-lab').textContent = fmt(lab);
@@ -736,6 +767,22 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-add-other-cost').addEventListener('click',  () => addOtherCostRow());
     document.getElementById('btn-add-other-cost-2').addEventListener('click',() => addOtherCostRow());
     document.getElementById('tax_percentage').addEventListener('input', recalc);
+
+    // Format discount initial value
+    const discountEl = document.getElementById('discount');
+    const discountDisplayEl = document.getElementById('discount-display');
+    if (discountEl && discountDisplayEl) {
+        discountDisplayEl.value = parseFloat(discountEl.value || 0).toLocaleString('id-ID');
+    }
 });
+
+// Number formatting helper
+function formatNumberInput(el, hiddenId) {
+    let val = el.value.replace(/[^0-9]/g, '');
+    if (val === '') val = '0';
+    document.getElementById(hiddenId).value = parseFloat(val);
+    el.value = parseFloat(val).toLocaleString('id-ID');
+    recalc();
+}
 </script>
 @endpush

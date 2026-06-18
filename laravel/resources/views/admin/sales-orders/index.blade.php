@@ -83,6 +83,7 @@
                 <tr>
                     <th class="text-muted fw-semibold" style="font-size:12px;width:40px">#</th>
                     <th class="text-muted fw-semibold" style="font-size:12px">NO. SO</th>
+                    <th class="text-muted fw-semibold" style="font-size:12px">NOMOR PO</th>
                     <th class="text-muted fw-semibold" style="font-size:12px">PROJECT</th>
                     <th class="text-muted fw-semibold" style="font-size:12px">KLIEN</th>
                     <th class="text-muted fw-semibold" style="font-size:12px">TANGGAL</th>
@@ -106,6 +107,7 @@
                 <tr>
                     <td>{{ $loop->iteration }}</td>
                     <td class="so-no">{{ $so->so_number }}</td>
+                    <td>{{ $so->nomor_po ?: '-' }}</td>
                     <td>{{ $so->project_name ?: '-' }}</td>
                     <td>{{ $so->client_name }}</td>
                     <td>{{ $so->date->format('d M Y') }}</td>

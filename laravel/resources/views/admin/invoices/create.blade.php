@@ -126,6 +126,14 @@
                                    value="{{ old('so_number', $isEdit ? $invoice->so_number : '') }}">
                         </div>
                         <div class="col-12 col-sm-4">
+                            <label class="form-label fw-semibold" style="font-size:13px">Nomor PO</label>
+                            <input type="text" name="nomor_po" id="nomor_po" class="form-control form-control-sm"
+                                   value="{{ old('nomor_po', $isEdit ? $invoice->nomor_po : '') }}"
+                                   placeholder="Auto-load dari SO">
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">Status <span class="text-danger">*</span></label>
                             <select name="status" class="form-select form-select-sm" required>
                                 @foreach(['draft'=>'Draft','sent'=>'Sent','paid'=>'Paid','overdue'=>'Overdue','cancelled'=>'Cancelled'] as $v=>$l)
@@ -269,10 +277,26 @@
                         </div>
                         <span class="summary-val mt-4" id="sum-tax">Rp 0</span>
                     </div>
+                    <div class="summary-row align-items-start gap-2" style="flex-wrap:wrap;">
+                        <div>
+                            <div style="font-size:13px;margin-bottom:4px;">Diskon (Rp)</div>
+                            <div class="input-group" style="max-width:160px;">
+                                <div class="input-group-text" style="background:#f1f5f9;font-size:13px;">Rp</div>
+                                <input type="text" id="discount-display"
+                                       class="form-control form-control-sm" placeholder="0"
+                                       style="text-align:right;"
+                                       oninput="formatNumberInput(this, 'discount')">
+                                <input type="hidden" name="discount" id="discount"
+                                       value="{{ old('discount', $isEdit ? $invoice->discount : 0) }}">
+                            </div>
+                        </div>
+                        <span class="summary-val mt-4" id="sum-discount">Rp 0</span>
+                    </div>
                     <div class="summary-row total-row">
                         <span>TOTAL</span>
                         <span class="summary-val" id="sum-total">Rp 0</span>
                     </div>
+                    <input type="hidden" name="discount"           id="h-discount">
                     <input type="hidden" name="subtotal"           id="h-mat">
                     <input type="hidden" name="subtotal_labor"     id="h-lab">
                     <input type="hidden" name="subtotal_other_cost" id="h-oth">
@@ -339,6 +363,15 @@ document.getElementById('sales_order_id')?.addEventListener('change', async func
         const data = await res.json();
 
         document.getElementById('so_number').value          = data.so_number || '';
+        document.getElementById('nomor_po').value           = data.nomor_po || '';
+
+        const discountEl = document.getElementById('discount');
+        const discountDisplayEl = document.getElementById('discount-display');
+        if (discountEl && discountDisplayEl) {
+            discountEl.value = data.discount ?? 0;
+            discountDisplayEl.value = parseFloat(data.discount || 0).toLocaleString('id-ID');
+        }
+
         document.getElementById('client_name').value        = data.client_name || '';
         document.getElementById('client_company').value     = data.client_company || '';
         document.getElementById('client_attention').value   = data.client_attention || '';
@@ -664,6 +697,15 @@ function reorderNums(tbodyId, prefix) {
     });
 }
 
+// Number formatting helper
+function formatNumberInput(el, hiddenId) {
+    let val = el.value.replace(/[^0-9]/g, '');
+    if (val === '') val = '0';
+    document.getElementById(hiddenId).value = parseFloat(val);
+    el.value = parseFloat(val).toLocaleString('id-ID');
+    recalc();
+}
+
 function recalc() {
     let mat = 0, lab = 0, oth = 0;
 
@@ -692,26 +734,37 @@ function recalc() {
              * (parseFloat(tr.querySelector('.oc-rate')?.value) || 0);
     });
 
+    const discount = parseFloat(document.getElementById('discount').value) || 0;
     const sub   = mat + lab + oth;
     const tax   = sub * ((parseFloat(document.getElementById('tax_percentage').value) || 0) / 100);
-    const total = sub + tax;
+    const total = sub + tax - discount;
 
-    document.getElementById('sum-mat').textContent   = fmt(mat);
-    document.getElementById('sum-lab').textContent   = fmt(lab);
-    document.getElementById('sum-oth').textContent   = fmt(oth);
-    document.getElementById('sum-sub').textContent   = fmt(sub);
-    document.getElementById('sum-tax').textContent   = fmt(tax);
-    document.getElementById('sum-total').textContent = fmt(total);
+    document.getElementById('sum-mat').textContent      = fmt(mat);
+    document.getElementById('sum-lab').textContent      = fmt(lab);
+    document.getElementById('sum-oth').textContent      = fmt(oth);
+    document.getElementById('sum-sub').textContent      = fmt(sub);
+    document.getElementById('sum-tax').textContent      = fmt(tax);
+    document.getElementById('sum-discount').textContent = fmt(discount);
+    document.getElementById('sum-total').textContent    = fmt(Math.max(total, 0));
 
-    document.getElementById('h-mat').value   = mat.toFixed(2);
-    document.getElementById('h-lab').value   = lab.toFixed(2);
-    document.getElementById('h-oth').value   = oth.toFixed(2);
-    document.getElementById('h-tax').value   = tax.toFixed(2);
-    document.getElementById('h-total').value = total.toFixed(2);
+    document.getElementById('h-mat').value      = mat.toFixed(2);
+    document.getElementById('h-lab').value      = lab.toFixed(2);
+    document.getElementById('h-oth').value      = oth.toFixed(2);
+    document.getElementById('h-tax').value      = tax.toFixed(2);
+    document.getElementById('h-discount').value = discount.toFixed(2);
+    document.getElementById('h-total').value    = Math.max(total, 0).toFixed(2);
 }
 
-/* ══ Tax percentage change ══════════════════════════════ */
-document.getElementById('tax_percentage')?.addEventListener('input', recalc);
+/* ══ Tax percentage & discount change ═══════════════════ */
+    document.getElementById('tax_percentage')?.addEventListener('input', recalc);
+    document.getElementById('discount-display')?.addEventListener('input', recalc);
+
+    // Format discount initial value
+    const discountEl = document.getElementById('discount');
+    const discountDisplayEl = document.getElementById('discount-display');
+    if (discountEl && discountDisplayEl) {
+        discountDisplayEl.value = parseFloat(discountEl.value || 0).toLocaleString('id-ID');
+    }
 
 /* ══ Boot ═══════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {

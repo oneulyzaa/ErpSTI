@@ -38,7 +38,6 @@ class QuotationController extends Controller
             $s = $request->search;
             $query->where(function ($q) use ($s) {
                 $q->where('quote_number', 'like', "%$s%")
-                    ->orWhere('nomor_po', 'like', "%$s%")
                     ->orWhere('client_name', 'like', "%$s%")
                     ->orWhere('client_company', 'like', "%$s%")
                     ->orWhere('project_name', 'like', "%$s%");
@@ -71,17 +70,20 @@ class QuotationController extends Controller
         $validated = $this->resolveClientData($validated);
 
         DB::transaction(function () use ($validated, $request) {
-            [$subMat, $subLab, $subOth, $total] = $this->calculateTotals(
+            $discount = (float) ($validated['discount'] ?? 0);
+            [$subMat, $subLab, $subOth, $subtotal, $total] = $this->calculateTotals(
                 $request->items ?? [],
                 $request->labors ?? [],
-                $request->other_costs ?? []
+                $request->other_costs ?? [],
+                $discount
             );
 
             $quotation = Quotation::create(array_merge($validated, [
+                'discount' => $discount,
                 'subtotal_material' => $subMat,
                 'subtotal_labor' => $subLab,
                 'subtotal_other_cost' => $subOth,
-                'subtotal' => $subMat + $subLab + $subOth,
+                'subtotal' => $subtotal,
                 'total' => $total,
             ]));
 
@@ -119,17 +121,20 @@ class QuotationController extends Controller
         $validated = $this->resolveClientData($validated);
 
         DB::transaction(function () use ($validated, $request, $quotation) {
-            [$subMat, $subLab, $subOth, $total] = $this->calculateTotals(
+            $discount = (float) ($validated['discount'] ?? 0);
+            [$subMat, $subLab, $subOth, $subtotal, $total] = $this->calculateTotals(
                 $request->items ?? [],
                 $request->labors ?? [],
-                $request->other_costs ?? []
+                $request->other_costs ?? [],
+                $discount
             );
 
             $quotation->update(array_merge($validated, [
+                'discount' => $discount,
                 'subtotal_material' => $subMat,
                 'subtotal_labor' => $subLab,
                 'subtotal_other_cost' => $subOth,
-                'subtotal' => $subMat + $subLab + $subOth,
+                'subtotal' => $subtotal,
                 'total' => $total,
             ]));
 
@@ -250,7 +255,6 @@ class QuotationController extends Controller
     {
         return $request->validate([
             'quote_number' => 'required|string|unique:quotations,quote_number' . ($ignoreId ? ",$ignoreId" : ''),
-            'nomor_po' => 'nullable|string|max:255',
             'project_name' => 'nullable|string|max:255',
             'client_id' => 'nullable|exists:clients,id',
             'date' => 'required|date',
@@ -263,6 +267,7 @@ class QuotationController extends Controller
             'client_email' => 'nullable|email|max:255',
             'client_address' => 'nullable|string',
             'description_of_work' => 'nullable|string',
+            'discount' => 'nullable|numeric|min:0',
             'status' => 'required|in:draft,sent,approved,rejected,expired',
             'term_and_condition' => 'nullable|string',
             'items' => 'nullable|array',
@@ -289,7 +294,7 @@ class QuotationController extends Controller
         ]);
     }
 
-    private function calculateTotals(array $items, array $labors, array $otherCosts = []): array
+    private function calculateTotals(array $items, array $labors, array $otherCosts = [], float $discount = 0): array
     {
         // sum material subtotal from items (qty * unit_price)
         $subMat = collect($items)->sum(fn($i) => ($i['qty'] ?? 0) * ($i['unit_price'] ?? 0));
@@ -304,8 +309,9 @@ class QuotationController extends Controller
 
         $subLab = collect($labors)->sum(fn($l) => ($l['mp'] ?? 0) * ($l['days'] ?? 0) * ($l['rate'] ?? 0));
         $subOth = collect($otherCosts)->sum(fn($c) => ($c['qty'] ?? 0) * ($c['rate'] ?? 0));
-        $total = $subMat + $subLab + $subOth;
-        return [$subMat, $subLab, $subOth, $total];
+        $subtotal = $subMat + $subLab + $subOth - $discount;
+        $total = $subtotal;
+        return [$subMat, $subLab, $subOth, $subtotal, $total];
     }
 
     private function syncItems(Quotation $quotation, array $items): void

@@ -273,6 +273,9 @@
                     <table class="meta-table">
                         <tr><td class="meta-label">No. SO</td><td class="meta-value">{{ $salesOrder->so_number }}</td></tr>
                         <tr><td class="meta-label">Tanggal</td><td class="meta-value">{{ $salesOrder->date->format('d M Y') }}</td></tr>
+                        @if($salesOrder->nomor_po)
+                        <tr><td class="meta-label">Nomor PO</td><td class="meta-value">{{ $salesOrder->nomor_po }}</td></tr>
+                        @endif
                         @if($salesOrder->delivery_date)
                         <tr><td class="meta-label">Pengiriman</td><td class="meta-value">{{ $salesOrder->delivery_date->format('d M Y') }}</td></tr>
                         @endif
@@ -469,6 +472,12 @@
                 <td class="summary-label">PPN ({{ number_format($salesOrder->tax_percentage, 0) }}%)</td>
                 <td class="summary-value">Rp {{ number_format($salesOrder->tax_amount, 0, ',', '.') }}</td>
             </tr>
+            @if($salesOrder->discount > 0)
+            <tr>
+                <td class="summary-label">Diskon</td>
+                <td class="summary-value">Rp {{ number_format($salesOrder->discount, 0, ',', '.') }}</td>
+            </tr>
+            @endif
             <tr class="summary-total">
                 <td>TOTAL</td>
                 <td class="summary-value">Rp {{ number_format($salesOrder->total, 0, ',', '.') }}</td>

@@ -32,6 +32,9 @@
         </div>
         <p class="text-muted mb-0" style="font-size:13px">
             Tanggal SO: {{ $salesOrder->date->format('d M Y') }}
+            @if($salesOrder->nomor_po)
+                &nbsp;·&nbsp; Nomor PO: {{ $salesOrder->nomor_po }}
+            @endif
             @if($salesOrder->delivery_date)
                 &nbsp;·&nbsp; Pengiriman: {{ $salesOrder->delivery_date->format('d M Y') }}
             @endif
@@ -244,6 +247,9 @@
                 @endif
                 <div class="summary-row"><span>Subtotal</span><span class="summary-val">Rp {{ number_format($salesOrder->subtotal, 0, ',', '.') }}</span></div>
                 <div class="summary-row"><span>PPN ({{ number_format($salesOrder->tax_percentage, 0) }}%)</span><span class="summary-val">Rp {{ number_format($salesOrder->tax_amount, 0, ',', '.') }}</span></div>
+                @if($salesOrder->discount > 0)
+                <div class="summary-row"><span>Diskon</span><span class="summary-val">Rp {{ number_format($salesOrder->discount, 0, ',', '.') }}</span></div>
+                @endif
                 <div class="summary-row total-row"><span>TOTAL</span><span class="summary-val">Rp {{ number_format($salesOrder->total, 0, ',', '.') }}</span></div>
             </div>
             <div class="card-footer bg-white border-top">

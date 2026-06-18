@@ -53,6 +53,7 @@ class InvoiceController extends Controller
             'invoice_number' => 'required|string|unique:invoices,invoice_number',
             'sales_order_id' => 'nullable|exists:sales_orders,id',
             'so_number' => 'nullable|string|max:255',
+            'nomor_po' => 'nullable|string|max:255',
             'date' => 'required|date',
             'due_date' => 'nullable|date|after_or_equal:date',
             'client_name' => 'nullable|string|max:255',
@@ -65,6 +66,7 @@ class InvoiceController extends Controller
             'subtotal' => 'required|numeric|min:0',
             'subtotal_labor' => 'nullable|numeric|min:0',
             'subtotal_other_cost' => 'nullable|numeric|min:0',
+            'discount' => 'nullable|numeric|min:0',
             'tax_percentage' => 'required|numeric|min:0|max:100',
             'tax_amount' => 'required|numeric|min:0',
             'total' => 'required|numeric|min:0',
@@ -152,6 +154,7 @@ class InvoiceController extends Controller
             'invoice_number' => 'required|string|unique:invoices,invoice_number,' . $invoice->id,
             'sales_order_id' => 'nullable|exists:sales_orders,id',
             'so_number' => 'nullable|string|max:255',
+            'nomor_po' => 'nullable|string|max:255',
             'date' => 'required|date',
             'due_date' => 'nullable|date|after_or_equal:date',
             'client_name' => 'nullable|string|max:255',
@@ -164,6 +167,7 @@ class InvoiceController extends Controller
             'subtotal' => 'required|numeric|min:0',
             'subtotal_labor' => 'nullable|numeric|min:0',
             'subtotal_other_cost' => 'nullable|numeric|min:0',
+            'discount' => 'nullable|numeric|min:0',
             'tax_percentage' => 'required|numeric|min:0|max:100',
             'tax_amount' => 'required|numeric|min:0',
             'total' => 'required|numeric|min:0',
@@ -221,6 +225,7 @@ class InvoiceController extends Controller
 
         return response()->json([
             'so_number' => $salesOrder->so_number,
+            'nomor_po' => $salesOrder->nomor_po,
             'client_name' => $salesOrder->client_name,
             'client_company' => $salesOrder->client_company,
             'client_attention' => $salesOrder->client_attention,
@@ -229,9 +234,12 @@ class InvoiceController extends Controller
             'client_address' => $salesOrder->client_address,
             'description' => $salesOrder->description_of_work,
             'subtotal' => $salesOrder->subtotal,
+            'subtotal_material' => $salesOrder->subtotal_material,
             'subtotal_labor' => $salesOrder->subtotal_labor,
+            'subtotal_other_cost' => $salesOrder->subtotal_other_cost,
             'tax_percentage' => $salesOrder->tax_percentage,
             'tax_amount' => $salesOrder->tax_amount,
+            'discount' => $salesOrder->discount,
             'total' => $salesOrder->total,
             'items' => $salesOrder->items->map(function ($item) {
                 return [
