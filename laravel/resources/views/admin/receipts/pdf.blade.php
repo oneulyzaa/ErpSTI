@@ -208,6 +208,12 @@
                         <td class="meta-value">{{ $receipt->nomor_po }}</td>
                     </tr>
                     @endif
+                    @if($receipt->project_name)
+                    <tr>
+                        <td class="meta-label">Project</td>
+                        <td class="meta-value">{{ $receipt->project_name }}</td>
+                    </tr>
+                    @endif
                 </table>
             </td>
         </tr>

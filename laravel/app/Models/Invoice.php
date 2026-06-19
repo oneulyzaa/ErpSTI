@@ -14,6 +14,7 @@ class Invoice extends Model
         'sales_order_id',
         'so_number',
         'nomor_po',
+        'project_name',
         'date',
         'due_date',
         'client_name',

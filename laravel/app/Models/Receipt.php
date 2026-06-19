@@ -14,6 +14,7 @@ class Receipt extends Model
         'invoice_id',
         'invoice_number',
         'nomor_po',
+        'project_name',
         'date',
         'client_name',
         'client_company',

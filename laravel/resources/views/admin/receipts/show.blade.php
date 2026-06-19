@@ -50,14 +50,18 @@
                         <div class="info-label">Referensi Invoice</div>
                         <div class="info-value">{{ $receipt->invoice_number ?: '-' }}</div>
                     </div>
-                    <div class="col-6 col-md-3">
-                        <div class="info-label">Nomor PO</div>
-                        <div class="info-value">{{ $receipt->nomor_po ?: '-' }}</div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="info-label">Tanggal</div>
-                        <div class="info-value">{{ $receipt->date->format('d M Y') }}</div>
-                    </div>
+                     <div class="col-6 col-md-3">
+                         <div class="info-label">Nomor PO</div>
+                         <div class="info-value">{{ $receipt->nomor_po ?: '-' }}</div>
+                     </div>
+                     <div class="col-6 col-md-3">
+                         <div class="info-label">Project</div>
+                         <div class="info-value">{{ $receipt->project_name ?: '-' }}</div>
+                     </div>
+                     <div class="col-6 col-md-3">
+                         <div class="info-label">Tanggal</div>
+                         <div class="info-value">{{ $receipt->date->format('d M Y') }}</div>
+                     </div>
                     <div class="col-6 col-md-3">
                         <div class="info-label">Status</div>
                         <div class="info-value"><span class="badge badge-{{ $receipt->status }}">{{ ucfirst($receipt->status) }}</span></div>

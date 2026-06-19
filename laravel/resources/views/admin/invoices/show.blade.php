@@ -56,12 +56,16 @@
                         <span class="info-label">No. SO</span>
                         <div class="info-value">{{ $invoice->so_number ?: '-' }}</div>
                     </div>
-                    <div class="col-12 col-sm-4">
-                        <span class="info-label">Nomor PO</span>
-                        <div class="info-value">{{ $invoice->nomor_po ?: '-' }}</div>
-                    </div>
-                    <div class="col-12 col-sm-4">
-                        <span class="info-label">Status</span>
+                     <div class="col-12 col-sm-4">
+                         <span class="info-label">Nomor PO</span>
+                         <div class="info-value">{{ $invoice->nomor_po ?: '-' }}</div>
+                     </div>
+                     <div class="col-12 col-sm-4">
+                         <span class="info-label">Nama Project</span>
+                         <div class="info-value">{{ $invoice->project_name ?: '-' }}</div>
+                     </div>
+                     <div class="col-12 col-sm-4">
+                         <span class="info-label">Status</span>
                         <div class="info-value mt-1">
                             <span class="badge badge-{{ $invoice->status }} px-2 py-1" style="font-size:12px;">{{ ucfirst($invoice->status) }}</span>
                         </div>

@@ -54,6 +54,7 @@ class InvoiceController extends Controller
             'sales_order_id' => 'nullable|exists:sales_orders,id',
             'so_number' => 'nullable|string|max:255',
             'nomor_po' => 'nullable|string|max:255',
+            'project_name' => 'nullable|string|max:255',
             'date' => 'required|date',
             'due_date' => 'nullable|date|after_or_equal:date',
             'client_name' => 'nullable|string|max:255',
@@ -155,6 +156,7 @@ class InvoiceController extends Controller
             'sales_order_id' => 'nullable|exists:sales_orders,id',
             'so_number' => 'nullable|string|max:255',
             'nomor_po' => 'nullable|string|max:255',
+            'project_name' => 'nullable|string|max:255',
             'date' => 'required|date',
             'due_date' => 'nullable|date|after_or_equal:date',
             'client_name' => 'nullable|string|max:255',
@@ -226,6 +228,7 @@ class InvoiceController extends Controller
         return response()->json([
             'so_number' => $salesOrder->so_number,
             'nomor_po' => $salesOrder->nomor_po,
+            'project_name' => $salesOrder->project_name,
             'client_name' => $salesOrder->client_name,
             'client_company' => $salesOrder->client_company,
             'client_attention' => $salesOrder->client_attention,

@@ -118,13 +118,21 @@
                             <input type="hidden" name="so_number" id="so_number"
                                    value="{{ old('so_number', $isEdit ? $deliveryOrder->so_number : '') }}">
                         </div>
-                        <div class="col-12 col-sm-4">
-                            <label class="form-label fw-semibold" style="font-size:13px">Nomor PO</label>
-                            <input type="text" name="nomor_po" id="nomor_po" class="form-control form-control-sm"
-                                   value="{{ old('nomor_po', $isEdit ? $deliveryOrder->nomor_po : '') }}"
-                                   placeholder="Auto-load dari SO">
-                        </div>
-                    </div>
+                         <div class="col-12 col-sm-4">
+                             <label class="form-label fw-semibold" style="font-size:13px">Nomor PO</label>
+                             <input type="text" name="nomor_po" id="nomor_po" class="form-control form-control-sm"
+                                    value="{{ old('nomor_po', $isEdit ? $deliveryOrder->nomor_po : '') }}"
+                                    placeholder="Auto-load dari SO">
+                         </div>
+                     </div>
+                     <div class="row g-3 mb-3">
+                         <div class="col-12 col-sm-6">
+                             <label class="form-label fw-semibold" style="font-size:13px">Nama Project</label>
+                             <input type="text" name="project_name" id="project_name" class="form-control form-control-sm"
+                                    value="{{ old('project_name', $isEdit ? $deliveryOrder->project_name : '') }}"
+                                    placeholder="Auto-load dari SO">
+                         </div>
+                     </div>
                     <div class="row g-3 mb-4">
                         <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">Status <span class="text-danger">*</span></label>
@@ -318,9 +326,10 @@ document.getElementById('sales_order_id')?.addEventListener('change', async func
         const data = await res.json();
 
         // Fill info fields
-        document.getElementById('so_number').value          = data.so_number || '';
-        document.getElementById('nomor_po').value           = data.nomor_po || '';
-        document.getElementById('client_name').value        = data.client_name || '';
+         document.getElementById('so_number').value          = data.so_number || '';
+         document.getElementById('nomor_po').value           = data.nomor_po || '';
+         document.getElementById('project_name').value       = data.project_name || '';
+         document.getElementById('client_name').value        = data.client_name || '';
         document.getElementById('client_company').value     = data.client_company || '';
         document.getElementById('client_attention').value   = data.client_attention || '';
         document.getElementById('client_cc').value          = data.client_cc || '';

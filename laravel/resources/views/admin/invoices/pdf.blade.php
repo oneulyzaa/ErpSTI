@@ -316,6 +316,12 @@
                         <td class="meta-value">{{ $invoice->nomor_po }}</td>
                     </tr>
                     @endif
+                    @if($invoice->project_name)
+                    <tr>
+                        <td class="meta-label">Project</td>
+                        <td class="meta-value">{{ $invoice->project_name }}</td>
+                    </tr>
+                    @endif
                     <tr>
                         <td class="meta-label">Status</td>
                         <td class="meta-value">

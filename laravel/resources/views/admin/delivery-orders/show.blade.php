@@ -82,6 +82,12 @@
                         </div>
                     </div>
                 </div>
+                @if($deliveryOrder->project_name)
+                <div class="p-4 border-top bg-light">
+                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:6px;">Nama Project</div>
+                    <div style="font-size:14px;font-weight:600;">{{ $deliveryOrder->project_name }}</div>
+                </div>
+                @endif
                 @if($deliveryOrder->destination_address)
                 <div class="p-4 border-top bg-light">
                     <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:6px;">Alamat Tujuan</div>

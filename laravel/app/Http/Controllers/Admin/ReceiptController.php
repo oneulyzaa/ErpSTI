@@ -51,6 +51,7 @@ class ReceiptController extends Controller
             'invoice_id' => 'nullable|exists:invoices,id',
             'invoice_number' => 'nullable|string|max:255',
             'nomor_po' => 'nullable|string|max:255',
+            'project_name' => 'nullable|string|max:255',
             'date' => 'required|date',
             'client_name' => 'nullable|string|max:255',
             'client_company' => 'nullable|string|max:255',
@@ -127,6 +128,7 @@ class ReceiptController extends Controller
             'invoice_id' => 'nullable|exists:invoices,id',
             'invoice_number' => 'nullable|string|max:255',
             'nomor_po' => 'nullable|string|max:255',
+            'project_name' => 'nullable|string|max:255',
             'date' => 'required|date',
             'client_name' => 'nullable|string|max:255',
             'client_company' => 'nullable|string|max:255',
@@ -169,11 +171,12 @@ class ReceiptController extends Controller
     // ─── AJAX: Get Invoice Data ─────────────────────────────────────────────
     public function getInvoiceData(Invoice $invoice)
     {
-        return response()->json([
-            'invoice_number' => $invoice->invoice_number,
-            'nomor_po' => $invoice->nomor_po,
-            'client_name' => $invoice->client_name,
-            'client_company' => $invoice->client_company,
+         return response()->json([
+             'invoice_number' => $invoice->invoice_number,
+             'nomor_po' => $invoice->nomor_po,
+             'project_name' => $invoice->project_name,
+             'client_name' => $invoice->client_name,
+             'client_company' => $invoice->client_company,
             'client_attention' => $invoice->client_attention,
             'client_email' => $invoice->client_email,
             'total' => $invoice->total,

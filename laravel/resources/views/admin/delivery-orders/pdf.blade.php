@@ -241,15 +241,23 @@
                 </td>
             </tr>
             @endif
-            @if($deliveryOrder->description)
-            <tr>
-                <td colspan="2" class="client-sep">
-                    <div class="client-lbl">Deskripsi</div>
-                    <div class="client-sub">{{ $deliveryOrder->description }}</div>
-                </td>
-            </tr>
-            @endif
-        </table>
+             @if($deliveryOrder->description)
+             <tr>
+                 <td colspan="2" class="client-sep">
+                     <div class="client-lbl">Deskripsi</div>
+                     <div class="client-sub">{{ $deliveryOrder->description }}</div>
+                 </td>
+             </tr>
+             @endif
+             @if($deliveryOrder->project_name)
+             <tr>
+                 <td colspan="2" class="client-sep">
+                     <div class="client-lbl">Nama Project</div>
+                     <div class="client-val">{{ $deliveryOrder->project_name }}</div>
+                 </td>
+             </tr>
+             @endif
+         </table>
 
         {{-- ═══ ITEMS TABLE ═══ --}}
         <div style="font-size:8px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;padding:3px 6px;background:#1e3a5f;color:#fff;margin-bottom:0;">Item Pengiriman</div>
