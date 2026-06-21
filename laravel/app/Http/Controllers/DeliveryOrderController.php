@@ -219,7 +219,9 @@ class DeliveryOrderController extends Controller
             'nama_perusahaan' => $client->nama_perusahaan,
             'nama_kontak' => $client->nama_kontak_perusahaan,
             'email' => $client->email_perusahaan,
-            'alamat_pengiriman' => $client->alamat_pengiriman_perusahaan,
+            'alamat_pengiriman_perusahaan' => $client->alamat_pengiriman_perusahaan,
+            'attn' => $client->attn,
+            'cc' => $client->cc,
         ]);
     }
 
@@ -233,6 +235,8 @@ class DeliveryOrderController extends Controller
                 $data['client_company'] = $data['client_company'] ?: $client->nama_perusahaan;
                 $data['client_email'] = $data['client_email'] ?: $client->email_perusahaan;
                 $data['destination_address'] = $data['destination_address'] ?: $client->alamat_pengiriman_perusahaan;
+                $data['client_attention'] = $data['client_attention'] ?: $client->attn;
+                $data['client_cc'] = $data['client_cc'] ?: $client->cc;
             }
         }
         return $data;

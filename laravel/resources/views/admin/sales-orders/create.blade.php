@@ -408,6 +408,8 @@ document.getElementById('client-select')?.addEventListener('change', async funct
         document.getElementById('client_name').value    = data.nama_kontak || '';
         document.getElementById('client_email').value   = data.email || '';
         document.getElementById('client_address').value = data.alamat_pengiriman_perusahaan || '';
+        document.getElementById('client_attention').value = data.attn || '';
+        document.getElementById('client_cc').value        = data.cc || '';
     } catch (err) {
         console.error(err);
     }

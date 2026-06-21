@@ -293,6 +293,8 @@ class InvoiceController extends Controller
             'nama_kontak' => $client->nama_kontak_perusahaan,
             'email' => $client->email_perusahaan,
             'alamat_pengiriman' => $client->alamat_pengiriman_perusahaan,
+            'attn' => $client->attn,
+            'cc' => $client->cc,
         ]);
     }
 

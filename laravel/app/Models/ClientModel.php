@@ -12,6 +12,8 @@ class ClientModel extends Model
         'nama_perusahaan',
         'email_perusahaan',
         'nama_kontak_perusahaan',
+        'attn',
+        'cc',
         'npwp_perusahaan',
         'alamat_pengiriman_perusahaan',
         'nomor_telepon_pengiriman',
