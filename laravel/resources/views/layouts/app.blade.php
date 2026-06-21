@@ -213,10 +213,22 @@
                     <i class="bi bi-bell fs-6"></i>
                     <span class="position-absolute top-0 start-100 translate-middle p-1 bg-primary border border-dark rounded-circle" style="width:8px;height:8px"></span>
                 </button>
-                <div class="user-chip d-flex align-items-center gap-2">
-                    <div class="user-avatar">A</div>
-                    <span class="text-dark fw-500 d-none d-sm-block" style="font-size:13px">Admin</span>
-                    <i class="bi bi-chevron-down text-muted d-none d-sm-block" style="font-size:11px"></i>
+                <div class="dropdown">
+                    <div class="user-chip d-flex align-items-center gap-2 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <img src="/assets/gambar/user.png" alt="" width="30" height="30" class="rounded-circle">
+                        <span class="text-dark fw-500 d-none d-sm-block" style="font-size:13px"> {{ Auth::user()->name }}</span>
+                    
+                    </div>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" style="border-radius: 10px; min-width: 180px;">
+                       
+                        <li><hr class="dropdown-divider m-0"></li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2 text-danger" href="{{ route('logout') }}" style="font-size:14px; padding: 10px 16px;">
+                                <i class="bi bi-box-arrow-left"></i>
+                                <span>Keluar</span>
+                            </a>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </nav>

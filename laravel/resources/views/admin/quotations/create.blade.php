@@ -13,7 +13,22 @@
 @section('breadcrumb', $isEdit ? 'Edit Quotation' : 'Buat Quotation')
 
 @push('styles')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
 <style>
+    .select2-container--default .select2-selection--single {
+        border: 1.5px solid #e2e8f0;
+        border-radius: 6px;
+        height: 31px;
+        font-size: 12px;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 28px;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 28px;
+    }
+    .select2-dropdown { font-size: 12px; }
+    .select2-search__field { font-size: 12px !important; }
     .section-label {
         font-size: 11px; font-weight: 700; text-transform: uppercase;
         letter-spacing: .06em; color: #94a3b8;
@@ -427,7 +442,43 @@
 @endsection
 
 @push('scripts')
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
+// Helper to init Select2 on material selects
+function initSelect2(select) {
+    const $select = $(select);
+    if ($select.hasClass('select2-hidden-accessible')) {
+        $select.select2('destroy');
+    }
+    $select.select2({
+        placeholder: '-- Pilih Material --',
+        allowClear: true,
+        width: '100%',
+        dropdownParent: $select.closest('tr')
+    }).on('change', function(e) {
+        // Trigger the original onMatSelect function
+        const pIdx = $(this).closest('tbody').attr('id').replace('mattbody-', '');
+        const tr = $(this).closest('tr');
+        const mIdx = tr.data('midx');
+        onMatSelect(this, parseInt(pIdx), parseInt(mIdx));
+    });
+}
+
+// Re-init after refresh
+function refreshAllMatSelects() {
+    document.querySelectorAll('.material-select').forEach(select => {
+        const currentVal = select.value;
+        select.innerHTML = '<option value="">-- Pilih Material --</option>' +
+            assets.map(a => `<option value="${a.id}" data-nama="${esc(a.nama_aset)}" data-satuan="${esc(a.satuan)}" data-harga="${a.harga || 0}">${esc(a.nama_aset)}</option>`).join('');
+        if (currentVal) select.value = currentVal;
+    });
+    // Re-init Select2 for all material selects
+    $('.material-select').each(function() {
+        initSelect2(this);
+    });
+}
+
 /* ── seed data ── */
 const initItems      = @json($oldItems);
 const initLabors     = @json($oldLabors);
@@ -501,7 +552,7 @@ document.getElementById('quick-client-form')?.addEventListener('submit', functio
     })
     .catch(err => { alert('Terjadi kesalahan: ' + err.message); })
     .finally(() => {
-        btn.disabled = false;
+        bvlse;
         btn.innerHTML = '<i class="bi bi-check-lg"></i> Simpan Client';
     });
 });
@@ -551,15 +602,6 @@ document.getElementById('quick-material-form')?.addEventListener('submit', funct
         btn.innerHTML = '<i class="bi bi-check-lg"></i> Simpan Material';
     });
 });
-
-function refreshAllMatSelects() {
-    document.querySelectorAll('.material-select').forEach(select => {
-        const currentVal = select.value;
-        select.innerHTML = '<option value="">-- Pilih Material --</option>' +
-            assets.map(a => `<option value="${a.id}" data-nama="${esc(a.nama_aset)}" data-satuan="${esc(a.satuan)}" data-harga="${a.harga || 0}">${esc(a.nama_aset)}</option>`).join('');
-        if (currentVal) select.value = currentVal;
-    });
-}
 
 /* ══ PRODUCT CARDS ═══════════════════════════════════ */
 function createProductCard(item = {}) {
@@ -651,6 +693,9 @@ function addProductCard(item = {}) {
             mIdx['p' + idx] = mi;
             const tr = createMaterialRow(idx, mat);
             tbody.appendChild(tr);
+            // Init Select2
+            const select = tr.querySelector('.material-select');
+            if (select) initSelect2(select);
         });
         mIdx['p' + idx] = materials.length;
         reorderMatNums(card.querySelector(`#mattbody-${idx}`));
@@ -715,6 +760,9 @@ function addMaterialRow(btn, pIdx) {
     if (!tbody) return;
     const tr = createMaterialRow(pIdx);
     tbody.appendChild(tr);
+    // Init Select2 on the new row
+    const select = tr.querySelector('.material-select');
+    if (select) initSelect2(select);
     reorderMatNums(tbody);
     recalc();
 }
