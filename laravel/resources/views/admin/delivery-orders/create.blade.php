@@ -336,6 +336,7 @@ document.getElementById('sales_order_id')?.addEventListener('change', async func
         document.getElementById('client_attention').value   = data.client_attention || '';
         document.getElementById('client_cc').value          = data.client_cc || '';
         document.getElementById('client_email').value       = data.client_email || '';
+        document.getElementById('destination_address').value = data.client_address || '';
         document.getElementById('description').value        = data.description || '';
 
         // Clear & load items with materials

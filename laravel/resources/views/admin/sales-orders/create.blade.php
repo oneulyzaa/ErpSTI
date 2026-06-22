@@ -131,26 +131,7 @@
                         </div>
                     </div>
 
-                    <div class="section-label">Pilih Perusahaan (dari Master Client)</div>
-                    <div class="row g-3 mb-4">
-                        <div class="col-12">
-                            <select name="client_id" id="client-select" class="form-select form-select-sm"
-                                    data-url-template="{{ route('admin.sales-orders.client-data', ['client' => '__ID__']) }}">
-                                <option value="">-- Pilih Perusahaan (opsional) --</option>
-                                @isset($clients)
-                                    @foreach($clients as $c)
-                                        <option value="{{ $c->id }}"
-                                            data-nama="{{ $c->nama_perusahaan }}"
-                                            data-kontak="{{ $c->nama_kontak_perusahaan }}"
-                                            data-email="{{ $c->email_perusahaan }}"
-                                            {{ old('client_id', $isEdit ? ($salesOrder->client_id ?? '') : '') == $c->id ? 'selected' : '' }}>
-                                            {{ $c->id_perusahaan }} — {{ $c->nama_perusahaan }}
-                                        </option>
-                                    @endforeach
-                                @endisset
-                            </select>
-                        </div>
-                    </div>
+                    
 
                     <div class="section-label">Info Perusahaan & Project</div>
                     <div class="row g-3 mb-3">
@@ -435,6 +416,7 @@ document.getElementById('quotation_id')?.addEventListener('change', async functi
         document.getElementById('client_attention').value   = data.client_attention || '';
         document.getElementById('client_cc').value          = data.client_cc || '';
         document.getElementById('client_email').value       = data.client_email || '';
+        document.getElementById('client_address').value     = data.client_address || '';
         document.getElementById('description_of_work').value = data.description_of_work || '';
         // document.getElementById('nomor_po').value            = data.nomor_po || '';
 
