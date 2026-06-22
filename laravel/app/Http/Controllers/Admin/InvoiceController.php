@@ -76,16 +76,11 @@ class InvoiceController extends Controller
             'term_and_condition' => 'nullable|string',
             'items' => 'nullable|array',
             'items.*.item_name' => 'required_with:items|string|max:255',
-            'items.*.part_no' => 'nullable|string|max:100',
             'items.*.description' => 'nullable|string|max:500',
             'items.*.unit' => 'required_with:items|string|max:50',
             'items.*.qty' => 'required_with:items|numeric|min:0',
             'items.*.unit_price' => 'required_with:items|numeric|min:0',
             'items.*.subtotal' => 'nullable|numeric|min:0',
-            'items.*.dpp' => 'nullable|numeric|min:0',
-            'items.*.discount' => 'nullable|numeric|min:0',
-            'items.*.vat' => 'nullable|numeric|min:0',
-            'items.*.total_amount' => 'nullable|numeric|min:0',
             'labors' => 'nullable|array',
             'labors.*.labor_name' => 'required_with:labors|string|max:255',
             'labors.*.mp' => 'required_with:labors|integer|min:1',
@@ -126,7 +121,7 @@ class InvoiceController extends Controller
             $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
         }
 
-        $pdf = Pdf::loadView('admin.invoices.pdf-standard', compact('invoice', 'logoBase64'))
+        $pdf = Pdf::loadView('admin.invoices.pdf-b', compact('invoice', 'logoBase64'))
             ->setPaper('a4', 'portrait')
             ->setOption('defaultFont', 'DejaVu Sans')
             ->setOption('isHtml5ParserEnabled', true)
@@ -183,16 +178,11 @@ class InvoiceController extends Controller
             'term_and_condition' => 'nullable|string',
             'items' => 'nullable|array',
             'items.*.item_name' => 'required_with:items|string|max:255',
-            'items.*.part_no' => 'nullable|string|max:100',
             'items.*.description' => 'nullable|string|max:500',
             'items.*.unit' => 'required_with:items|string|max:50',
             'items.*.qty' => 'required_with:items|numeric|min:0',
             'items.*.unit_price' => 'required_with:items|numeric|min:0',
             'items.*.subtotal' => 'nullable|numeric|min:0',
-            'items.*.dpp' => 'nullable|numeric|min:0',
-            'items.*.discount' => 'nullable|numeric|min:0',
-            'items.*.vat' => 'nullable|numeric|min:0',
-            'items.*.total_amount' => 'nullable|numeric|min:0',
             'labors' => 'nullable|array',
             'labors.*.labor_name' => 'required_with:labors|string|max:255',
             'labors.*.mp' => 'required_with:labors|integer|min:1',
@@ -315,26 +305,15 @@ class InvoiceController extends Controller
         foreach ($items as $i => $item) {
             if (empty($item['item_name']))
                 continue;
-            $subtotal = $item['subtotal'] ?? (($item['qty'] ?? 0) * ($item['unit_price'] ?? 0));
-            $itemDiscount = $item['discount'] ?? 0;
-            $itemDpp = $item['dpp'] ?? ($subtotal - $itemDiscount);
-            $itemVat = $item['vat'] ?? ($itemDpp * ($invoice->tax_percentage ?? 0) / 100);
-            $itemTotal = $item['total_amount'] ?? ($itemDpp + $itemVat);
-            
             $invoiceItem = InvoiceItem::create([
                 'invoice_id' => $invoice->id,
                 'sort_order' => $i + 1,
                 'item_name' => $item['item_name'],
-                'part_no' => $item['part_no'] ?? null,
                 'description' => $item['description'] ?? null,
                 'unit' => $item['unit'] ?? 'Unit',
                 'qty' => $item['qty'] ?? 0,
                 'unit_price' => $item['unit_price'] ?? 0,
-                'subtotal' => $subtotal,
-                'dpp' => $itemDpp,
-                'discount' => $itemDiscount,
-                'vat' => $itemVat,
-                'total_amount' => $itemTotal,
+                'subtotal' => $item['subtotal'] ?? (($item['qty'] ?? 0) * ($item['unit_price'] ?? 0)),
             ]);
 
             if (!empty($item['materials'])) {
