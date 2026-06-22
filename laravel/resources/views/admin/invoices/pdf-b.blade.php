@@ -277,39 +277,14 @@
 
     {{-- ═══ SUMMARY TABLE ═══ --}}
     @php
-        $totalProduksi = $invoice->subtotal ?? 0;
-        $totalLabor = $invoice->subtotal_labor ?? 0;
-        $otherCosts = $invoice->otherCosts ?? collect();
-        $totalOther = $otherCosts->sum('subtotal');
-        $subtotalAll = $totalProduksi + $totalLabor + $totalOther;
+        // Gunakan project_value langsung, jika tidak ada hitung dari subtotal + discount
+        $nilaiProject = $invoice->project_value ?? (($invoice->subtotal ?? 0) + ($invoice->discount ?? 0));
     @endphp
 
     <table class="summary-table">
-        @if($totalProduksi > 0)
         <tr>
-            <td class="s-lbl">Subtotal Produksi</td>
-            <td class="s-val">Rp {{ number_format($totalProduksi, 0, ',', '.') }}</td>
-        </tr>
-        @endif
-        @if($totalLabor > 0)
-        <tr>
-            <td class="s-lbl">Subtotal Tenaga Kerja</td>
-            <td class="s-val">Rp {{ number_format($totalLabor, 0, ',', '.') }}</td>
-        </tr>
-        @endif
-        @if($totalOther > 0)
-        <tr>
-            <td class="s-lbl">Subtotal Biaya Lain-Lain</td>
-            <td class="s-val">Rp {{ number_format($totalOther, 0, ',', '.') }}</td>
-        </tr>
-        @endif
-        <tr>
-            <td class="s-lbl">Subtotal</td>
-            <td class="s-val">Rp {{ number_format($subtotalAll, 0, ',', '.') }}</td>
-        </tr>
-        <tr>
-            <td class="s-lbl">PPN ({{ number_format($invoice->tax_percentage, 0) }}%)</td>
-            <td class="s-val">Rp {{ number_format($invoice->tax_amount, 0, ',', '.') }}</td>
+            <td class="s-lbl">Nilai Project</td>
+            <td class="s-val">Rp {{ number_format($nilaiProject, 0, ',', '.') }}</td>
         </tr>
         @if($invoice->discount > 0)
         <tr>
@@ -317,9 +292,17 @@
             <td class="s-val">Rp {{ number_format($invoice->discount, 0, ',', '.') }}</td>
         </tr>
         @endif
+        <tr>
+            <td class="s-lbl">Subtotal</td>
+            <td class="s-val">Rp {{ number_format($invoice->subtotal ?? 0, 0, ',', '.') }}</td>
+        </tr>
+        <tr>
+            <td class="s-lbl">PPN ({{ number_format($invoice->tax_percentage, 0) }}%)</td>
+            <td class="s-val">Rp {{ number_format($invoice->tax_amount ?? 0, 0, ',', '.') }}</td>
+        </tr>
         <tr class="s-total">
             <td class="s-lbl" style="font-weight:bold;">GRAND TOTAL</td>
-            <td class="s-val">Rp {{ number_format($invoice->total, 0, ',', '.') }}</td>
+            <td class="s-val">Rp {{ number_format($invoice->total ?? 0, 0, ',', '.') }}</td>
         </tr>
     </table>
 
