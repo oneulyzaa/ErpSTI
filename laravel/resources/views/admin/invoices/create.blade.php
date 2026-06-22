@@ -460,6 +460,7 @@ function createProductCard(item = {}) {
             <span class="card-num">${pIdx + 1}</span>
             <div style="flex:1; display:flex; gap:8px; flex-wrap:wrap;">
                 <input type="text" name="items[${pIdx}][item_name]" class="item-input" placeholder="Nama item *" value="${esc(item.item_name)}" style="flex:2;min-width:140px;" required>
+                <input type="text" name="items[${pIdx}][part_no]" class="item-input" placeholder="Part No." value="${esc(item.part_no ?? '')}" style="flex:0 0 90px;min-width:90px;">
                 <input type="text" name="items[${pIdx}][description]" class="item-input" placeholder="Deskripsi" value="${esc(item.description)}" style="flex:2;min-width:140px;">
                 <input type="text" name="items[${pIdx}][unit]" class="item-input" placeholder="Satuan" value="${esc(item.unit ?? 'Unit')}" style="flex:0 0 70px;text-align:center;" required>
                 <input type="number" name="items[${pIdx}][qty]" class="item-input item-qty" min="0" step="any" value="${qty}" style="flex:0 0 70px;text-align:right;" required onchange="updateProductCardSub(this.closest('.product-card'))">
