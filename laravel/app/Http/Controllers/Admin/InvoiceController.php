@@ -55,7 +55,6 @@ class InvoiceController extends Controller
             'so_number' => 'nullable|string|max:255',
             'nomor_po' => 'nullable|string|max:255',
             'project_name' => 'nullable|string|max:255',
-            'project_value' => 'required|numeric|min:0',
             'date' => 'required|date',
             'due_date' => 'nullable|date|after_or_equal:date',
             'client_name' => 'nullable|string|max:255',
@@ -65,50 +64,46 @@ class InvoiceController extends Controller
             'client_email' => 'nullable|email|max:255',
             'client_address' => 'nullable|string|max:500',
             'description' => 'nullable|string',
+            'subtotal' => 'required|numeric|min:0',
+            'subtotal_labor' => 'nullable|numeric|min:0',
+            'subtotal_other_cost' => 'nullable|numeric|min:0',
             'discount' => 'nullable|numeric|min:0',
             'tax_percentage' => 'required|numeric|min:0|max:100',
+            'tax_amount' => 'required|numeric|min:0',
+            'total' => 'required|numeric|min:0',
             'status' => 'required|in:draft,sent,paid,overdue,cancelled',
             'notes' => 'nullable|string',
             'term_and_condition' => 'nullable|string',
+            'items' => 'nullable|array',
+            'items.*.item_name' => 'required_with:items|string|max:255',
+            'items.*.description' => 'nullable|string|max:500',
+            'items.*.unit' => 'required_with:items|string|max:50',
+            'items.*.qty' => 'required_with:items|numeric|min:0',
+            'items.*.unit_price' => 'required_with:items|numeric|min:0',
+            'items.*.subtotal' => 'nullable|numeric|min:0',
+            'labors' => 'nullable|array',
+            'labors.*.labor_name' => 'required_with:labors|string|max:255',
+            'labors.*.mp' => 'required_with:labors|integer|min:1',
+            'labors.*.days' => 'required_with:labors|numeric|min:0',
+            'labors.*.rate' => 'required_with:labors|numeric|min:0',
+            'labors.*.subtotal' => 'nullable|numeric|min:0',
+            'other_costs' => 'nullable|array',
+            'other_costs.*.cost_name' => 'required_with:other_costs|string|max:255',
+            'other_costs.*.qty' => 'required_with:other_costs|numeric|min:0',
+            'other_costs.*.rate' => 'required_with:other_costs|numeric|min:0',
+            'other_costs.*.subtotal' => 'nullable|numeric|min:0',
+            'items.*.materials' => 'nullable|array',
+            'items.*.materials.*.material_name' => 'required_with:items.*.materials|string|max:255',
+            'items.*.materials.*.satuan' => 'nullable|string|max:50',
+            'items.*.materials.*.qty_required' => 'required_with:items.*.materials|numeric|min:0',
+            'items.*.materials.*.unit_price' => 'required_with:items.*.materials|numeric|min:0',
         ]);
 
-        // Calculate derived values
-        $projectValue = $validated['project_value'] ?? 0;
-        $discount = $validated['discount'] ?? 0;
-        $taxPercentage = $validated['tax_percentage'] ?? 0;
-        
-        $subtotal = $projectValue - $discount;
-        $taxAmount = $subtotal * ($taxPercentage / 100);
-        $total = $subtotal + $taxAmount;
-
-        DB::transaction(function () use ($validated, $subtotal, $taxAmount, $total) {
-            Invoice::create([
-                'invoice_number' => $validated['invoice_number'],
-                'sales_order_id' => $validated['sales_order_id'] ?? null,
-                'so_number' => $validated['so_number'] ?? null,
-                'nomor_po' => $validated['nomor_po'] ?? null,
-                'project_name' => $validated['project_name'] ?? null,
-                'project_value' => $validated['project_value'] ?? 0,
-                'date' => $validated['date'],
-                'due_date' => $validated['due_date'] ?? null,
-                'client_name' => $validated['client_name'] ?? null,
-                'client_company' => $validated['client_company'] ?? null,
-                'client_attention' => $validated['client_attention'] ?? null,
-                'client_cc' => $validated['client_cc'] ?? null,
-                'client_email' => $validated['client_email'] ?? null,
-                'client_address' => $validated['client_address'] ?? null,
-                'description' => $validated['description'] ?? null,
-                'subtotal' => $subtotal,
-                'subtotal_labor' => 0,
-                'subtotal_other_cost' => 0,
-                'discount' => $validated['discount'] ?? 0,
-                'tax_percentage' => $validated['tax_percentage'],
-                'tax_amount' => $taxAmount,
-                'total' => $total,
-                'status' => $validated['status'],
-                'notes' => $validated['notes'] ?? null,
-                'term_and_condition' => $validated['term_and_condition'] ?? null,
-            ]);
+        DB::transaction(function () use ($validated, $request) {
+            $invoice = Invoice::create($validated);
+            $this->syncItems($invoice, $request->items ?? []);
+            $this->syncLabors($invoice, $request->labors ?? []);
+            $this->syncOtherCosts($invoice, $request->other_costs ?? []);
         });
 
         return redirect()->route('admin.invoices.index')
@@ -162,7 +157,6 @@ class InvoiceController extends Controller
             'so_number' => 'nullable|string|max:255',
             'nomor_po' => 'nullable|string|max:255',
             'project_name' => 'nullable|string|max:255',
-            'project_value' => 'required|numeric|min:0',
             'date' => 'required|date',
             'due_date' => 'nullable|date|after_or_equal:date',
             'client_name' => 'nullable|string|max:255',
@@ -172,50 +166,46 @@ class InvoiceController extends Controller
             'client_email' => 'nullable|email|max:255',
             'client_address' => 'nullable|string|max:500',
             'description' => 'nullable|string',
+            'subtotal' => 'required|numeric|min:0',
+            'subtotal_labor' => 'nullable|numeric|min:0',
+            'subtotal_other_cost' => 'nullable|numeric|min:0',
             'discount' => 'nullable|numeric|min:0',
             'tax_percentage' => 'required|numeric|min:0|max:100',
+            'tax_amount' => 'required|numeric|min:0',
+            'total' => 'required|numeric|min:0',
             'status' => 'required|in:draft,sent,paid,overdue,cancelled',
             'notes' => 'nullable|string',
             'term_and_condition' => 'nullable|string',
+            'items' => 'nullable|array',
+            'items.*.item_name' => 'required_with:items|string|max:255',
+            'items.*.description' => 'nullable|string|max:500',
+            'items.*.unit' => 'required_with:items|string|max:50',
+            'items.*.qty' => 'required_with:items|numeric|min:0',
+            'items.*.unit_price' => 'required_with:items|numeric|min:0',
+            'items.*.subtotal' => 'nullable|numeric|min:0',
+            'labors' => 'nullable|array',
+            'labors.*.labor_name' => 'required_with:labors|string|max:255',
+            'labors.*.mp' => 'required_with:labors|integer|min:1',
+            'labors.*.days' => 'required_with:labors|numeric|min:0',
+            'labors.*.rate' => 'required_with:labors|numeric|min:0',
+            'labors.*.subtotal' => 'nullable|numeric|min:0',
+            'other_costs' => 'nullable|array',
+            'other_costs.*.cost_name' => 'required_with:other_costs|string|max:255',
+            'other_costs.*.qty' => 'required_with:other_costs|numeric|min:0',
+            'other_costs.*.rate' => 'required_with:other_costs|numeric|min:0',
+            'other_costs.*.subtotal' => 'nullable|numeric|min:0',
+            'items.*.materials' => 'nullable|array',
+            'items.*.materials.*.material_name' => 'required_with:items.*.materials|string|max:255',
+            'items.*.materials.*.satuan' => 'nullable|string|max:50',
+            'items.*.materials.*.qty_required' => 'required_with:items.*.materials|numeric|min:0',
+            'items.*.materials.*.unit_price' => 'required_with:items.*.materials|numeric|min:0',
         ]);
 
-        // Calculate derived values
-        $projectValue = $validated['project_value'] ?? 0;
-        $discount = $validated['discount'] ?? 0;
-        $taxPercentage = $validated['tax_percentage'] ?? 0;
-        
-        $subtotal = $projectValue - $discount;
-        $taxAmount = $subtotal * ($taxPercentage / 100);
-        $total = $subtotal + $taxAmount;
-
-        DB::transaction(function () use ($validated, $invoice, $subtotal, $taxAmount, $total) {
-            $invoice->update([
-                'invoice_number' => $validated['invoice_number'],
-                'sales_order_id' => $validated['sales_order_id'] ?? null,
-                'so_number' => $validated['so_number'] ?? null,
-                'nomor_po' => $validated['nomor_po'] ?? null,
-                'project_name' => $validated['project_name'] ?? null,
-                'project_value' => $validated['project_value'] ?? 0,
-                'date' => $validated['date'],
-                'due_date' => $validated['due_date'] ?? null,
-                'client_name' => $validated['client_name'] ?? null,
-                'client_company' => $validated['client_company'] ?? null,
-                'client_attention' => $validated['client_attention'] ?? null,
-                'client_cc' => $validated['client_cc'] ?? null,
-                'client_email' => $validated['client_email'] ?? null,
-                'client_address' => $validated['client_address'] ?? null,
-                'description' => $validated['description'] ?? null,
-                'subtotal' => $subtotal,
-                'subtotal_labor' => 0,
-                'subtotal_other_cost' => 0,
-                'discount' => $validated['discount'] ?? 0,
-                'tax_percentage' => $validated['tax_percentage'],
-                'tax_amount' => $taxAmount,
-                'total' => $total,
-                'status' => $validated['status'],
-                'notes' => $validated['notes'] ?? null,
-                'term_and_condition' => $validated['term_and_condition'] ?? null,
-            ]);
+        DB::transaction(function () use ($validated, $request, $invoice) {
+            $invoice->update($validated);
+            $this->syncItems($invoice, $request->items ?? []);
+            $this->syncLabors($invoice, $request->labors ?? []);
+            $this->syncOtherCosts($invoice, $request->other_costs ?? []);
         });
 
         return redirect()->route('admin.invoices.show', $invoice)
@@ -239,7 +229,6 @@ class InvoiceController extends Controller
             'so_number' => $salesOrder->so_number,
             'nomor_po' => $salesOrder->nomor_po,
             'project_name' => $salesOrder->project_name,
-            'project_value' => $salesOrder->total,
             'client_name' => $salesOrder->client_name,
             'client_company' => $salesOrder->client_company,
             'client_attention' => $salesOrder->client_attention,
