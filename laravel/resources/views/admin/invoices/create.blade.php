@@ -743,10 +743,13 @@ function recalc() {
              * (parseFloat(tr.querySelector('.oc-rate')?.value) || 0);
     });
 
-    const discount = parseFloat(document.getElementById('discount').value) || 0;
     const sub   = mat + lab + oth;
-    const tax   = sub * ((parseFloat(document.getElementById('tax_percentage').value) || 0) / 100);
-    const total = sub + tax - discount;
+    const discount = parseFloat(document.getElementById('discount').value) || 0;
+    
+    // Perhitungan: Diskon dikurangi SEBELUM pajak
+    const taxableBase = Math.max(sub - discount, 0);  // Dasar pengenaan pajak (tidak boleh negatif)
+    const tax   = taxableBase * ((parseFloat(document.getElementById('tax_percentage').value) || 0) / 100);
+    const total = taxableBase + tax;
 
     document.getElementById('sum-mat').textContent      = fmt(mat);
     document.getElementById('sum-lab').textContent      = fmt(lab);

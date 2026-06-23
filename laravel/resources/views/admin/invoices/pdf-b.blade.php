@@ -307,16 +307,16 @@
             <td class="s-lbl">Subtotal</td>
             <td class="s-val">Rp {{ number_format($subtotalAll, 0, ',', '.') }}</td>
         </tr>
+        @if($invoice->discount > 0)
+        <tr>
+            <td class="s-lbl">Diskon</td>
+            <td class="s-val">- Rp {{ number_format($invoice->discount, 0, ',', '.') }}</td>
+        </tr>
+        @endif
         <tr>
             <td class="s-lbl">PPN ({{ number_format($invoice->tax_percentage, 0) }}%)</td>
             <td class="s-val">Rp {{ number_format($invoice->tax_amount, 0, ',', '.') }}</td>
         </tr>
-        @if($invoice->discount > 0)
-        <tr>
-            <td class="s-lbl">Diskon</td>
-            <td class="s-val">Rp {{ number_format($invoice->discount, 0, ',', '.') }}</td>
-        </tr>
-        @endif
         <tr class="s-total">
             <td class="s-lbl" style="font-weight:bold;">GRAND TOTAL</td>
             <td class="s-val">Rp {{ number_format($invoice->total, 0, ',', '.') }}</td>

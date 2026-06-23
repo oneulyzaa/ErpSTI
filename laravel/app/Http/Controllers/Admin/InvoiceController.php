@@ -100,7 +100,9 @@ class InvoiceController extends Controller
         ]);
 
         DB::transaction(function () use ($validated, $request) {
-            $invoice = Invoice::create($validated);
+            // Hitung ulang nilai-nilai untuk memastikan konsistensi (diskon sebelum pajak)
+            $calculated = $this->calculateAmounts($validated);
+            $invoice = Invoice::create(array_merge($validated, $calculated));
             $this->syncItems($invoice, $request->items ?? []);
             $this->syncLabors($invoice, $request->labors ?? []);
             $this->syncOtherCosts($invoice, $request->other_costs ?? []);
@@ -202,7 +204,9 @@ class InvoiceController extends Controller
         ]);
 
         DB::transaction(function () use ($validated, $request, $invoice) {
-            $invoice->update($validated);
+            // Hitung ulang nilai-nilai untuk memastikan konsistensi (diskon sebelum pajak)
+            $calculated = $this->calculateAmounts($validated);
+            $invoice->update(array_merge($validated, $calculated));
             $this->syncItems($invoice, $request->items ?? []);
             $this->syncLabors($invoice, $request->labors ?? []);
             $this->syncOtherCosts($invoice, $request->other_costs ?? []);
@@ -299,6 +303,36 @@ class InvoiceController extends Controller
     }
 
     // ─── Helpers ────────────────────────────────────────────────────────────
+
+    /**
+     * Hitung ulang tax_amount dan total dengan rumus: DISKON SEBELUM PAJAK
+     * Rumus: (subtotal + subtotal_labor + subtotal_other_cost - discount) * tax%
+     */
+    private function calculateAmounts(array $data): array
+    {
+        $subtotal      = floatval($data['subtotal'] ?? 0);
+        $subtotalLabor = floatval($data['subtotal_labor'] ?? 0);
+        $subtotalOther = floatval($data['subtotal_other_cost'] ?? 0);
+        $discount      = floatval($data['discount'] ?? 0);
+        $taxPercentage = floatval($data['tax_percentage'] ?? 0);
+
+        $subtotalAll = $subtotal + $subtotalLabor + $subtotalOther;
+
+        // Dasar pengenaan pajak = subtotal - diskon (tidak boleh negatif)
+        $taxableBase = max($subtotalAll - $discount, 0);
+
+        // Hitung pajak
+        $taxAmount = $taxableBase * ($taxPercentage / 100);
+
+        // Grand total = taxable_base + pajak
+        $total = $taxableBase + $taxAmount;
+
+        return [
+            'tax_amount' => $taxAmount,
+            'total'      => $total,
+        ];
+    }
+
     private function syncItems(Invoice $invoice, array $items): void
     {
         $invoice->items()->delete();
