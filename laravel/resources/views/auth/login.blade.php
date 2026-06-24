@@ -73,7 +73,9 @@
                 </div>
 
                 <button type="submit" class="btn-submit">Sign in to Dashboard</button>
-
+                <div class = "creator-text">
+                    <p>© 2026 | Developed by <a href="https://github.com/oneulyzaa" target="_blank">Aulyza Nova Ramadhani | Sistem Informasi 2270211020</a></p>
+                </div>
                 @if (Route::has('register'))
                     <p class="signup-text">
                         Don't have an account?
@@ -93,7 +95,7 @@
 
         body {
             margin: 0;
-            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-family: 'Poppins', 'Poppins', system-ui, -apple-system, sans-serif;
         }
 
         .login-page {
@@ -109,6 +111,14 @@
             justify-content: center;
             padding: 24px;
         }
+        /* Tambahkan ini tepat setelah .login-page */
+        .login-page::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(53, 53, 53, 0.5); /* ubah 0.55 sesuai selera */
+            z-index: 1;
+}
 
         /* Blurred glow blobs */
         .glow {
@@ -160,8 +170,8 @@
             padding: 40px 36px;
             border-radius: 24px;
             background: rgba(255,255,255,0.05);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             border: 1px solid rgba(255,255,255,0.08);
             box-shadow: 0 20px 60px rgba(0,0,0,0.4);
             text-align: center;
@@ -270,7 +280,7 @@
             margin-top: 8px;
             border: none;
             border-radius: 999px;
-            background: linear-gradient(90deg, #6366f1, #c026d3);
+            background: linear-gradient(90deg, #01157cba, #01157cba);
             color: #ffffff;
             font-size: 14.5px;
             font-weight: 600;
@@ -322,6 +332,21 @@
                 padding: 32px 24px;
             }
         }
+        .creator-text{
+        text-align: center;
+        margin-top: 15px;
+        font-size: 13px;
+        color: rgba(255,255,255,0.8);
+    }
+    .creator-text a{
+    color: white;
+    text-decoration: none;
+}
+
+    .creator-text a:hover{
+        color: white;
+        text-decoration: underline;
+    }
     </style>
 
 </body>
