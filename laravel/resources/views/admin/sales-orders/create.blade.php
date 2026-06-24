@@ -170,7 +170,7 @@
                         <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">Customer ID</label>
                             <input type="text" name="customer_id" id="customer_id" class="form-control form-control-sm"
-                                   value="{{ old('customer_id', $isEdit ? $salesOrder->customer_id : '') }}">
+                                   value="{{ old('customer_id', $isEdit ? $salesOrder->customer_id : ($copyQuote ? ($quotation->client?->id_perusahaan ?? $quotation->customer_id) : '')) }}">
                         </div>
                     </div>
                     <div>
@@ -411,6 +411,7 @@ document.getElementById('quotation_id')?.addEventListener('change', async functi
         // Fill info fields
         document.getElementById('quote_number').value        = data.quote_number || '';
         document.getElementById('project_name').value       = data.project_name || '';
+        document.getElementById('customer_id').value        = data.customer_id || '';
         document.getElementById('client_name').value        = data.client_name || '';
         document.getElementById('client_company').value     = data.client_company || '';
         document.getElementById('client_attention').value   = data.client_attention || '';
