@@ -204,6 +204,7 @@ class SalesOrderController extends Controller
 
         return response()->json([
             'client_id' => $client?->id ?? $quotation->client_id,
+            'customer_id' => $client?->id_perusahaan ?? $quotation->customer_id,
             'project_name' => $quotation->project_name,
             'quote_number' => $quotation->quote_number,
             'client_name' => $client?->nama_kontak_perusahaan ?? $quotation->client_name,
