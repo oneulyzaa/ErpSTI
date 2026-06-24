@@ -374,7 +374,6 @@
     </table>
 
     {{-- ═══ ITEM PRODUKSI (RINGKAS) ═══ --}}
-    @if($invoice->items->isNotEmpty())
     <div class="section-bar bar-production">Item Produksi</div>
     <table class="item-table">
         <thead>
@@ -388,114 +387,32 @@
             </tr>
         </thead>
         <tbody>
-            @php
-                $totalProduksi = 0;
-            @endphp
-            @foreach($invoice->items as $i => $item)
-            @php
-                $hasMaterials = $item->materials && $item->materials->count();
-                // Hitung subtotal: jika punya material, gunakan total material, jika tidak gunakan subtotal item
-                if ($hasMaterials) {
-                    $subtotalItem = $item->materials->sum('subtotal');
-                } else {
-                    $subtotalItem = $item->subtotal;
-                }
-                $totalProduksi += $subtotalItem;
-            @endphp
-            <tr class="{{ $i % 2 === 0 ? 'row-odd' : 'row-even' }}">
-                <td class="th-c" style="color:#999;">{{ $i + 1 }}</td>
+            <tr class="row-odd">
+                <td class="th-c" style="color:#999;">1</td>
                 <td>
-                    <div class="item-name">{{ $item->item_name }}</div>
-                    @if($item->description)
-                        <div class="item-desc">{{ $item->description }}</div>
-                    @endif
+                    <div class="item-name">{{ $invoice->project_name ?: 'Project' }}</div>
                 </td>
-                {{-- <td class="th-c">{{ $item->unit }}</td> --}}
                 <td class="th-c">-</td>
-                <td class="th-r">{{ number_format($item->qty, 2, ',', '.') }}</td>
-                <td class="th-r" style="font-weight:bold;">Rp {{ number_format($subtotalItem, 0, ',', '.') }}</td>
-                <td class="th-r" style="font-weight:bold;">Rp {{ number_format($subtotalItem, 0, ',', '.') }}</td>
+                <td class="th-r">1,00</td>
+                <td class="th-r" style="font-weight:bold;">Rp {{ number_format($invoice->total, 0, ',', '.') }}</td>
+                <td class="th-r" style="font-weight:bold;">Rp {{ number_format($invoice->total, 0, ',', '.') }}</td>
             </tr>
-            @endforeach
         </tbody>
         <tfoot>
             <tr class="total-row">
-                <td colspan="5" class="th-r">Total Produksi</td>
-                <td class="th-r">Rp {{ number_format($totalProduksi, 0, ',', '.') }}</td>
+                <td colspan="5" class="th-r">Amount Total</td>
+                <td class="th-r">Rp {{ number_format($invoice->total, 0, ',', '.') }}</td>
             </tr>
         </tfoot>
     </table>
-    @endif
 
-    {{-- ═══ BIAYA TENAGA KERJA (RINGKAS) ═══ --}}
-    @php
-        $labors   = $invoice->labors   ?? collect();
-        $totalLab = $labors->sum('subtotal');
-    @endphp
-    @if($labors->isNotEmpty())
-    <div class="section-bar bar-labor">Biaya Tenaga Kerja</div>
-    <table class="item-table">
-        <thead>
-            <tr>
-                <th class="bar-labor col-no th-c">#</th>
-                <th class="bar-labor th-l">Nama Pekerjaan</th>
-                <th class="bar-labor col-sub th-r">Subtotal</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($labors as $i => $labor)
-            <tr class="{{ $i % 2 === 0 ? 'row-odd' : 'row-even' }}">
-                <td class="th-c" style="color:#999;">{{ $i + 1 }}</td>
-                <td style="font-weight:bold;">{{ $labor->labor_name }}</td>
-                <td class="th-r">Rp {{ number_format($labor->subtotal, 0, ',', '.') }}</td>
-            </tr>
-            @endforeach
-        </tbody>
-        <tfoot>
-            <tr class="total-row labor">
-                <td colspan="2" class="th-r">Total Tenaga Kerja</td>
-                <td class="th-r">Rp {{ number_format($totalLab, 0, ',', '.') }}</td>
-            </tr>
-        </tfoot>
-    </table>
-    @endif
-
-    {{-- ═══ BIAYA LAIN-LAIN (RINGKAS) ═══ --}}
-    @php
-        $otherCosts = $invoice->otherCosts ?? collect();
-        $totalOth   = $otherCosts->sum('subtotal');
-    @endphp
-    @if($otherCosts->isNotEmpty())
-    <div class="section-bar bar-other">Biaya Lain-Lain</div>
-    <table class="item-table">
-        <thead>
-            <tr>
-                <th class="bar-other col-no th-c">#</th>
-                <th class="bar-other th-l">Nama Biaya</th>
-                <th class="bar-other col-sub th-r">Subtotal</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($otherCosts as $i => $cost)
-            <tr class="{{ $i % 2 === 0 ? 'row-odd' : 'row-even' }}">
-                <td class="th-c" style="color:#999;">{{ $i + 1 }}</td>
-                <td style="font-weight:bold;">{{ $cost->cost_name }}</td>
-                <td class="th-r">Rp {{ number_format($cost->subtotal, 0, ',', '.') }}</td>
-            </tr>
-            @endforeach
-        </tbody>
-        <tfoot>
-            <tr class="total-row other">
-                <td colspan="2" class="th-r">Total Biaya Lain-Lain</td>
-                <td class="th-r">Rp {{ number_format($totalOth, 0, ',', '.') }}</td>
-            </tr>
-        </tfoot>
-    </table>
-    @endif
+    
 
     {{-- ═══ BANK + SUMMARY ═══ --}}
     
     @php
+        $otherCosts = $invoice->otherCosts ?? collect();
+        $totalOth   = $otherCosts->sum('subtotal');
         $subtotalAll = ($invoice->subtotal ?? 0) + ($invoice->subtotal_labor ?? 0) + $totalOth;
     @endphp
     {{-- <div style="page-break-inside: avoid; margin-top: 70px;"></div> --}}
@@ -527,6 +444,7 @@
             {{-- Summary --}}
             @php
                 $dpp = $subtotalAll - ($invoice->discount ?? 0);
+                $dpp = $subtotalAll * 11/12;
             @endphp
             <td style="vertical-align:bottom;width:260px;">
                 <table class="summary-table">
