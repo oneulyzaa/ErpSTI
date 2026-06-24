@@ -57,7 +57,7 @@ class QuotationController extends Controller
         $quoteNumber = Quotation::generateQuoteNumber();
         $defaultLabors = $this->defaultLabors;
         $clients = ClientModel::all();
-        $assets = AsetModel::orderBy('id','DESC')->get(); 
+        $assets = AsetModel::orderBy('nama_aset','ASC')->get(); 
         return view('admin.quotations.create', compact('quoteNumber', 'defaultLabors', 'clients', 'assets'));
     }
 
