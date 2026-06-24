@@ -33,6 +33,9 @@
             @if($deliveryOrder->so_number)
                 &nbsp;·&nbsp; Ref. SO: {{ $deliveryOrder->so_number }}
             @endif
+            @if($deliveryOrder->nomor_po)
+                &nbsp;·&nbsp; Nomor PO: {{ $deliveryOrder->nomor_po }}
+            @endif
         </p>
     </div>
     <div class="d-flex gap-2 flex-wrap">
@@ -64,7 +67,7 @@
             <div class="card-body p-0">
                 <div class="row g-0">
                     <div class="col-12 col-sm-6 p-4 border-end">
-                        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:10px;">Dari</div>
+                        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:10px;">Pengirim</div>
                         <div class="fw-bold" style="font-size:15px">PT. Sistem Teknologi Integrator</div>
                         <div class="text-muted mt-1" style="font-size:13px;line-height:1.8;">
                             Ruko Palazo Blok AB 46, Ciantra<br>Cikarang Selatan, Bekasi 17530<br>
@@ -135,36 +138,7 @@
                             <td class="text-center">{{ $item->unit }}</td>
                             <td class="text-end" style="font-family:monospace;">{{ number_format($item->qty, 2, ',', '.') }}</td>
                         </tr>
-                        @if($item->materials && $item->materials->count())
-                        <tr>
-                            <td colspan="5" class="p-0">
-                                <table class="table table-sm mb-0" style="font-size:11px;background:#f8fafc;">
-                                    <thead>
-                                        <tr style="background:#e8f0fe;">
-                                            <th style="width:36px;"></th>
-                                            <th style="font-size:10px;color:#64748b;">MATERIAL / BAHAN BAKU</th>
-                                            <th style="width:70px;text-align:center;font-size:10px;color:#64748b;">SATUAN</th>
-                                            <th style="width:80px;text-align:right;font-size:10px;color:#64748b;">QTY</th>
-                                            {{-- <th style="width:100px;text-align:right;font-size:10px;color:#64748b;">HARGA</th>
-                                            <th style="width:100px;text-align:right;font-size:10px;color:#64748b;">SUBTOTAL</th> --}}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($item->materials as $m => $mat)
-                                        <tr>
-                                            <td class="text-center text-muted" style="font-family:monospace;">{{ $m+1 }}</td>
-                                            <td>{{ $mat->material_name }}</td>
-                                            <td class="text-center">{{ $mat->satuan }}</td>
-                                            <td class="text-end" style="font-family:monospace;">{{ number_format($mat->qty_required, 2, ',', '.') }}</td>
-                                            {{-- <td class="text-end" style="font-family:monospace;">Rp {{ number_format($mat->unit_price, 0, ',', '.') }}</td>
-                                            <td class="text-end fw-semibold" style="font-family:monospace;color:#1B5DBC;">Rp {{ number_format($mat->subtotal, 0, ',', '.') }}</td> --}}
-                                        </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </td>
-                        </tr>
-                        @endif
+                        
                         @endforeach
                     </tbody>
                     <tfoot class="table-light">

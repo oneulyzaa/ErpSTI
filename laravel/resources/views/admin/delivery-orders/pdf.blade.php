@@ -114,13 +114,13 @@
             margin-bottom: 6px;
         }
         .item-table th {
-            background: #1e3a5f;
-            color: #fff;
+            background: #ffffff;
+            color: #000;
             font-size: 7.5px;
             font-weight: bold;
             text-transform: uppercase;
             padding: 3.5px 5px;
-            border: 1px solid #1e3a6e;
+            border: 1px solid #d5d5d5;
         }
         .item-table td {
             border: 1px solid #ccd3df;
@@ -138,12 +138,12 @@
         .col-unit { width: 38px; text-align: center; }
 
         .row-odd  { background: #fff; }
-        .row-even { background: #f5f7fc; }
+        .row-even { backgrouneaeaead: #ffffff; }
 
         .total-row td {
             background: #d6e4f5;
             font-weight: bold;
-            border-top: 2px solid #1e3a5f;
+            border-top: 2px solid #eaeaea;
             font-size: 8.5px;
         }
 
@@ -203,6 +203,12 @@
                         @if($deliveryOrder->so_number)
                         <tr><td class="meta-label">Ref. SO</td><td class="meta-value">{{ $deliveryOrder->so_number }}</td></tr>
                         @endif
+                        @if($deliveryOrder->nomor_po)
+                        <tr>
+                            <td class="meta-label">Nomor PO</td>
+                            <td class="meta-value">{{ $deliveryOrder->nomor_po }}</td>
+                        </tr>
+                        @endif
                         <tr><td class="meta-label">Status</td><td class="meta-value">{{ ucfirst(str_replace('_',' ',$deliveryOrder->status)) }}</td></tr>
                     </table>
                 </td>
@@ -225,7 +231,7 @@
                     </div>
                 </td>
                 <td style="width:50%;">
-                    <div class="client-lbl">Dari</div>
+                    <div class="client-lbl">Pengirim</div>
                     <div class="client-val">PT. Sistem Teknologi Integrator</div>
                     <div class="client-sub" style="margin-top:2px;">
                         Ruko Palazo Blok AB 46, Ciantra<br>
@@ -260,13 +266,13 @@
          </table>
 
         {{-- ═══ ITEMS TABLE ═══ --}}
-        <div style="font-size:8px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;padding:3px 6px;background:#1e3a5f;color:#fff;margin-bottom:0;">Item Pengiriman</div>
+        <div style="font-size:8px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;padding:3px 6px;background:#eaeaea;color:#000;margin-bottom:0;">Item Pengiriman</div>
         <table class="item-table">
             <thead>
                 <tr>
                     <th class="col-no">#</th>
-                    <th class="th-left col-name">Nama Item</th>
-                    <th class="th-center col-unit">Satuan</th>
+                    <th class="th-left col-name">Description</th>
+                    {{-- <th class="th-center col-unit">Satuan</th> --}}
                     <th class="th-right col-qty">Qty</th>
                 </tr>
             </thead>
@@ -280,39 +286,10 @@
                             <div style="font-size:7px;color:#666;">{{ $item->description }}</div>
                         @endif
                     </td>
-                    <td style="text-align:center;">{{ $item->unit }}</td>
+                    {{-- <td style="text-align:center;">{{ $item->unit }}</td> --}}
                     <td style="text-align:right;">{{ number_format($item->qty, 2, ',', '.') }}</td>
                 </tr>
-                @if($item->materials && $item->materials->count())
-                <tr class="{{ $i % 2 === 0 ? 'row-even' : 'row-odd' }}">
-                    <td colspan="4" style="padding:0;">
-                        <table style="width:100%;border-collapse:collapse;font-size:7px;">
-                            <thead>
-                                <tr>
-                                    <th style="background:#e8f0fe;color:#333;padding:2px 3px;border:1px solid #ccd3df;width:22px;"></th>
-                                    <th style="background:#e8f0fe;color:#333;padding:2px 3px;border:1px solid #ccd3df;text-align:left;text-transform:uppercase;">Material / Bahan Baku</th>
-                                    <th style="background:#e8f0fe;color:#333;padding:2px 3px;border:1px solid #ccd3df;width:38px;text-align:center;">Satuan</th>
-                                    <th style="background:#e8f0fe;color:#333;padding:2px 3px;border:1px solid #ccd3df;width:45px;text-align:right;">Qty</th>
-                                    {{-- <th style="background:#e8f0fe;color:#333;padding:2px 3px;border:1px solid #ccd3df;width:75px;text-align:right;">Harga</th>
-                                    <th style="background:#e8f0fe;color:#333;padding:2px 3px;border:1px solid #ccd3df;width:75px;text-align:right;">Subtotal</th> --}}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($item->materials as $m => $mat)
-                                <tr>
-                                    <td style="text-align:center;border:1px solid #ccd3df;padding:1px 3px;font-size:6.5px;">{{ $m+1 }}</td>
-                                    <td style="border:1px solid #ccd3df;padding:1px 3px;font-size:7px;">{{ $mat->material_name }}</td>
-                                    <td style="text-align:center;border:1px solid #ccd3df;padding:1px 3px;font-size:7px;">{{ $mat->satuan }}</td>
-                                    <td style="text-align:right;border:1px solid #ccd3df;padding:1px 3px;font-size:7px;">{{ number_format($mat->qty_required, 2, ',', '.') }}</td>
-                                    {{-- <td style="text-align:right;border:1px solid #ccd3df;padding:1px 3px;font-size:7px;">Rp {{ number_format($mat->unit_price, 0, ',', '.') }}</td>
-                                    <td style="text-align:right;border:1px solid #ccd3df;padding:1px 3px;font-size:7px;">Rp {{ number_format($mat->subtotal, 0, ',', '.') }}</td> --}}
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </td>
-                </tr>
-                @endif
+            
                 @endforeach
             </tbody>
             <tfoot>
@@ -335,12 +312,14 @@
         <table class="signature-wrap">
             <tr>
                 <td>
-                    <div>Dibuat Oleh,</div>
+                    <div>Pengirim,</div>
+                    <br>
                     <div class="signature-line"></div>
-                    <div style="margin-top:4px;font-weight:bold;">Marketing</div>
+                    <div style="margin-top:4px;font-weight:bold;">Agung Indrianto</div>
                 </td>
                 <td>
                     <div>Diterima Oleh,</div>
+                    <br>
                     <div class="signature-line"></div>
                     <div style="margin-top:4px;font-weight:bold;">&nbsp;</div>
                 </td>
