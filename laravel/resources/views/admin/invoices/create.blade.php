@@ -277,16 +277,6 @@
                     <div class="summary-row"><span>Subtotal</span><span class="summary-val" id="sum-sub">Rp 0</span></div>
                     <div class="summary-row align-items-start gap-2" style="flex-wrap:wrap;">
                         <div>
-                            <div style="font-size:13px;margin-bottom:4px;">PPN (%)</div>
-                            <input type="number" name="tax_percentage" id="tax_percentage"
-                                   class="form-control form-control-sm" min="0" max="100" step="0.01"
-                                   value="{{ old('tax_percentage', $isEdit ? $invoice->tax_percentage : 11) }}"
-                                   style="width:80px;">
-                        </div>
-                        <span class="summary-val mt-4" id="sum-tax">Rp 0</span>
-                    </div>
-                    <div class="summary-row align-items-start gap-2" style="flex-wrap:wrap;">
-                        <div>
                             <div style="font-size:13px;margin-bottom:4px;">Diskon (Rp)</div>
                             <div class="input-group" style="max-width:160px;">
                                 <div class="input-group-text" style="background:#f1f5f9;font-size:13px;">Rp</div>
@@ -299,6 +289,16 @@
                             </div>
                         </div>
                         <span class="summary-val mt-4" id="sum-discount">Rp 0</span>
+                    </div>
+                    <div class="summary-row align-items-start gap-2" style="flex-wrap:wrap;">
+                        <div>
+                            <div style="font-size:13px;margin-bottom:4px;">PPN (%)</div>
+                            <input type="number" name="tax_percentage" id="tax_percentage"
+                                   class="form-control form-control-sm" min="0" max="100" step="0.01"
+                                   value="{{ old('tax_percentage', $isEdit ? $invoice->tax_percentage : 11) }}"
+                                   style="width:80px;">
+                        </div>
+                        <span class="summary-val mt-4" id="sum-tax">Rp 0</span>
                     </div>
                     <div class="summary-row total-row">
                         <span>TOTAL</span>

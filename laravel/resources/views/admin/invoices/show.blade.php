@@ -310,6 +310,11 @@
     <div class="col-12 col-xl-4 d-flex flex-column gap-3">
 
         {{-- Ringkasan Total --}}
+        @php 
+            $subtotalAll = $invoice->subtotal + ($invoice->subtotal_labor ?? 0) + ($invoice->subtotal_other_cost ?? 0);
+            $dpp = $subtotalAll - ($invoice->discount ?? 0);
+            $dpp = $dpp * 11/12;
+        @endphp 
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white border-bottom py-3">
                 <span class="fw-semibold">Ringkasan Total</span>
@@ -319,10 +324,12 @@
                     <span style="font-size:13px;color:#475569;">Subtotal Produksi</span>
                     <span class="total-value" style="font-size:13px;">Rp {{ number_format($invoice->subtotal, 0, ',', '.') }}</span>
                 </div>
+                @if($invoice->subtotal_labor > 0)
                 <div class="d-flex justify-content-between align-items-center px-3 py-2" style="border-bottom:1px solid #f1f5f9;">
                     <span style="font-size:13px;color:#475569;">Subtotal Labor</span>
                     <span class="total-value" style="font-size:13px;">Rp {{ number_format($invoice->subtotal_labor ?? 0, 0, ',', '.') }}</span>
                 </div>
+                @endif
                 @if($invoice->subtotal_other_cost > 0)
                 <div class="d-flex justify-content-between align-items-center px-3 py-2" style="border-bottom:1px solid #f1f5f9;">
                     <span style="font-size:13px;color:#475569;">Subtotal Biaya Lain-Lain</span>
@@ -330,12 +337,8 @@
                 </div>
                 @endif
                 <div class="d-flex justify-content-between align-items-center px-3 py-2" style="border-bottom:1px solid #f1f5f9;">
-                    <span style="font-size:13px;color:#475569;">Subtotal</span>
+                    <span style="font-size:13px;color:#475569;">Total</span>
                     <span class="total-value" style="font-size:13px;">Rp {{ number_format($invoice->subtotal+$invoice->subtotal_labor+$invoice->subtotal_other_cost ?? 0, 0, ',', '.') }}</span>
-                </div>
-                <div class="d-flex justify-content-between align-items-center px-3 py-2" style="border-bottom:1px solid #f1f5f9;">
-                    <span style="font-size:13px;color:#475569;">PPN ({{ $invoice->tax_percentage }}%)</span>
-                    <span class="total-value" style="font-size:13px;">Rp {{ number_format($invoice->tax_amount, 0, ',', '.') }}</span>
                 </div>
                 @if($invoice->discount > 0)
                 <div class="d-flex justify-content-between align-items-center px-3 py-2" style="border-bottom:1px solid #f1f5f9;">
@@ -343,8 +346,16 @@
                     <span class="total-value" style="font-size:13px;">Rp {{ number_format($invoice->discount, 0, ',', '.') }}</span>
                 </div>
                 @endif
+                <div class="d-flex justify-content-between align-items-center px-3 py-2" style="border-bottom:1px solid #f1f5f9;">
+                    <span style="font-size:13px;color:#475569;">Dasar Pengenaan Pajak</span>
+                    <span class="total-value" style="font-size:13px;">Rp {{ number_format($dpp, 0, ',', '.') }}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center px-3 py-2" style="border-bottom:1px solid #f1f5f9;">
+                    <span style="font-size:13px;color:#475569;">PPN ({{ $invoice->tax_percentage }}%)</span>
+                    <span class="total-value" style="font-size:13px;">Rp {{ number_format($invoice->tax_amount, 0, ',', '.') }}</span>
+                </div>
                 <div class="d-flex justify-content-between align-items-center px-3 py-3" style="background:#f8faff;border-radius:0 0 .5rem .5rem;">
-                    <strong style="font-size:15px;">Total</strong>
+                    <strong style="font-size:15px;">Amount Total</strong>
                     <strong class="total-value" style="font-size:17px;">Rp {{ number_format($invoice->total, 0, ',', '.') }}</strong>
                 </div>
             </div>
