@@ -564,6 +564,36 @@ function formatRupiahInput(el) {
     document.getElementById('harga-hidden').value = val;
     el.value = parseInt(val, 10).toLocaleString('id-ID');
 }
+/* ══ buat overhadrow pada biaya lain-lain ════════════════════════════ */
+function createOverheadRow() {
+    const idx = oIdx++; // akan dapat index 0
+    const tr = document.createElement('tr');
+    tr.dataset.idx = idx;
+    tr.id = 'overhead-cost';
+    tr.innerHTML = `
+        <td class="item-no" id="ono-${idx}">1</td>
+        <td>
+            <input type="text" name="other_costs[${idx}][cost_name]"
+                   class="item-input" value="Overhead Cost" readonly
+                   style="background:#f8fafc;color:#64748b;cursor:not-allowed;">
+        </td>
+        <td>
+            <input type="number" name="other_costs[${idx}][qty]"
+                   class="item-input oc-qty" id="overhead-qty"
+                   min="0" step="any" value="1"
+                   style="text-align:center;background:#f8fafc;cursor:not-allowed;" readonly>
+        </td>
+        <td>
+            <input type="number" name="other_costs[${idx}][rate]"
+                   class="item-input oc-rate" id="overhead-rate"
+                   min="0" step="any" value="0"
+                   style="text-align:right;background:#f8fafc;cursor:not-allowed;" readonly>
+        </td>
+        <td class="subtotal-cell" id="osub-${idx}">Rp 0</td>
+        <td><span style="width:30px;display:inline-block;"></span></td>
+    `;
+    return tr;
+}
 
 /* ══ Modal: Quick Add Material ═══════════════════════ */
 document.getElementById('quick-material-form')?.addEventListener('submit', function(e) {
@@ -906,16 +936,14 @@ function reorderNums(tbodyId, prefix) {
 function recalc() {
     let mat = 0, lab = 0, oth = 0;
 
-    // Product subtotal (qty * unit_price)
     document.querySelectorAll('#products-container .product-card').forEach(card => {
         const qty   = parseFloat(card.querySelector('.item-qty')?.value)   || 0;
         const price = parseFloat(card.querySelector('.item-price')?.value) || 0;
         mat += qty * price;
     });
 
-    // Material subtotals
     document.querySelectorAll('#products-container .mat-qty').forEach(el => {
-        const tr = el.closest('tr');
+        const tr    = el.closest('tr');
         const qty   = parseFloat(el.value) || 0;
         const price = parseFloat(tr.querySelector('.mat-price')?.value) || 0;
         mat += qty * price;
@@ -927,6 +955,18 @@ function recalc() {
              * (parseFloat(tr.querySelector('.labor-rate')?.value) || 0);
     });
 
+    // ── Update overhead rate dulu (10% dari mat) sebelum hitung oth ──
+    const overheadRate = mat * 10 / 100;
+    const overheadRateEl = document.getElementById('overhead-rate');
+    const overheadSubEl  = document.getElementById('osub-0');
+    if (overheadRateEl) {
+        overheadRateEl.value = overheadRate.toFixed(2);
+    }
+    if (overheadSubEl) {
+        overheadSubEl.textContent = fmt(overheadRate); // qty = 1, jadi subtotal = rate
+    }
+
+    // ── Hitung semua other costs (termasuk overhead yang sudah diupdate) ──
     document.querySelectorAll('#other-costs-tbody tr').forEach(tr => {
         oth += (parseFloat(tr.querySelector('.oc-qty')?.value)  || 0)
              * (parseFloat(tr.querySelector('.oc-rate')?.value) || 0);
@@ -936,20 +976,21 @@ function recalc() {
     const subtotal = mat + lab + oth;
     const total    = subtotal - discount;
 
-    document.getElementById('disp-mat').textContent = fmt(mat);
-    document.getElementById('disp-lab').textContent = fmt(lab);
-    document.getElementById('disp-oth').textContent = fmt(oth);
-    document.getElementById('sum-mat').textContent  = fmt(mat);
-    document.getElementById('sum-lab').textContent  = fmt(lab);
-    document.getElementById('sum-oth').textContent  = fmt(oth);
+    document.getElementById('disp-mat').textContent  = fmt(mat);
+    document.getElementById('disp-lab').textContent  = fmt(lab);
+    document.getElementById('disp-oth').textContent  = fmt(oth);
+    document.getElementById('sum-mat').textContent   = fmt(mat);
+    document.getElementById('sum-lab').textContent   = fmt(lab);
+    document.getElementById('sum-oth').textContent   = fmt(oth);
     document.getElementById('sum-total').textContent = fmt(total);
 
     document.getElementById('h-mat').value   = mat.toFixed(2);
     document.getElementById('h-lab').value   = lab.toFixed(2);
     document.getElementById('h-oth').value   = oth.toFixed(2);
-    document.getElementById('h-sub').value   = total.toFixed(2);
+    document.getElementById('h-sub').value   = subtotal.toFixed(2);
     document.getElementById('h-total').value = total.toFixed(2);
 }
+
 
 /* ══ Boot ═══════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
@@ -959,6 +1000,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Labors
     (initLabors.length ? initLabors : [{}]).forEach(l => addLaborRow(l));
 
+    // ── Tambah overhead row pertama (index 0) ──
+    const tbody = document.getElementById('other-costs-tbody');
+    tbody.appendChild(createOverheadRow());
+    
     // Other Costs
     (initOtherCosts.length ? initOtherCosts : []).forEach(c => addOtherCostRow(c));
 
