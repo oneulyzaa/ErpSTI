@@ -208,16 +208,16 @@
                 </div>
             </div>
 
-            {{-- ── PRODUCT CARDS (Item Produksi) ── --}}
-            <div class="card border-0 shadow-sm">
+            {{-- ── PRODUCT CARDS (Item Produksi) — disembunyikan dari staff finance, data tetap terkirim ── --}}
+            <div class="card border-0 shadow-sm d-none" id="card-items">
                 <div class="card-header bg-white border-bottom py-3">
                     <span class="fw-semibold">Item Produksi</span>
                 </div>
                 <div class="card-body" id="items-container"></div>
             </div>
 
-            {{-- ── LABOR ITEMS ── --}}
-            <div class="card border-0 shadow-sm">
+            {{-- ── LABOR ITEMS — disembunyikan dari staff finance, data tetap terkirim ── --}}
+            <div class="card border-0 shadow-sm d-none" id="card-labors">
                 <div class="card-header bg-white border-bottom py-3">
                     <span class="fw-semibold">Biaya Tenaga Kerja (Labor)</span>
                 </div>
@@ -239,8 +239,8 @@
                 </div>
             </div>
 
-            {{-- Biaya Lain-Lain --}}
-            <div class="card border-0 shadow-sm">
+            {{-- Biaya Lain-Lain — disembunyikan dari staff finance, data tetap terkirim ── --}}
+            <div class="card border-0 shadow-sm d-none" id="card-other-costs">
                 <div class="card-header bg-white border-bottom py-3">
                     <span class="fw-semibold">Biaya Lain-Lain</span>
                 </div>
@@ -271,10 +271,13 @@
                     <span class="fw-semibold">Ringkasan Keuangan</span>
                 </div>
                 <div class="card-body">
-                    <div class="summary-row"><span>Subtotal Produksi</span><span class="summary-val" id="sum-mat">Rp 0</span></div>
-                    <div class="summary-row"><span>Subtotal Labor</span><span class="summary-val" id="sum-lab">Rp 0</span></div>
-                    <div class="summary-row"><span>Subtotal Biaya Lain-Lain</span><span class="summary-val" id="sum-oth">Rp 0</span></div>
-                    <div class="summary-row"><span>Subtotal</span><span class="summary-val" id="sum-sub">Rp 0</span></div>
+                    {{-- Total (subtotal produksi + labor + biaya lain-lain) --}}
+                    <div class="summary-row">
+                        <span>Total</span>
+                        <span class="summary-val" id="sum-sub">Rp 0</span>
+                    </div>
+
+                    {{-- Diskon --}}
                     <div class="summary-row align-items-start gap-2" style="flex-wrap:wrap;">
                         <div>
                             <div style="font-size:13px;margin-bottom:4px;">Diskon (Rp)</div>
@@ -290,6 +293,14 @@
                         </div>
                         <span class="summary-val mt-4" id="sum-discount">Rp 0</span>
                     </div>
+
+                    {{-- DPP = (subtotalAll - diskon) * 11/12 --}}
+                    <div class="summary-row">
+                        <span>DPP <span style="font-size:11px;color:#94a3b8;">(× 11/12)</span></span>
+                        <span class="summary-val" id="sum-dpp">Rp 0</span>
+                    </div>
+
+                    {{-- PPN dari subtotal setelah diskon --}}
                     <div class="summary-row align-items-start gap-2" style="flex-wrap:wrap;">
                         <div>
                             <div style="font-size:13px;margin-bottom:4px;">PPN (%)</div>
@@ -300,16 +311,21 @@
                         </div>
                         <span class="summary-val mt-4" id="sum-tax">Rp 0</span>
                     </div>
+
+                    {{-- Amount Total --}}
                     <div class="summary-row total-row">
-                        <span>TOTAL</span>
+                        <span>Amount Total</span>
                         <span class="summary-val" id="sum-total">Rp 0</span>
                     </div>
-                    <input type="hidden" name="discount"           id="h-discount">
-                    <input type="hidden" name="subtotal"           id="h-mat">
-                    <input type="hidden" name="subtotal_labor"     id="h-lab">
+
+                    {{-- Hidden fields untuk dikirim ke server --}}
+                    <input type="hidden" name="discount"            id="h-discount">
+                    <input type="hidden" name="subtotal"            id="h-mat">
+                    <input type="hidden" name="subtotal_labor"      id="h-lab">
                     <input type="hidden" name="subtotal_other_cost" id="h-oth">
-                    <input type="hidden" name="tax_amount"         id="h-tax">
-                    <input type="hidden" name="total"              id="h-total">
+                    <input type="hidden" name="dpp"                 id="h-dpp">
+                    <input type="hidden" name="tax_amount"          id="h-tax">
+                    <input type="hidden" name="total"               id="h-total">
                 </div>
             </div>
 
@@ -389,7 +405,7 @@ document.getElementById('sales_order_id')?.addEventListener('change', async func
         document.getElementById('client_address').value     = data.client_address || '';
         document.getElementById('description').value        = data.description || '';
 
-        // Clear & load items with materials
+        // Clear & load items with materials (tersembunyi, tetap diisi untuk dikirim)
         document.getElementById('items-container').innerHTML = '';
         iIdx = 0;
         mIdx = {};
@@ -404,7 +420,7 @@ document.getElementById('sales_order_id')?.addEventListener('change', async func
             }));
         }
 
-        // Load labor items
+        // Load labor items (tersembunyi, tetap diisi untuk dikirim)
         document.getElementById('labors-tbody').innerHTML = '';
         lIdx = 0;
         if (data.labors && data.labors.length) {
@@ -417,7 +433,7 @@ document.getElementById('sales_order_id')?.addEventListener('change', async func
             }));
         }
 
-        // Load other costs
+        // Load other costs (tersembunyi, tetap diisi untuk dikirim)
         document.getElementById('other-costs-tbody').innerHTML = '';
         oIdx = 0;
         if (data.other_costs && data.other_costs.length) {
@@ -426,14 +442,6 @@ document.getElementById('sales_order_id')?.addEventListener('change', async func
                 qty: oc.qty ?? 1,
                 rate: oc.rate ?? 0,
             }));
-        }
-
-        // Show labor & other costs cards if hidden
-        if (data.labors && data.labors.length) {
-            document.getElementById('labors-tbody').closest('.card').classList.remove('d-none');
-        }
-        if (data.other_costs && data.other_costs.length) {
-            document.getElementById('other-costs-tbody').closest('.card').classList.remove('d-none');
         }
 
         recalc();
@@ -743,40 +751,48 @@ function recalc() {
              * (parseFloat(tr.querySelector('.oc-rate')?.value) || 0);
     });
 
-    const sub   = mat + lab + oth;
-    const discount = parseFloat(document.getElementById('discount').value) || 0;
-    
-    // Perhitungan: Diskon dikurangi SEBELUM pajak
-    const taxableBase = Math.max(sub - discount, 0);  // Dasar pengenaan pajak (tidak boleh negatif)
-    const tax   = taxableBase * ((parseFloat(document.getElementById('tax_percentage').value) || 0) / 100);
-    const total = taxableBase + tax;
+    // Total = subtotal produksi + subtotal labor + subtotal biaya lain-lain
+    const subtotalAll = mat + lab + oth;
+    const discount    = parseFloat(document.getElementById('discount').value) || 0;
 
-    document.getElementById('sum-mat').textContent      = fmt(mat);
-    document.getElementById('sum-lab').textContent      = fmt(lab);
-    document.getElementById('sum-oth').textContent      = fmt(oth);
-    document.getElementById('sum-sub').textContent      = fmt(sub);
-    document.getElementById('sum-tax').textContent      = fmt(tax);
+    // DPP = (subtotalAll - diskon) * 11/12
+    const afterDiscount = Math.max(subtotalAll - discount, 0);
+    const dpp           = afterDiscount * (11 / 12);
+
+    // PPN = (subtotalAll - diskon) * tax_percentage%  ← bukan dari DPP
+    const taxPct        = parseFloat(document.getElementById('tax_percentage').value) || 0;
+    const tax           = afterDiscount * (taxPct / 100);
+
+    // Amount Total = (subtotalAll - diskon) + PPN
+    const total         = afterDiscount + tax;
+
+    // Update tampilan
+    document.getElementById('sum-sub').textContent      = fmt(subtotalAll);
     document.getElementById('sum-discount').textContent = fmt(discount);
+    document.getElementById('sum-dpp').textContent      = fmt(dpp);
+    document.getElementById('sum-tax').textContent      = fmt(tax);
     document.getElementById('sum-total').textContent    = fmt(Math.max(total, 0));
 
+    // Update hidden fields untuk dikirim ke server
     document.getElementById('h-mat').value      = mat.toFixed(2);
     document.getElementById('h-lab').value      = lab.toFixed(2);
     document.getElementById('h-oth').value      = oth.toFixed(2);
-    document.getElementById('h-tax').value      = tax.toFixed(2);
     document.getElementById('h-discount').value = discount.toFixed(2);
+    document.getElementById('h-dpp').value      = dpp.toFixed(2);
+    document.getElementById('h-tax').value      = tax.toFixed(2);
     document.getElementById('h-total').value    = Math.max(total, 0).toFixed(2);
 }
 
-/* ══ Tax percentage & discount change ═══════════════════ */
-    document.getElementById('tax_percentage')?.addEventListener('input', recalc);
-    document.getElementById('discount-display')?.addEventListener('input', recalc);
+/* ══ Tax percentage & discount change triggers recalc ═══ */
+document.getElementById('tax_percentage')?.addEventListener('input', recalc);
+document.getElementById('discount-display')?.addEventListener('input', recalc);
 
-    // Format discount initial value
-    const discountEl = document.getElementById('discount');
-    const discountDisplayEl = document.getElementById('discount-display');
-    if (discountEl && discountDisplayEl) {
-        discountDisplayEl.value = parseFloat(discountEl.value || 0).toLocaleString('id-ID');
-    }
+// Format discount initial value
+const discountEl = document.getElementById('discount');
+const discountDisplayEl = document.getElementById('discount-display');
+if (discountEl && discountDisplayEl) {
+    discountDisplayEl.value = parseFloat(discountEl.value || 0).toLocaleString('id-ID');
+}
 
 /* ══ Boot ═══════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
@@ -784,14 +800,11 @@ document.addEventListener('DOMContentLoaded', () => {
     (initLabors.length ? initLabors : []).forEach(l => addLaborRow(l));
     (initOtherCosts.length ? initOtherCosts : []).forEach(c => addOtherCostRow(c));
 
-    // Hide labor card if no data loaded
-    if (!initLabors.length) {
-        document.getElementById('labors-tbody').closest('.card').classList.add('d-none');
-    }
-    // Hide other costs card if no data loaded
-    if (!initOtherCosts.length) {
-        document.getElementById('other-costs-tbody').closest('.card').classList.add('d-none');
-    }
+    // Semua card rincian selalu disembunyikan — staff finance tidak perlu melihat detail
+    // Data tetap ada di DOM dan akan terkirim saat form di-submit
+    document.getElementById('card-items').classList.add('d-none');
+    document.getElementById('card-labors').classList.add('d-none');
+    document.getElementById('card-other-costs').classList.add('d-none');
 });
 </script>
 @endpush

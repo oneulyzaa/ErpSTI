@@ -1,7 +1,6 @@
 @extends('layouts.app')
 @section('title', 'Detail ' . $invoice->invoice_number)
 @section('breadcrumb', 'Detail Invoice')
-
 @push('styles')
 <style>
     .badge-draft     { background:#e2e8f0; color:#475569; }
@@ -15,9 +14,7 @@
     .total-value { font-family: monospace; color: #1B5DBC; }
 </style>
 @endpush
-
 @section('content')
-
 <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
         <h4 class="fw-bold mb-1">Invoice: {{ $invoice->invoice_number }}</h4>
@@ -35,9 +32,7 @@
         </a>
     </div>
 </div>
-
 <div class="row g-3 align-items-start">
-
     {{-- ── LEFT COLUMN ── --}}
     <div class="col-12 col-xl-8 d-flex flex-column gap-3">
 
@@ -56,16 +51,16 @@
                         <span class="info-label">No. SO</span>
                         <div class="info-value">{{ $invoice->so_number ?: '-' }}</div>
                     </div>
-                     <div class="col-12 col-sm-4">
-                         <span class="info-label">Nomor PO</span>
-                         <div class="info-value">{{ $invoice->nomor_po ?: '-' }}</div>
-                     </div>
-                     <div class="col-12 col-sm-4">
-                         <span class="info-label">Nama Project</span>
-                         <div class="info-value">{{ $invoice->project_name ?: '-' }}</div>
-                     </div>
-                     <div class="col-12 col-sm-4">
-                         <span class="info-label">Status</span>
+                    <div class="col-12 col-sm-4">
+                        <span class="info-label">Nomor PO</span>
+                        <div class="info-value">{{ $invoice->nomor_po ?: '-' }}</div>
+                    </div>
+                    <div class="col-12 col-sm-4">
+                        <span class="info-label">Nama Project</span>
+                        <div class="info-value">{{ $invoice->project_name ?: '-' }}</div>
+                    </div>
+                    <div class="col-12 col-sm-4">
+                        <span class="info-label">Status</span>
                         <div class="info-value mt-1">
                             <span class="badge badge-{{ $invoice->status }} px-2 py-1" style="font-size:12px;">{{ ucfirst($invoice->status) }}</span>
                         </div>
@@ -125,8 +120,49 @@
             </div>
         </div>
 
-        {{-- Item Produksi --}}
+        {{-- Nama Project --}}
         <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom py-3">
+                <span class="fw-semibold">Biaya Lain-Lain</span>
+            </div>
+            <div class="table-responsive">
+                @if($invoice->project_name)
+                <table class="table mb-0" style="font-size:13px">
+                    <thead class="table-items">
+                        <tr>
+                            <th class="text-center">No</th>
+                            <th class="text-center">Description</th>
+                            <th class="text-center">Part No</th>
+                            <th class="text-center">Qty</th>
+                            <th class="text-center">Unit Price</th>
+                            <th class="text-center">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td class="fw-semibold">{{ $invoice->project_name }}</td>
+                            <td class="text-center">-</td>
+                            <td class="text-center">{{ number_format(1, 2, ',', '.') }}</td>
+                            <td class="text-end">Rp {{ number_format($invoice->total, 0, ',', '.') }}</td>
+                            <td class="text-end fw-semibold">Rp {{ number_format($invoice->total, 0, ',', '.') }}</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr style="background:#f0f4fc;">
+                            <td colspan="5" class="text-end fw-bold" style="font-size:13px;">Total</td>
+                            <td class="text-end fw-bold total-value" style="font-size:13px;">Rp {{ number_format($invoice->total, 0, ',', '.') }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+                @endif
+            </div>
+        </div>
+        {{--
+            ── Item Produksi — disembunyikan dari tampilan, data tetap ada di DOM ──
+            Staff finance tidak perlu melihat rincian produksi/material.
+        --}}
+        <div class="card border-0 shadow-sm d-none">
             <div class="card-header bg-white border-bottom py-3">
                 <span class="fw-semibold">Item Produksi</span>
             </div>
@@ -192,7 +228,7 @@
                     <tfoot>
                         <tr style="background:#f0f4fc;">
                             <td colspan="6" class="text-end fw-bold" style="font-size:13px;">Total Produksi</td>
-                            <td class="text-end fw-bold total-value" style="font-size:13px;">Rp {{ number_format($invoice->subtotal, 0, ',', '.') }}</td>
+                            <td class="text-end fw-bold total-value" style="font-size:13px;">Rp {{ number_format($invoice->subtotal ?? 0, 0, ',', '.') }}</td>
                         </tr>
                     </tfoot>
                     @endif
@@ -200,9 +236,11 @@
             </div>
         </div>
 
-        {{-- Biaya Tenaga Kerja --}}
+        {{--
+            ── Biaya Tenaga Kerja — disembunyikan dari tampilan, data tetap ada di DOM ──
+        --}}
         @if($invoice->labors && $invoice->labors->count())
-        <div class="card border-0 shadow-sm">
+        <div class="card border-0 shadow-sm d-none">
             <div class="card-header bg-white border-bottom py-3">
                 <span class="fw-semibold">Biaya Tenaga Kerja</span>
             </div>
@@ -241,9 +279,11 @@
         </div>
         @endif
 
-        {{-- Biaya Lain-Lain --}}
+        {{--
+            ── Biaya Lain-Lain — disembunyikan dari tampilan, data tetap ada di DOM ──
+        --}}
         @if($invoice->otherCosts && $invoice->otherCosts->count())
-        <div class="card border-0 shadow-sm">
+        <div class="card border-0 shadow-sm d-none">
             <div class="card-header bg-white border-bottom py-3">
                 <span class="fw-semibold">Biaya Lain-Lain</span>
             </div>
@@ -272,7 +312,7 @@
                     <tfoot>
                         <tr style="background:#f0f4fc;">
                             <td colspan="4" class="text-end fw-bold" style="font-size:13px;">Total Biaya Lain-Lain</td>
-                            <td class="text-end fw-bold total-value" style="font-size:13px;">Rp {{ number_format($invoice->subtotal_other_cost, 0, ',', '.') }}</td>
+                            <td class="text-end fw-bold total-value" style="font-size:13px;">Rp {{ number_format($invoice->subtotal_other_cost ?? 0, 0, ',', '.') }}</td>
                         </tr>
                     </tfoot>
                 </table>
@@ -304,63 +344,62 @@
         </div>
         @endif
 
-    </div>
+    </div>{{-- end left --}}
 
     {{-- ── RIGHT COLUMN ── --}}
     <div class="col-12 col-xl-4 d-flex flex-column gap-3">
 
-        {{-- Ringkasan Total --}}
-        @php 
-            $subtotalAll = $invoice->subtotal + ($invoice->subtotal_labor ?? 0) + ($invoice->subtotal_other_cost ?? 0);
-            $dpp = $subtotalAll - ($invoice->discount ?? 0);
-            $dpp = $dpp * 11/12;
-        @endphp 
+        {{-- ── Ringkasan Total ── --}}
+        @php
+            $subtotalAll   = ($invoice->subtotal ?? 0)
+                           + ($invoice->subtotal_labor ?? 0)
+                           + ($invoice->subtotal_other_cost ?? 0);
+            $discount      = $invoice->discount ?? 0;
+            $afterDiscount = max($subtotalAll - $discount, 0);
+            $dpp           = $afterDiscount * (11 / 12);
+        @endphp
+
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white border-bottom py-3">
                 <span class="fw-semibold">Ringkasan Total</span>
             </div>
             <div class="card-body p-0">
+                {{-- Total = subtotalAll (produksi + labor + biaya lain-lain) --}}
                 <div class="d-flex justify-content-between align-items-center px-3 py-2" style="border-bottom:1px solid #f1f5f9;">
-                    <span style="font-size:13px;color:#475569;">Subtotal Produksi</span>
-                    <span class="total-value" style="font-size:13px;">Rp {{ number_format($invoice->subtotal, 0, ',', '.') }}</span>
+                    <span style="font-size:13px;color:#475569;font-weight:600;">Total</span>
+                    <span class="total-value" style="font-size:13px;font-weight:600;">Rp {{ number_format($subtotalAll, 0, ',', '.') }}</span>
                 </div>
-                @if($invoice->subtotal_labor > 0)
-                <div class="d-flex justify-content-between align-items-center px-3 py-2" style="border-bottom:1px solid #f1f5f9;">
-                    <span style="font-size:13px;color:#475569;">Subtotal Labor</span>
-                    <span class="total-value" style="font-size:13px;">Rp {{ number_format($invoice->subtotal_labor ?? 0, 0, ',', '.') }}</span>
-                </div>
-                @endif
-                @if($invoice->subtotal_other_cost > 0)
-                <div class="d-flex justify-content-between align-items-center px-3 py-2" style="border-bottom:1px solid #f1f5f9;">
-                    <span style="font-size:13px;color:#475569;">Subtotal Biaya Lain-Lain</span>
-                    <span class="total-value" style="font-size:13px;">Rp {{ number_format($invoice->subtotal_other_cost, 0, ',', '.') }}</span>
-                </div>
-                @endif
-                <div class="d-flex justify-content-between align-items-center px-3 py-2" style="border-bottom:1px solid #f1f5f9;">
-                    <span style="font-size:13px;color:#475569;">Total</span>
-                    <span class="total-value" style="font-size:13px;">Rp {{ number_format($invoice->subtotal+$invoice->subtotal_labor+$invoice->subtotal_other_cost ?? 0, 0, ',', '.') }}</span>
-                </div>
-                @if($invoice->discount > 0)
+
+                {{-- Diskon — selalu ditampilkan (0 jika tidak ada) --}}
                 <div class="d-flex justify-content-between align-items-center px-3 py-2" style="border-bottom:1px solid #f1f5f9;">
                     <span style="font-size:13px;color:#475569;">Diskon</span>
-                    <span class="total-value" style="font-size:13px;">Rp {{ number_format($invoice->discount, 0, ',', '.') }}</span>
+                    <span class="total-value" style="font-size:13px;">Rp {{ number_format($discount, 0, ',', '.') }}</span>
                 </div>
-                @endif
+
+                {{-- DPP = (subtotalAll - diskon) × 11/12 --}}
                 <div class="d-flex justify-content-between align-items-center px-3 py-2" style="border-bottom:1px solid #f1f5f9;">
-                    <span style="font-size:13px;color:#475569;">Dasar Pengenaan Pajak</span>
+                    <span style="font-size:13px;color:#475569;">
+                        Dasar Pengenaan Pajak
+                        <span style="font-size:11px;color:#94a3b8;">(× 11/12)</span>
+                    </span>
                     <span class="total-value" style="font-size:13px;">Rp {{ number_format($dpp, 0, ',', '.') }}</span>
                 </div>
+
+                {{-- PPN = (subtotalAll - diskon) × tax_percentage% → tersimpan di tax_amount --}}
                 <div class="d-flex justify-content-between align-items-center px-3 py-2" style="border-bottom:1px solid #f1f5f9;">
                     <span style="font-size:13px;color:#475569;">PPN ({{ $invoice->tax_percentage }}%)</span>
-                    <span class="total-value" style="font-size:13px;">Rp {{ number_format($invoice->tax_amount, 0, ',', '.') }}</span>
+                    <span class="total-value" style="font-size:13px;">Rp {{ number_format($invoice->tax_amount ?? 0, 0, ',', '.') }}</span>
                 </div>
+
+                {{-- Amount Total = (subtotalAll - diskon) + PPN → tersimpan di total --}}
                 <div class="d-flex justify-content-between align-items-center px-3 py-3" style="background:#f8faff;border-radius:0 0 .5rem .5rem;">
                     <strong style="font-size:15px;">Amount Total</strong>
-                    <strong class="total-value" style="font-size:17px;">Rp {{ number_format($invoice->total, 0, ',', '.') }}</strong>
+                    <strong class="total-value" style="font-size:17px;">Rp {{ number_format($invoice->total ?? 0, 0, ',', '.') }}</strong>
                 </div>
+
             </div>
         </div>
 
-    </div>
+    </div>{{-- end right --}}
 </div>
 @endsection
