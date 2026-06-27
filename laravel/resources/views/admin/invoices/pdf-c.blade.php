@@ -374,7 +374,7 @@
     </table>
 
     {{-- ═══ ITEM PRODUKSI (RINGKAS) ═══ --}}
-    <div class="section-bar bar-production">Item Produksi</div>
+    {{-- <div class="section-bar bar-production">Item Produksi</div> --}}
     <table class="item-table">
         <thead>
             <tr>
