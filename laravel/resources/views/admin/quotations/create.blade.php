@@ -574,23 +574,28 @@ function createOverheadRow() {
         <td class="item-no" id="ono-${idx}">1</td>
         <td>
             <input type="text" name="other_costs[${idx}][cost_name]"
-                   class="item-input" value="Overhead Cost" readonly
-                   style="background:#f8fafc;color:#64748b;cursor:not-allowed;">
+                   class="item-input" value="Overhead Cost"
+                   style="text-align:left;">
         </td>
         <td>
             <input type="number" name="other_costs[${idx}][qty]"
                    class="item-input oc-qty" id="overhead-qty"
-                   min="0" step="any" value="1"
-                   style="text-align:center;background:#f8fafc;cursor:not-allowed;" readonly>
+                   min="0" step="1" value="1"
+                   style="text-align:center;">
         </td>
         <td>
             <input type="number" name="other_costs[${idx}][rate]"
                    class="item-input oc-rate" id="overhead-rate"
-                   min="0" step="any" value="0"
-                   style="text-align:right;background:#f8fafc;cursor:not-allowed;" readonly>
+                   min="0" step="1" value="0"
+                    style="text-align:right;">
         </td>
         <td class="subtotal-cell" id="osub-${idx}">Rp 0</td>
-        <td><span style="width:30px;display:inline-block;"></span></td>
+        <td>
+        <button type="button"
+                class="btn-remove-row"
+                onclick="removeOverheadRow(this)">
+            <i class="bi bi-x-lg"></i>
+        </button>
     `;
     return tr;
 }
@@ -917,6 +922,11 @@ function removeOtherCostRow(btn) {
     reorderNums('other-costs-tbody', 'ono-');
     recalc();
 }
+function removeOverheadRow(btn) {
+    btn.closest('tr').remove();
+    reorderNums('other-costs-tbody', 'ono-');
+    recalc();
+}
 function addOtherCostRow(cost = {}) {
     const tbody = document.getElementById('other-costs-tbody');
     const tr = createOtherCostRow(cost);
@@ -960,7 +970,7 @@ function recalc() {
     const overheadRateEl = document.getElementById('overhead-rate');
     const overheadSubEl  = document.getElementById('osub-0');
     if (overheadRateEl) {
-        overheadRateEl.value = overheadRate.toFixed(2);
+       overheadRateEl.value = overheadRate;
     }
     if (overheadSubEl) {
         overheadSubEl.textContent = fmt(overheadRate); // qty = 1, jadi subtotal = rate

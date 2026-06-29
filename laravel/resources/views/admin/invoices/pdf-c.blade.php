@@ -490,17 +490,17 @@
     @endif
 
     {{-- ═══ TANDA TANGAN ═══ --}}
-    <table class="signature-wrap">
+    <table class="signature-wrap" style="width:100%; margin-top:20px;">
         <tr>
-            <td>
-                <div>Dibuat Oleh,</div>
+            <td style="width:60%;"></td>
+
+            <td style="width:40%; text-align:center; vertical-align:top;">
+                <div>Sincerely Yours,</div>
+                <div style="height:50px;"></div>
                 <div class="sig-line"></div>
-                <div style="margin-top:4px;font-weight:bold;">Marketing</div>
-            </td>
-            <td>
-                <div>Disetujui Oleh,</div>
-                <div class="sig-line"></div>
-                <div style="margin-top:4px;font-weight:bold;">Manager</div>
+                <div style="margin-top:5px; font-weight:bold;">
+                    PT. SISTEM TEKNOLOGI INTEGRATOR
+                </div>
             </td>
         </tr>
     </table>
