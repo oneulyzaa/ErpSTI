@@ -17,7 +17,6 @@ class SalesOrder extends Model
         'quote_number',
         'nomor_po',
         'date',
-        'delivery_date',
         'customer_id',
         'client_name',
         'client_company',
@@ -40,7 +39,6 @@ class SalesOrder extends Model
 
     protected $casts = [
         'date' => 'date',
-        'delivery_date' => 'date',
         'subtotal_material' => 'decimal:2',
         'subtotal_labor' => 'decimal:2',
         'subtotal_other_cost' => 'decimal:2',
