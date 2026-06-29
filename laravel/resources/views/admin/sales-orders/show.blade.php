@@ -35,6 +35,9 @@
             @if($salesOrder->nomor_po)
                 &nbsp;·&nbsp; Nomor PO: {{ $salesOrder->nomor_po }}
             @endif
+            @if($salesOrder->delivery_date)
+                &nbsp;·&nbsp; Pengiriman: {{ $salesOrder->delivery_date->format('d M Y') }}
+            @endif
         </p>
     </div>
     <div class="d-flex gap-2 flex-wrap">

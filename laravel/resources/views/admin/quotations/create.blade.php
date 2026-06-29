@@ -99,14 +99,14 @@
                 <div class="card-body">
                     <div class="section-label">Nomor Referensi</div>
                     <div class="row g-3 mb-3">
-                        <div class="col-12 col-sm-6">
+                        <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">No. Quotation <span class="text-danger">*</span></label>
                             <input type="text" name="quote_number"
                                    class="form-control form-control-sm @error('quote_number') is-invalid @enderror"
                                    value="{{ old('quote_number', $isEdit ? $quotation->quote_number : $quoteNumber) }}" required>
                             @error('quote_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
-                        <div class="col-12 col-sm-6">
+                        <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">Status <span class="text-danger">*</span></label>
                             <select name="status" class="form-select form-select-sm" required>
                                 @foreach(['draft'=>'Draft','sent'=>'Terkirim','approved'=>'Disetujui','rejected'=>'Ditolak','expired'=>'Kadaluarsa'] as $v=>$l)

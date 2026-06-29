@@ -262,6 +262,7 @@ class SalesOrderController extends Controller
             'quote_number' => 'nullable|string|max:255',
             'nomor_po' => 'nullable|string|max:255',
             'date' => 'required|date',
+            'delivery_date' => 'nullable|date|after_or_equal:date',
             'customer_id' => 'nullable|string|max:100',
             'client_name' => 'nullable|string|max:255',
             'client_company' => 'nullable|string|max:255',
