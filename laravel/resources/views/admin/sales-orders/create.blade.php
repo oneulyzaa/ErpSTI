@@ -108,7 +108,7 @@
                         </div>
                     </div>
                     <div class="row g-3 mb-3">
-                        <div class="col-12 col-sm-4">
+                        <div class="col-12 col-sm-6">
                             <label class="form-label fw-semibold" style="font-size:13px">Status <span class="text-danger">*</span></label>
                             <select name="status" class="form-select form-select-sm" required>
                                 @foreach(['draft'=>'Draft','confirmed'=>'Confirmed','in_progress'=>'In Progress','completed'=>'Completed','cancelled'=>'Cancelled'] as $v=>$l)
@@ -116,18 +116,11 @@
                                 @endforeach
                             </select>
                         </div>
-                    </div>
-                    <div class="row g-3 mb-4">
                         <div class="col-12 col-sm-6">
                             <label class="form-label fw-semibold" style="font-size:13px">Tanggal SO <span class="text-danger">*</span></label>
                             <input type="date" name="date" class="form-control form-control-sm @error('date') is-invalid @enderror"
                                    value="{{ old('date', $isEdit ? $salesOrder->date->format('Y-m-d') : now()->format('Y-m-d')) }}" required>
                             @error('date')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                        <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold" style="font-size:13px">Tanggal Pengiriman</label>
-                            <input type="date" name="delivery_date" class="form-control form-control-sm"
-                                   value="{{ old('delivery_date', $isEdit && $salesOrder->delivery_date ? $salesOrder->delivery_date->format('Y-m-d') : '') }}">
                         </div>
                     </div>
 

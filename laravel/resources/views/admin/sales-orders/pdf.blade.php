@@ -276,9 +276,6 @@
                         @if($salesOrder->nomor_po)
                         <tr><td class="meta-label">Nomor PO</td><td class="meta-value">{{ $salesOrder->nomor_po }}</td></tr>
                         @endif
-                        @if($salesOrder->delivery_date)
-                        <tr><td class="meta-label">Pengiriman</td><td class="meta-value">{{ $salesOrder->delivery_date->format('d M Y') }}</td></tr>
-                        @endif
                         <tr><td class="meta-label">Status</td><td class="meta-value">{{ ucfirst(str_replace('_',' ',$salesOrder->status)) }}</td></tr>
                     </table>
                 </td>
