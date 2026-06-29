@@ -12,7 +12,7 @@
             color: #1a1a1a;
             background: #fff;
         }
-        .page { padding: 20px 26px 16px; }
+        /* .page { padding: 20px 26px 16px; } */
         /* ══════════════════════════════
            HEADER
         ══════════════════════════════ */
@@ -354,6 +354,9 @@
             color: #aaa;
             margin-top: 4px;
         }
+        @page {
+            margin: 20px 26px 20px 26px !important;
+        }
     </style>
 </head>
 <body>
@@ -515,17 +518,7 @@
             </tr>
             @endif
             @endforeach
-            @for($p = 0; $p < $padCount; $p++)
-            @php $idx = $rowCount + $p; @endphp
-            <tr class="{{ $idx % 2 === 0 ? 'row-odd' : 'row-even' }}">
-                <td class="col-no"></td>
-                <td></td>
-                <td></td>
-                <td class="tr mono muted">-</td>
-                <td class="tr mono muted">Rp&nbsp;-</td>
-                <td class="tr mono muted">Rp&nbsp;-</td>
-            </tr>
-            @endfor
+            
             <tr class="total-mat-row">
                 <td colspan="5" class="tr" style="font-size:8px;letter-spacing:.5px;color:#2c4f8a;">
                     TOTAL PRODUKSI
@@ -666,9 +659,7 @@
     {{-- ══════════════════════════════
          OPSI A — TERMS (full width)
     ══════════════════════════════ --}}
-    
-    <div style="page-break-before: always;"></div>
-    <div style="height: 20px;"></div> {{-- Spacer untuk menghindari header terlalu dekat dengan top page --}}
+
     <div class="terms-bar">Terms &amp; Conditions</div>
     <div class="terms-body">
         @if($quotation->term_and_condition)

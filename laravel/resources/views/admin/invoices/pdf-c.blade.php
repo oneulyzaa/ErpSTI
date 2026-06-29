@@ -15,7 +15,7 @@
             background: #fff;
         }
 
-        .page { padding: 22px 28px 18px; }
+        /* .page { padding: 22px 28px 18px; } */
 
         /* ── HEADER ── */
         .header-wrap { width: 100%; border-collapse: collapse; }
@@ -265,6 +265,9 @@
             border-top: 0.5px solid #333;
             width: 160px;
             display: inline-block;
+        }
+        @page {
+            margin: 20px 26px 20px 26px !important;
         }
     </style>
 </head>
