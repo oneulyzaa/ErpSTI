@@ -132,9 +132,7 @@
                                     value="{{ old('project_name', $isEdit ? $deliveryOrder->project_name : '') }}"
                                     placeholder="Auto-load dari SO">
                          </div>
-                     </div>
-                    <div class="row g-3 mb-4">
-                        <div class="col-12 col-sm-4">
+                         <div class="col-12 col-sm-6">
                             <label class="form-label fw-semibold" style="font-size:13px">Status <span class="text-danger">*</span></label>
                             <select name="status" class="form-select form-select-sm" required>
                                 @foreach(['draft'=>'Draft','confirmed'=>'Confirmed','shipped'=>'Shipped','delivered'=>'Delivered','cancelled'=>'Cancelled'] as $v=>$l)
@@ -142,7 +140,8 @@
                                 @endforeach
                             </select>
                         </div>
-                    </div>
+                     </div>
+
                     <div class="row g-3 mb-4">
                         <div class="col-12 col-sm-6">
                             <label class="form-label fw-semibold" style="font-size:13px">Tanggal DO <span class="text-danger">*</span></label>

@@ -72,14 +72,14 @@
                 <div class="card-body">
                     <div class="section-label">Nomor & Referensi</div>
                     <div class="row g-3 mb-3">
-                        <div class="col-12 col-sm-4">
+                        <div class="col-12 col-sm-3">
                             <label class="form-label fw-semibold" style="font-size:13px">No. Produksi <span class="text-danger">*</span></label>
                             <input type="text" name="production_number"
                                    class="form-control form-control-sm @error('production_number') is-invalid @enderror"
                                    value="{{ old('production_number', $isEdit ? $production->production_number : $productionNumber) }}" required>
                             @error('production_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
-                        <div class="col-12 col-sm-4">
+                        <div class="col-12 col-sm-3">
                             <label class="form-label fw-semibold" style="font-size:13px">Ref. Sales Order <span class="text-danger">*</span></label>
                             <select name="sales_order_id" id="sales_order_id" class="form-select form-select-sm" required
                                     data-url="{{ route('admin.productions.so-items', ['salesOrder' => '__ID__']) }}">
@@ -95,12 +95,12 @@
                             <input type="hidden" name="so_number" id="so_number"
                                    value="{{ old('so_number', $isEdit ? $production->so_number : '') }}">
                         </div>
-                        <div class="col-12 col-sm-2">
+                        <div class="col-12 col-sm-3">
                             <label class="form-label fw-semibold" style="font-size:13px">Nomor PO</label>
                             <input type="text" name="nomor_po" id="nomor_po" class="form-control form-control-sm"
                                    value="{{ old('nomor_po', $isEdit ? $production->nomor_po : ($selected->nomor_po ?? '')) }}" readonly>
                         </div>
-                        <div class="col-12 col-sm-2">
+                        <div class="col-12 col-sm-3">
                             <label class="form-label fw-semibold" style="font-size:13px">Status <span class="text-danger">*</span></label>
                             <select name="status" class="form-select form-select-sm" required>
                                 @foreach(['planned'=>'Planned','in_progress'=>'In Progress','completed'=>'Completed','cancelled'=>'Cancelled'] as $v=>$l)
