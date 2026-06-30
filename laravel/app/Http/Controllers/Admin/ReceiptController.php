@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Receipt;
-use App\Models\ReceiptOtherCost;
 use App\Models\Invoice;
 use App\Models\ClientModel;
 use Illuminate\Http\Request;
@@ -12,7 +11,6 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReceiptController extends Controller
 {
-    // ─── List ───────────────────────────────────────────────────────────────
     public function index(Request $request)
     {
         $query = Receipt::latest();
@@ -34,7 +32,6 @@ class ReceiptController extends Controller
         return view('admin.receipts.index', compact('receipts'));
     }
 
-    // ─── Create ─────────────────────────────────────────────────────────────
     public function create()
     {
         $receiptNumber = Receipt::generateReceiptNumber();
@@ -43,7 +40,6 @@ class ReceiptController extends Controller
         return view('admin.receipts.create', compact('receiptNumber', 'invoices', 'clients'));
     }
 
-    // ─── Store ──────────────────────────────────────────────────────────────
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -53,6 +49,7 @@ class ReceiptController extends Controller
             'nomor_po' => 'nullable|string|max:255',
             'project_name' => 'nullable|string|max:255',
             'date' => 'required|date',
+            'payment_date' => 'nullable|date',
             'client_name' => 'nullable|string|max:255',
             'client_company' => 'nullable|string|max:255',
             'client_attention' => 'nullable|string|max:255',
@@ -72,9 +69,12 @@ class ReceiptController extends Controller
         ]);
 
         $receipt = Receipt::create($validated);
-        $this->syncOtherCosts($receipt, $request->other_costs ?? []);
+        
+        if ($request->filled('other_costs')) {
+            $receipt->setOtherCosts($request->other_costs);
+            $receipt->save();
+        }
 
-        // Auto-update invoice status to paid if fully paid
         if ($receipt->invoice_id && $receipt->status === 'confirmed') {
             $this->checkInvoicePaidStatus($receipt->invoice_id);
         }
@@ -83,10 +83,9 @@ class ReceiptController extends Controller
             ->with('success', 'Tanda Terima berhasil dibuat.');
     }
 
-    // ─── PDF ────────────────────────────────────────────────────────────────
     public function pdf(Receipt $receipt)
     {
-        $receipt->load('invoice', 'otherCosts');
+        $receipt->load('invoice');
 
         $logoPath = public_path('assets/gambar/logo-sti.png');
         $logoBase64 = '';
@@ -104,14 +103,12 @@ class ReceiptController extends Controller
         return $pdf->stream($filename);
     }
 
-    // ─── Show ───────────────────────────────────────────────────────────────
     public function show(Receipt $receipt)
     {
-        $receipt->load('invoice', 'otherCosts');
+        $receipt->load('invoice');
         return view('admin.receipts.show', compact('receipt'));
     }
 
-    // ─── Edit ───────────────────────────────────────────────────────────────
     public function edit(Receipt $receipt)
     {
         $receiptNumber = $receipt->receipt_number;
@@ -120,7 +117,6 @@ class ReceiptController extends Controller
         return view('admin.receipts.edit', compact('receipt', 'receiptNumber', 'invoices', 'clients'));
     }
 
-    // ─── Update ─────────────────────────────────────────────────────────────
     public function update(Request $request, Receipt $receipt)
     {
         $validated = $request->validate([
@@ -130,6 +126,7 @@ class ReceiptController extends Controller
             'nomor_po' => 'nullable|string|max:255',
             'project_name' => 'nullable|string|max:255',
             'date' => 'required|date',
+            'payment_date' => 'nullable|date',
             'client_name' => 'nullable|string|max:255',
             'client_company' => 'nullable|string|max:255',
             'client_attention' => 'nullable|string|max:255',
@@ -149,9 +146,12 @@ class ReceiptController extends Controller
         ]);
 
         $receipt->update($validated);
-        $this->syncOtherCosts($receipt, $request->other_costs ?? []);
+        
+        if ($request->filled('other_costs')) {
+            $receipt->setOtherCosts($request->other_costs);
+            $receipt->save();
+        }
 
-        // Re-check invoice paid status
         if ($receipt->invoice_id) {
             $this->checkInvoicePaidStatus($receipt->invoice_id);
         }
@@ -160,7 +160,6 @@ class ReceiptController extends Controller
             ->with('success', 'Tanda Terima berhasil diperbarui.');
     }
 
-    // ─── Delete ─────────────────────────────────────────────────────────────
     public function destroy(Receipt $receipt)
     {
         $receipt->delete();
@@ -168,7 +167,6 @@ class ReceiptController extends Controller
             ->with('success', 'Tanda Terima berhasil dihapus.');
     }
 
-    // ─── AJAX: Get Invoice Data ─────────────────────────────────────────────
     public function getInvoiceData(Invoice $invoice)
     {
          return response()->json([
@@ -184,7 +182,6 @@ class ReceiptController extends Controller
         ]);
     }
 
-    // ─── AJAX: Get Client Data ─────────────────────────────────────────────
     public function getClientData(ClientModel $client)
     {
         return response()->json([
@@ -195,7 +192,6 @@ class ReceiptController extends Controller
         ]);
     }
 
-    // ─── Helpers ────────────────────────────────────────────────────────────
     private function checkInvoicePaidStatus(int $invoiceId): void
     {
         $invoice = Invoice::find($invoiceId);
@@ -205,23 +201,6 @@ class ReceiptController extends Controller
         $totalPaid = $invoice->receipts()->where('status', 'confirmed')->sum('amount');
         if ($totalPaid >= $invoice->total) {
             $invoice->update(['status' => 'paid']);
-        }
-    }
-
-    private function syncOtherCosts(Receipt $receipt, array $otherCosts): void
-    {
-        $receipt->otherCosts()->delete();
-        foreach ($otherCosts as $i => $cost) {
-            if (empty($cost['cost_name']))
-                continue;
-            ReceiptOtherCost::create([
-                'receipt_id' => $receipt->id,
-                'sort_order' => $i + 1,
-                'cost_name' => $cost['cost_name'],
-                'qty' => $cost['qty'] ?? 1,
-                'rate' => $cost['rate'] ?? 0,
-                'subtotal' => ($cost['qty'] ?? 1) * ($cost['rate'] ?? 0),
-            ]);
         }
     }
 }

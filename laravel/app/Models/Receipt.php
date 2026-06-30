@@ -16,36 +16,103 @@ class Receipt extends Model
         'nomor_po',
         'project_name',
         'date',
+        'payment_date',
         'client_name',
         'client_company',
         'client_attention',
         'client_email',
+        'payment_method',
+        'reference_number',
         'description',
-        'amount',
+        'other_costs_json',
         'subtotal_other_cost',
         'discount',
-        'payment_method',
-        'payment_reference',
+        'amount',
         'status',
         'notes',
     ];
 
     protected $casts = [
         'date' => 'date',
-        'amount' => 'decimal:2',
+        'payment_date' => 'date',
+        'other_costs_json' => 'array', // Cast JSON ke array
         'subtotal_other_cost' => 'decimal:2',
         'discount' => 'decimal:2',
+        'amount' => 'decimal:2',
     ];
+
     public function invoice()
     {
         return $this->belongsTo(Invoice::class);
     }
 
-    public function otherCosts()
+    /**
+     * Accessor untuk mendapatkan other costs (kompatibel dengan kode lama)
+     * Mengembalikan collection agar bisa di-loop seperti relasi hasMany
+     */
+    public function getOtherCostsAttribute()
     {
-        return $this->hasMany(ReceiptOtherCost::class)->orderBy('sort_order');
+        $costs = $this->other_costs_json ?? [];
+        return collect($costs)->map(function ($cost, $index) {
+            return (object) [
+                'sort_order' => $cost['sort_order'] ?? ($index + 1),
+                'cost_name' => $cost['cost_name'] ?? '',
+                'qty' => $cost['qty'] ?? 1,
+                'rate' => $cost['rate'] ?? 0,
+                'subtotal' => $cost['subtotal'] ?? 0,
+            ];
+        });
     }
 
+    /**
+     * Helper: Hitung subtotal_other_cost dari other_costs_json
+     */
+    public function calculateSubtotalOtherCost(): self
+    {
+        $costs = $this->other_costs_json ?? [];
+        $total = 0;
+        
+        foreach ($costs as $cost) {
+            $qty = $cost['qty'] ?? 1;
+            $rate = $cost['rate'] ?? 0;
+            $subtotal = $qty * $rate;
+            $total += $subtotal;
+        }
+        
+        $this->subtotal_other_cost = $total;
+        return $this;
+    }
+
+    /**
+     * Helper: Set other costs dari array (seperti syncOtherCosts lama)
+     */
+    public function setOtherCosts(array $otherCosts): self
+    {
+        $costs = [];
+        
+        foreach ($otherCosts as $i => $cost) {
+            if (empty($cost['cost_name'])) {
+                continue;
+            }
+            
+            $qty = $cost['qty'] ?? 1;
+            $rate = $cost['rate'] ?? 0;
+            $subtotal = $qty * $rate;
+            
+            $costs[] = [
+                'sort_order' => $i + 1,
+                'cost_name' => $cost['cost_name'],
+                'qty' => $qty,
+                'rate' => $rate,
+                'subtotal' => $subtotal,
+            ];
+        }
+        
+        $this->other_costs_json = $costs;
+        $this->calculateSubtotalOtherCost();
+        
+        return $this;
+    }
 
     public static function generateReceiptNumber(): string
     {
