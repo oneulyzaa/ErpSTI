@@ -559,14 +559,7 @@
                 <td class="tr mono">Rp&nbsp;{{ number_format($labor->subtotal, 0, ',', '.') }}</td>
             </tr>
             @endforeach
-            @for($p = 0; $p < $padLab; $p++)
-            @php $idx = $labors->count() + $p; @endphp
-            <tr class="{{ $idx % 2 === 0 ? 'row-odd' : 'row-even' }}">
-                <td></td><td></td><td></td><td></td>
-                <td class="tr mono muted">Rp&nbsp;-</td>
-                <td class="tr mono muted">Rp&nbsp;-</td>
-            </tr>
-            @endfor
+
             <tr class="total-lab-row">
                 <td colspan="5" class="tr" style="font-size:8px;letter-spacing:.5px;color:#1B5DBC;">
                     TOTAL LABOR
