@@ -279,8 +279,7 @@
     @php
         $totalProduksi = $invoice->subtotal ?? 0;
         $totalLabor = $invoice->subtotal_labor ?? 0;
-        $otherCosts = $invoice->otherCosts ?? collect();
-        $totalOther = $otherCosts->sum('subtotal');
+        $totalOther = $invoice->subtotal_other_cost ?? 0;
         $subtotalAll = $totalProduksi + $totalLabor + $totalOther;
     @endphp
 

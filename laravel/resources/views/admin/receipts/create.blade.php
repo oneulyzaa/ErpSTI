@@ -93,13 +93,18 @@
                         </div>
                     </div>
                     <div class="row g-3 mb-4">
-                        <div class="col-12 col-sm-6">
+                        <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">Tanggal <span class="text-danger">*</span></label>
                             <input type="date" name="date" class="form-control form-control-sm @error('date') is-invalid @enderror"
                                    value="{{ old('date', $isEdit ? $receipt->date->format('Y-m-d') : now()->format('Y-m-d')) }}" required>
                             @error('date')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
-                        <div class="col-12 col-sm-6">
+                        <div class="col-12 col-sm-4">
+                            <label class="form-label fw-semibold" style="font-size:13px">Tanggal Bayar</label>
+                            <input type="date" name="payment_date" class="form-control form-control-sm"
+                                   value="{{ old('payment_date', $isEdit && $receipt->payment_date ? $receipt->payment_date->format('Y-m-d') : now()->format('Y-m-d')) }}">
+                        </div>
+                        <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">Metode Pembayaran <span class="text-danger">*</span></label>
                             <select name="payment_method" class="form-select form-select-sm" required>
                                 @foreach(['cash'=>'Cash / Tunai','transfer'=>'Transfer Bank','cheque'=>'Cek / Giro','other'=>'Lainnya'] as $v=>$l)

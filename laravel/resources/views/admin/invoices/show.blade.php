@@ -120,205 +120,49 @@
             </div>
         </div>
 
-        {{-- Nama Project --}}
+        {{-- Ringkasan Biaya --}}
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white border-bottom py-3">
-                <span class="fw-semibold">Biaya Lain-Lain</span>
+                <span class="fw-semibold">Ringkasan Biaya</span>
             </div>
             <div class="table-responsive">
-                @if($invoice->project_name)
                 <table class="table mb-0" style="font-size:13px">
                     <thead class="table-items">
                         <tr>
                             <th class="text-center">No</th>
-                            <th class="text-center">Description</th>
-                            <th class="text-center">Part No</th>
-                            <th class="text-center">Qty</th>
-                            <th class="text-center">Unit Price</th>
+                            <th class="text-center">Keterangan</th>
                             <th class="text-center">Subtotal</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td>1</td>
-                            <td class="fw-semibold">{{ $invoice->project_name }}</td>
-                            <td class="text-center">-</td>
-                            <td class="text-center">{{ number_format(1, 2, ',', '.') }}</td>
-                            <td class="text-end">Rp {{ number_format($invoice->total, 0, ',', '.') }}</td>
-                            <td class="text-end fw-semibold">Rp {{ number_format($invoice->total, 0, ',', '.') }}</td>
+                            <td class="fw-semibold">Biaya Produksi & Material</td>
+                            <td class="text-end">Rp {{ number_format($invoice->subtotal ?? 0, 0, ',', '.') }}</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td class="fw-semibold">Biaya Tenaga Kerja</td>
+                            <td class="text-end">Rp {{ number_format($invoice->subtotal_labor ?? 0, 0, ',', '.') }}</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td class="fw-semibold">Biaya Lain-Lain</td>
+                            <td class="text-end">Rp {{ number_format($invoice->subtotal_other_cost ?? 0, 0, ',', '.') }}</td>
                         </tr>
                     </tbody>
                     <tfoot>
                         <tr style="background:#f0f4fc;">
-                            <td colspan="5" class="text-end fw-bold" style="font-size:13px;">Total</td>
-                            <td class="text-end fw-bold total-value" style="font-size:13px;">Rp {{ number_format($invoice->total, 0, ',', '.') }}</td>
-                        </tr>
-                    </tfoot>
-                </table>
-                @endif
-            </div>
-        </div>
-        {{--
-            ── Item Produksi — disembunyikan dari tampilan, data tetap ada di DOM ──
-            Staff finance tidak perlu melihat rincian produksi/material.
-        --}}
-        <div class="card border-0 shadow-sm d-none">
-            <div class="card-header bg-white border-bottom py-3">
-                <span class="fw-semibold">Item Produksi</span>
-            </div>
-            <div class="table-responsive">
-                <table class="table mb-0" style="font-size:13px">
-                    <thead class="table-items">
-                        <tr>
-                            <th style="width:36px;">#</th>
-                            <th>Nama Item</th>
-                            <th>Deskripsi</th>
-                            <th class="text-center" style="width:70px;">Satuan</th>
-                            <th class="text-center" style="width:70px;">Qty</th>
-                            <th class="text-end" style="width:130px;">Harga</th>
-                            <th class="text-end" style="width:130px;">Subtotal</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($invoice->items as $item)
-                        <tr>
-                            <td>{{ $loop->iteration }}</td>
-                            <td class="fw-semibold">{{ $item->item_name }}</td>
-                            <td class="text-muted">{{ $item->description ?? '-' }}</td>
-                            <td class="text-center">{{ $item->unit }}</td>
-                            <td class="text-center">{{ number_format($item->qty, 2) }}</td>
-                            <td class="text-end">Rp {{ number_format($item->unit_price, 0, ',', '.') }}</td>
-                            <td class="text-end fw-semibold">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</td>
-                        </tr>
-                        @if($item->materials && $item->materials->count())
-                        <tr>
-                            <td colspan="7" class="p-0">
-                                <table class="table table-sm mb-0" style="font-size:11px;background:#f8fafc;">
-                                    <thead>
-                                        <tr style="background:#e8f0fe;">
-                                            <th style="width:36px;"></th>
-                                            <th style="font-size:10px;color:#64748b;">MATERIAL / BAHAN BAKU</th>
-                                            <th style="width:70px;text-align:center;font-size:10px;color:#64748b;">SATUAN</th>
-                                            <th style="width:70px;text-align:right;font-size:10px;color:#64748b;">QTY</th>
-                                            <th style="width:130px;text-align:right;font-size:10px;color:#64748b;">HARGA</th>
-                                            <th style="width:130px;text-align:right;font-size:10px;color:#64748b;">SUBTOTAL</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($item->materials as $m => $mat)
-                                        <tr>
-                                            <td class="text-center text-muted" style="font-family:monospace;">{{ $m+1 }}</td>
-                                            <td>{{ $mat->material_name }}</td>
-                                            <td class="text-center">{{ $mat->satuan }}</td>
-                                            <td class="text-center" style="font-family:monospace;">{{ number_format($mat->qty_required, 2, ',', '.') }}</td>
-                                            <td class="text-end">Rp {{ number_format($mat->unit_price, 0, ',', '.') }}</td>
-                                            <td class="text-end fw-semibold" style="color:#1B5DBC;">Rp {{ number_format($mat->subtotal, 0, ',', '.') }}</td>
-                                        </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </td>
-                        </tr>
-                        @endif
-                        @empty
-                        <tr><td colspan="7" class="text-center text-muted py-4">Tidak ada item produksi</td></tr>
-                        @endforelse
-                    </tbody>
-                    @if($invoice->items->isNotEmpty())
-                    <tfoot>
-                        <tr style="background:#f0f4fc;">
-                            <td colspan="6" class="text-end fw-bold" style="font-size:13px;">Total Produksi</td>
-                            <td class="text-end fw-bold total-value" style="font-size:13px;">Rp {{ number_format($invoice->subtotal ?? 0, 0, ',', '.') }}</td>
-                        </tr>
-                    </tfoot>
-                    @endif
-                </table>
-            </div>
-        </div>
-
-        {{--
-            ── Biaya Tenaga Kerja — disembunyikan dari tampilan, data tetap ada di DOM ──
-        --}}
-        @if($invoice->labors && $invoice->labors->count())
-        <div class="card border-0 shadow-sm d-none">
-            <div class="card-header bg-white border-bottom py-3">
-                <span class="fw-semibold">Biaya Tenaga Kerja</span>
-            </div>
-            <div class="table-responsive">
-                <table class="table mb-0" style="font-size:13px">
-                    <thead class="table-items">
-                        <tr>
-                            <th style="width:36px;">#</th>
-                            <th>Nama Pekerjaan</th>
-                            <th class="text-center" style="width:80px;">MP</th>
-                            <th class="text-center" style="width:80px;">Hari</th>
-                            <th class="text-end" style="width:130px;">Rate/Hari</th>
-                            <th class="text-end" style="width:130px;">Subtotal</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($invoice->labors as $i => $labor)
-                        <tr>
-                            <td>{{ $i+1 }}</td>
-                            <td class="fw-semibold">{{ $labor->labor_name }}</td>
-                            <td class="text-center">{{ number_format($labor->mp, 0, ',', '.') }}</td>
-                            <td class="text-center">{{ number_format($labor->days, 0, ',', '.') }}</td>
-                            <td class="text-end">Rp {{ number_format($labor->rate, 0, ',', '.') }}</td>
-                            <td class="text-end fw-semibold">Rp {{ number_format($labor->subtotal, 0, ',', '.') }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                    <tfoot>
-                        <tr style="background:#f0f4fc;">
-                            <td colspan="5" class="text-end fw-bold" style="font-size:13px;">Total Biaya Tenaga Kerja</td>
-                            <td class="text-end fw-bold total-value" style="font-size:13px;">Rp {{ number_format($invoice->subtotal_labor ?? 0, 0, ',', '.') }}</td>
+                            <td colspan="2" class="text-end fw-bold" style="font-size:13px;">Total Sebelum Diskon</td>
+                            @php
+                                $subtotalAll = ($invoice->subtotal ?? 0) + ($invoice->subtotal_labor ?? 0) + ($invoice->subtotal_other_cost ?? 0);
+                            @endphp
+                            <td class="text-end fw-bold total-value" style="font-size:13px;">Rp {{ number_format($subtotalAll, 0, ',', '.') }}</td>
                         </tr>
                     </tfoot>
                 </table>
             </div>
         </div>
-        @endif
-
-        {{--
-            ── Biaya Lain-Lain — disembunyikan dari tampilan, data tetap ada di DOM ──
-        --}}
-        @if($invoice->otherCosts && $invoice->otherCosts->count())
-        <div class="card border-0 shadow-sm d-none">
-            <div class="card-header bg-white border-bottom py-3">
-                <span class="fw-semibold">Biaya Lain-Lain</span>
-            </div>
-            <div class="table-responsive">
-                <table class="table mb-0" style="font-size:13px">
-                    <thead class="table-items">
-                        <tr>
-                            <th style="width:36px;">#</th>
-                            <th>Nama Biaya</th>
-                            <th class="text-center" style="width:80px;">Qty</th>
-                            <th class="text-end" style="width:130px;">Rate</th>
-                            <th class="text-end" style="width:130px;">Subtotal</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($invoice->otherCosts as $i => $cost)
-                        <tr>
-                            <td>{{ $i+1 }}</td>
-                            <td class="fw-semibold">{{ $cost->cost_name }}</td>
-                            <td class="text-center">{{ number_format($cost->qty, 2, ',', '.') }}</td>
-                            <td class="text-end">Rp {{ number_format($cost->rate, 0, ',', '.') }}</td>
-                            <td class="text-end fw-semibold">Rp {{ number_format($cost->subtotal, 0, ',', '.') }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                    <tfoot>
-                        <tr style="background:#f0f4fc;">
-                            <td colspan="4" class="text-end fw-bold" style="font-size:13px;">Total Biaya Lain-Lain</td>
-                            <td class="text-end fw-bold total-value" style="font-size:13px;">Rp {{ number_format($invoice->subtotal_other_cost ?? 0, 0, ',', '.') }}</td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-        </div>
-        @endif
 
         {{-- T&C --}}
         @if($invoice->term_and_condition)

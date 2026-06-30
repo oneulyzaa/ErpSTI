@@ -414,9 +414,9 @@
     {{-- ═══ BANK + SUMMARY ═══ --}}
     
     @php
-        $otherCosts = $invoice->otherCosts ?? collect();
-        $totalOth   = $otherCosts->sum('subtotal');
-        $subtotalAll = ($invoice->subtotal ?? 0) + ($invoice->subtotal_labor ?? 0) + $totalOth;
+        // Data rinci items/labors/otherCosts tidak lagi disimpan
+        // Gunakan nilai agregat langsung dari tabel invoices
+        $subtotalAll = ($invoice->subtotal ?? 0) + ($invoice->subtotal_labor ?? 0) + ($invoice->subtotal_other_cost ?? 0);
     @endphp
     {{-- <div style="page-break-inside: avoid; margin-top: 70px;"></div> --}}
     {{-- make div with page-break-inside: avoid;  --}}

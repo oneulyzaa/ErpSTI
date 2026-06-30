@@ -3,9 +3,15 @@
 @php
     $isEdit        = isset($invoice);
     $action        = $isEdit ? route('admin.invoices.update', $invoice) : route('admin.invoices.store');
-    $oldItems      = old('items',       $isEdit ? $invoice->items->load('materials')->toArray()      : []);
-    $oldLabors     = old('labors',      $isEdit ? $invoice->labors->toArray()     : []);
-    $oldOtherCosts = old('other_costs', $isEdit ? $invoice->otherCosts->toArray() : []);
+    // Untuk edit mode, kita tidak lagi menyimpan detail items/labors/otherCosts
+    // Hanya nilai agregat yang disimpan di tabel invoices
+    $oldItems      = [];
+    $oldLabors     = [];
+    $oldOtherCosts = [];
+    // Nilai agregat default untuk edit mode (fallback ketika tidak ada detail items)
+    $defaultSubtotal = $isEdit && $invoice->subtotal ? $invoice->subtotal : 0;
+    $defaultSubtotalLabor = $isEdit && $invoice->subtotal_labor ? $invoice->subtotal_labor : 0;
+    $defaultSubtotalOther = $isEdit && $invoice->subtotal_other_cost ? $invoice->subtotal_other_cost : 0;
 @endphp
 
 @section('title', $isEdit ? 'Edit Invoice' : 'Buat Invoice Baru')
@@ -317,7 +323,7 @@
                     </div>
 
                     {{-- Hidden fields untuk dikirim ke server --}}
-                    <input type="hidden" name="discount"            id="h-discount">
+                    {{-- Note: discount sudah dikirim oleh input id="discount" di atas, jadi tidak perlu di sini --}}
                     <input type="hidden" name="subtotal"            id="h-mat">
                     <input type="hidden" name="subtotal_labor"      id="h-lab">
                     <input type="hidden" name="subtotal_other_cost" id="h-oth">
@@ -366,6 +372,10 @@
 const initItems      = @json($oldItems);
 const initLabors     = @json($oldLabors);
 const initOtherCosts = @json($oldOtherCosts);
+// Nilai default untuk edit mode (fallback ketika tidak ada detail items)
+const defaultSubtotal     = {{ $defaultSubtotal }};
+const defaultSubtotalLabor = {{ $defaultSubtotalLabor }};
+const defaultSubtotalOther = {{ $defaultSubtotalOther }};
 let iIdx = 0, lIdx = 0, oIdx = 0;
 let mIdx = {};
 
@@ -465,11 +475,11 @@ function createProductCard(item = {}) {
         <div class="product-card-header">
             <span class="card-num">${pIdx + 1}</span>
             <div style="flex:1; display:flex; gap:8px; flex-wrap:wrap;">
-                <input type="text" name="items[${pIdx}][item_name]" class="item-input" placeholder="Nama item *" value="${esc(item.item_name)}" style="flex:2;min-width:140px;" required>
+                <input type="text" name="items[${pIdx}][item_name]" class="item-input" placeholder="Nama item" value="${esc(item.item_name)}" style="flex:2;min-width:140px;">
                 <input type="text" name="items[${pIdx}][description]" class="item-input" placeholder="Deskripsi" value="${esc(item.description)}" style="flex:2;min-width:140px;">
-                <input type="text" name="items[${pIdx}][unit]" class="item-input" placeholder="Satuan" value="${esc(item.unit ?? 'Unit')}" style="flex:0 0 70px;text-align:center;" required>
-                <input type="number" name="items[${pIdx}][qty]" class="item-input item-qty" min="0" step="any" value="${qty}" style="flex:0 0 70px;text-align:right;" required onchange="updateProductCardSub(this.closest('.product-card'))">
-                <input type="number" name="items[${pIdx}][unit_price]" class="item-input item-price" min="0" step="any" value="${price}" style="flex:0 0 110px;text-align:right;" required onchange="updateProductCardSub(this.closest('.product-card'))">
+                <input type="text" name="items[${pIdx}][unit]" class="item-input" placeholder="Satuan" value="${esc(item.unit ?? 'Unit')}" style="flex:0 0 70px;text-align:center;">
+                <input type="number" name="items[${pIdx}][qty]" class="item-input item-qty" min="0" step="any" value="${qty}" style="flex:0 0 70px;text-align:right;" onchange="updateProductCardSub(this.closest('.product-card'))">
+                <input type="number" name="items[${pIdx}][unit_price]" class="item-input item-price" min="0" step="any" value="${price}" style="flex:0 0 110px;text-align:right;" onchange="updateProductCardSub(this.closest('.product-card'))">
                 <span class="subtotal-cell" id="isub-${pIdx}">Rp ${(qty * price).toLocaleString('id-ID')}</span>
             </div>
             <button type="button" class="btn-remove-row" onclick="removeProduct(this)" title="Hapus item"><i class="bi bi-x-lg"></i></button>
@@ -567,7 +577,7 @@ function createMaterialRow(pIdx, mat = {}) {
     tr.innerHTML = `
         <td style="text-align:center;color:#94a3b8;">${mSeq}</td>
         <td>
-            <input type="text" name="items[${pIdx}][materials][${mSeq}][material_name]" class="mat-input-sm" required value="${esc(mat.material_name || '')}" placeholder="Nama material">
+            <input type="text" name="items[${pIdx}][materials][${mSeq}][material_name]" class="mat-input-sm" value="${esc(mat.material_name || '')}" placeholder="Nama material">
             ${mat.asset_id ? `<input type="hidden" name="items[${pIdx}][materials][${mSeq}][asset_id]" value="${mat.asset_id}">` : ''}
         </td>
         <td><input type="text" name="items[${pIdx}][materials][${mSeq}][satuan]" class="mat-input-sm" value="${esc(mat.satuan || 'pcs')}" style="text-align:center;"></td>
@@ -623,10 +633,10 @@ function createLaborRow(labor = {}) {
     tr.dataset.idx = idx;
     tr.innerHTML = `
         <td class="item-no" id="lno-${idx}"></td>
-        <td><input type="text"   name="labors[${idx}][labor_name]" class="item-input" required value="${esc(labor.labor_name)}" placeholder="Nama pekerjaan"></td>
-        <td><input type="number" name="labors[${idx}][mp]"   class="item-input labor-mp"   min="1" step="1" value="${mp}"   style="text-align:center;" required></td>
-        <td><input type="number" name="labors[${idx}][days]" class="item-input labor-days" min="0" step="any" value="${days}" style="text-align:center;" required></td>
-        <td><input type="number" name="labors[${idx}][rate]" class="item-input labor-rate" min="0" step="any" value="${rate}" style="text-align:right;" required></td>
+        <td><input type="text"   name="labors[${idx}][labor_name]" class="item-input" value="${esc(labor.labor_name)}" placeholder="Nama pekerjaan"></td>
+        <td><input type="number" name="labors[${idx}][mp]"   class="item-input labor-mp"   min="1" step="1" value="${mp}"   style="text-align:center;"></td>
+        <td><input type="number" name="labors[${idx}][days]" class="item-input labor-days" min="0" step="any" value="${days}" style="text-align:center;"></td>
+        <td><input type="number" name="labors[${idx}][rate]" class="item-input labor-rate" min="0" step="any" value="${rate}" style="text-align:right;"></td>
         <td class="subtotal-cell" id="lsub-${idx}">${fmt(sub)}</td>
         <td><button type="button" class="btn-remove-row" onclick="removeLaborRow(this)"><i class="bi bi-x-lg"></i></button></td>
     `;
@@ -671,9 +681,9 @@ function createOtherCostRow(cost = {}) {
     tr.dataset.idx = idx;
     tr.innerHTML = `
         <td class="item-no" id="ono-${idx}"></td>
-        <td><input type="text"   name="other_costs[${idx}][cost_name]" class="item-input" required value="${esc(cost.cost_name)}" placeholder="Nama biaya"></td>
-        <td><input type="number" name="other_costs[${idx}][qty]"       class="item-input oc-qty"   min="0" step="any" value="${qty}"  style="text-align:center;" required></td>
-        <td><input type="number" name="other_costs[${idx}][rate]"      class="item-input oc-rate"  min="0" step="any" value="${rate}" style="text-align:right;" required></td>
+        <td><input type="text"   name="other_costs[${idx}][cost_name]" class="item-input" value="${esc(cost.cost_name)}" placeholder="Nama biaya"></td>
+        <td><input type="number" name="other_costs[${idx}][qty]"       class="item-input oc-qty"   min="0" step="any" value="${qty}"  style="text-align:center;"></td>
+        <td><input type="number" name="other_costs[${idx}][rate]"      class="item-input oc-rate"  min="0" step="any" value="${rate}" style="text-align:right;"></td>
         <td class="subtotal-cell" id="osub-${idx}">${fmt(sub)}</td>
         <td><button type="button" class="btn-remove-row" onclick="removeOtherCostRow(this)"><i class="bi bi-x-lg"></i></button></td>
     `;
@@ -723,31 +733,47 @@ function formatNumberInput(el, hiddenId) {
 
 function recalc() {
     let mat = 0, lab = 0, oth = 0;
+    let hasDomItems = false;
 
     // Product subtotal (qty * unit_price)
-    document.querySelectorAll('#items-container .product-card').forEach(card => {
+    const productCards = document.querySelectorAll('#items-container .product-card');
+    if (productCards.length > 0) hasDomItems = true;
+    productCards.forEach(card => {
         mat += (parseFloat(card.querySelector('.item-qty')?.value)   || 0)
              * (parseFloat(card.querySelector('.item-price')?.value) || 0);
     });
 
     // Material subtotals (from sub-rows within product cards) — masuk ke total produksi
-    document.querySelectorAll('#items-container .mat-qty').forEach(el => {
+    const matRows = document.querySelectorAll('#items-container .mat-qty');
+    if (matRows.length > 0) hasDomItems = true;
+    matRows.forEach(el => {
         const tr = el.closest('tr');
         const qty   = parseFloat(el.value) || 0;
         const price = parseFloat(tr.querySelector('.mat-price')?.value) || 0;
         mat += qty * price;
     });
 
-    document.querySelectorAll('#labors-tbody tr').forEach(tr => {
+    const laborRows = document.querySelectorAll('#labors-tbody tr');
+    if (laborRows.length > 0) hasDomItems = true;
+    laborRows.forEach(tr => {
         lab += (parseInt(tr.querySelector('.labor-mp')?.value)     || 0)
              * (parseFloat(tr.querySelector('.labor-days')?.value) || 0)
              * (parseFloat(tr.querySelector('.labor-rate')?.value) || 0);
     });
 
-    document.querySelectorAll('#other-costs-tbody tr').forEach(tr => {
+    const otherRows = document.querySelectorAll('#other-costs-tbody tr');
+    if (otherRows.length > 0) hasDomItems = true;
+    otherRows.forEach(tr => {
         oth += (parseFloat(tr.querySelector('.oc-qty')?.value)  || 0)
              * (parseFloat(tr.querySelector('.oc-rate')?.value) || 0);
     });
+
+    // Jika tidak ada item di DOM (edit mode tanpa detail), gunakan nilai default dari invoice
+    if (!hasDomItems) {
+        mat = defaultSubtotal;
+        lab = defaultSubtotalLabor;
+        oth = defaultSubtotalOther;
+    }
 
     // Total = subtotal produksi + subtotal labor + subtotal biaya lain-lain
     const subtotalAll = mat + lab + oth;
@@ -772,10 +798,10 @@ function recalc() {
     document.getElementById('sum-total').textContent    = fmt(Math.max(total, 0));
 
     // Update hidden fields untuk dikirim ke server
+    // Note: discount sudah dikirim oleh input id="discount", jadi tidak perlu h-discount
     document.getElementById('h-mat').value      = mat.toFixed(2);
     document.getElementById('h-lab').value      = lab.toFixed(2);
     document.getElementById('h-oth').value      = oth.toFixed(2);
-    document.getElementById('h-discount').value = discount.toFixed(2);
     document.getElementById('h-dpp').value      = dpp.toFixed(2);
     document.getElementById('h-tax').value      = tax.toFixed(2);
     document.getElementById('h-total').value    = Math.max(total, 0).toFixed(2);
@@ -794,15 +820,18 @@ if (discountEl && discountDisplayEl) {
 
 /* ══ Boot ═══════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
-    (initItems.length  ? initItems  : [{}]).forEach(i => addProductCard(i));
-    (initLabors.length ? initLabors : []).forEach(l => addLaborRow(l));
-    (initOtherCosts.length ? initOtherCosts : []).forEach(c => addOtherCostRow(c));
+    // Hanya buat card jika ada data (tidak buat default card kosong)
+    if (initItems.length) initItems.forEach(i => addProductCard(i));
+    if (initLabors.length) initLabors.forEach(l => addLaborRow(l));
+    if (initOtherCosts.length) initOtherCosts.forEach(c => addOtherCostRow(c));
 
     // Semua card rincian selalu disembunyikan — staff finance tidak perlu melihat detail
-    // Data tetap ada di DOM dan akan terkirim saat form di-submit
     document.getElementById('card-items').classList.add('d-none');
     document.getElementById('card-labors').classList.add('d-none');
     document.getElementById('card-other-costs').classList.add('d-none');
+
+    // Hitung & tampilkan nilai awal (penting untuk edit mode dengan fallback nilai default)
+    recalc();
 });
 </script>
 @endpush
