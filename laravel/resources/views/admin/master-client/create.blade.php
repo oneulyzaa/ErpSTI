@@ -32,7 +32,7 @@
                     </div>
                     <div class="col-lg-6 col-md-12 mb-3">
                         <label for="email_perusahaan">Email Perusahaan <span class="text-danger">*</span></label>
-                        <input type="email" class="form-control" id="email_perusahaan" name="email_perusahaan" required>
+                        <input type="email" class="form-control" id="email_perusahaan" name="email_perusahaan">
                     </div>
                 </div>
             </div>
@@ -57,7 +57,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="nomor_telepon_pengiriman">Telepon Pengiriman</label>
-                            <input type="text" class="form-control" id="nomor_telepon_pengiriman" name="nomor_telepon_pengiriman" required>
+                            <input type="text" class="form-control" id="nomor_telepon_pengiriman" name="nomor_telepon_pengiriman">
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-12">
@@ -67,13 +67,13 @@
                         </div>
                         <div class="mb-3">
                             <label for="nomor_telepon_faktur">Telepon Faktur</label>
-                            <input type="text" class="form-control" id="nomor_telepon_faktur" name="nomor_telepon_faktur" required>
+                            <input type="text" class="form-control" id="nomor_telepon_faktur" name="nomor_telepon_faktur" >
                         </div>
                     </div>
                     <div class="col-lg-4 col-md-12">
                         <div class="mb-3">
                             <label for="alamat_efaktur_perusahaan">Alamat E-Faktur</label>
-                            <textarea class="form-control" id="alamat_efaktur_perusahaan" name="alamat_efaktur_perusahaan" rows="3" required></textarea>
+                            <textarea class="form-control" id="alamat_efaktur_perusahaan" name="alamat_efaktur_perusahaan" rows="3"></textarea>
                         </div>
                     </div>
                 </div>

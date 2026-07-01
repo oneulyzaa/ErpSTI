@@ -45,15 +45,15 @@
                         <td>{{ $loop->iteration }}</td>
                         <td>{{ $client->id_perusahaan }}</td>
                         <td>{{ $client->nama_perusahaan }}</td>
-                        <td>{{ $client->email_perusahaan }}</td>
-                        <td>{{ $client->nama_kontak_perusahaan }}</td>
-                        <td>{{ $client->npwp_perusahaan }}</td>
-                        <td>{{ $client->alamat_pengiriman_perusahaan }}</td>
-                        <td>{{ $client->nomor_telepon_pengiriman }}</td>
-                        <td>{{ $client->alamat_faktur_perusahaan }}</td>
-                        <td>{{ $client->nomor_telepon_faktur }}</td>
-                        <td>{{ $client->alamat_efaktur_perusahaan }}</td>
-                        <td>{{ $client->nomor_rekening_perusahaan }}</td>
+                        <td>{{ $client->email_perusahaan ?? '-' }}</td>
+                        <td>{{ $client->nama_kontak_perusahaan ?? '-' }}</td>
+                        <td>{{ $client->npwp_perusahaan ?? '-' }}</td>
+                        <td>{{ $client->alamat_pengiriman_perusahaan ?? '-' }}</td>
+                        <td>{{ $client->nomor_telepon_pengiriman ?? '-' }}</td>
+                        <td>{{ $client->alamat_faktur_perusahaan ?? '-' }}</td>
+                        <td>{{ $client->nomor_telepon_faktur ?? '-' }}</td>
+                        <td>{{ $client->alamat_efaktur_perusahaan ?? '-' }}</td>
+                        <td>{{ $client->nomor_rekening_perusahaan ?? '-' }}</td>
                         <td>
                             <a href="{{ route('admin.master-clients.edit', $client->id) }}" class="btn btn-sm btn-primary">
                                 <i class="bi-pencil"></i> Ubah
