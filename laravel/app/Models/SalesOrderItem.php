@@ -32,4 +32,39 @@ class SalesOrderItem extends Model
     {
         return $this->hasMany(SalesOrderItemMaterial::class)->orderBy('sort_order');
     }
+
+    /**
+     * Total subtotal dari semua materials item ini
+     */
+    public function getMaterialsSubtotalAttribute()
+    {
+        return $this->materials->sum('subtotal');
+    }
+
+    /**
+     * Harga per unit dihitung dari total materials / qty item
+     * (jika punya materials)
+     */
+    public function getCalculatedUnitPriceAttribute()
+    {
+        if ($this->materials->count() > 0) {
+            $matSubtotal = $this->materials_subtotal;
+            if ($this->qty > 0) {
+                return $matSubtotal / $this->qty;
+            }
+            return $matSubtotal;
+        }
+        return $this->unit_price;
+    }
+
+    /**
+     * Subtotal yang dihitung: jika punya materials, gunakan total materials
+     */
+    public function getCalculatedSubtotalAttribute()
+    {
+        if ($this->materials->count() > 0) {
+            return $this->materials_subtotal;
+        }
+        return $this->subtotal;
+    }
 }

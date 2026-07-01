@@ -9,12 +9,10 @@
 
         body {
             font-family: 'DejaVu Sans', Arial, sans-serif;
-            font-size: 9px;
+            font-size: 8.5px;
             color: #1a1a1a;
             background: #fff;
         }
-
-        /* .page { padding: 20px 26px 16px; } */
 
         .header-wrap {
             width: 100%;
@@ -23,27 +21,27 @@
         }
         .header-wrap td { vertical-align: top; padding: 0; }
 
-        .logo-cell { width: 220px; }
-        .logo-cell img { width: 165px; display: block; }
+        .logo-cell { width: 200px; }
+        .logo-cell img { width: 150px; display: block; }
 
         .company-info {
-            font-size: 7.5px;
+            font-size: 7px;
             color: #555;
-            line-height: 1.65;
-            margin-top: 5px;
+            line-height: 1.3;
+            margin-top: 3px;
         }
         .company-info a { color: #1B5DBC; text-decoration: none; }
 
         .title-cell { text-align: right; }
 
         .doc-title {
-            font-size: 24px;
+            font-size: 17px;
             font-weight: bold;
-            letter-spacing: 3px;
+            letter-spacing: 2px;
             color: #1B5DBC;
             text-transform: uppercase;
             line-height: 1;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
 
         .meta-table {
@@ -52,8 +50,8 @@
         }
         .meta-table td {
             border: 1px solid #c0c8d8;
-            padding: 2.5px 7px;
-            font-size: 8px;
+            padding: 1.5px 6px;
+            font-size: 7.5px;
             white-space: nowrap;
         }
         .meta-label {
@@ -61,34 +59,34 @@
             font-weight: bold;
             color: #333;
             text-align: right;
-            width: 76px;
+            width: 70px;
         }
         .meta-value {
             background: #fff;
-            min-width: 120px;
-            font-family: 'DejaVu Sans Mono', monospace;
+            min-width: 110px;
+            /* font-family: 'DejaVu Sans Mono', monospace; */
         }
 
         .divider {
             border: none;
-            border-top: 2.5px solid #1B5DBC;
-            margin: 7px 0 6px;
+            border-top: 2px solid #1B5DBC;
+            margin: 4px 0 4px;
         }
 
         .client-block {
             width: 100%;
             border-collapse: collapse;
             border: 1px solid #c8d0dc;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
         .client-block td {
-            padding: 4px 8px;
-            font-size: 8.5px;
+            padding: 3px 7px;
+            font-size: 8px;
             vertical-align: top;
         }
 
         .client-lbl {
-            font-size: 7px;
+            font-size: 6.5px;
             font-weight: bold;
             color: #888;
             text-transform: uppercase;
@@ -96,14 +94,14 @@
             margin-bottom: 1px;
         }
         .client-val {
-            font-size: 9px;
+            font-size: 8.5px;
             font-weight: bold;
             color: #111;
         }
         .client-sub {
-            font-size: 8px;
+            font-size: 7.5px;
             color: #444;
-            line-height: 1.5;
+            line-height: 1.3;
         }
         .client-divider { border-right: 1px solid #dde3ec; }
         .client-sep { border-top: 1px dotted #dde3ec; }
@@ -111,21 +109,21 @@
         .item-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
         .item-table th {
             background: #ffffff;
             color: #000;
-            font-size: 7.5px;
+            font-size: 7px;
             font-weight: bold;
             text-transform: uppercase;
-            padding: 3.5px 5px;
+            padding: 2.5px 5px;
             border: 1px solid #d5d5d5;
         }
         .item-table td {
             border: 1px solid #ccd3df;
-            padding: 2.5px 5px;
-            font-size: 8px;
+            padding: 2px 5px;
+            font-size: 7.5px;
             vertical-align: middle;
         }
         .item-table .th-left { text-align: left; }
@@ -138,42 +136,42 @@
         .col-unit { width: 38px; text-align: center; }
 
         .row-odd  { background: #fff; }
-        .row-even { backgrouneaeaead: #ffffff; }
+        .row-even { background: #ffffff; }
 
         .total-row td {
             background: #d6e4f5;
             font-weight: bold;
             border-top: 2px solid #eaeaea;
-            font-size: 8.5px;
+            font-size: 8px;
         }
 
         .footer-note {
-            margin-top: 10px;
-            font-size: 7.5px;
+            margin-top: 6px;
+            font-size: 7px;
             color: #555;
-            line-height: 1.6;
+            line-height: 1.3;
             border-top: 1px solid #dde3ec;
-            padding-top: 8px;
+            padding-top: 5px;
         }
 
         .signature-wrap {
             width: 100%;
-            margin-top: 20px;
+            margin-top: 10px;
         }
         .signature-wrap td {
             width: 50%;
             text-align: center;
             padding: 0 20px;
-            font-size: 8.5px;
+            font-size: 8px;
         }
         .signature-line {
-            margin-top: 36px;
+            margin-top: 55px;
             border-top: 1px solid #333;
-            width: 160px;
+            width: 150px;
             display: inline-block;
         }
         @page {
-            margin: 20px 26px 20px 26px !important;
+            margin: 12px 16px 12px 16px !important;
         }
     </style>
 </head>
@@ -186,7 +184,7 @@
                     @if($logoBase64)
                         <img src="{{ $logoBase64 }}" alt="Logo STI">
                     @else
-                        <div style="font-size:18px;font-weight:bold;color:#1B5DBC;">PT. STI</div>
+                        <div style="font-size:16px;font-weight:bold;color:#1B5DBC;">PT. STI</div>
                     @endif
                     <div class="company-info">
                         Ruko Palazo Blok AB 46, Ciantra<br>
@@ -226,7 +224,7 @@
                 <td class="client-divider" style="width:50%;">
                     <div class="client-lbl">Kepada</div>
                     <div class="client-val">{{ $deliveryOrder->client_company }}</div>
-                    <div class="client-sub" style="margin-top:2px;">
+                    <div class="client-sub" style="margin-top:1px;">
                         Kontak: {{ $deliveryOrder->client_name }}<br>
                         @if($deliveryOrder->client_attention)Attn: {{ $deliveryOrder->client_attention }}<br>@endif
                         @if($deliveryOrder->client_cc)CC: {{ $deliveryOrder->client_cc }}<br>@endif
@@ -236,7 +234,7 @@
                 <td style="width:50%;">
                     <div class="client-lbl">Pengirim</div>
                     <div class="client-val">PT. Sistem Teknologi Integrator</div>
-                    <div class="client-sub" style="margin-top:2px;">
+                    <div class="client-sub" style="margin-top:1px;">
                         Ruko Palazo Blok AB 46, Ciantra<br>
                         Cikarang Selatan, Bekasi 17530
                     </div>
@@ -269,13 +267,12 @@
          </table>
 
         {{-- ═══ ITEMS TABLE ═══ --}}
-        <div style="font-size:8px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;padding:3px 6px;background:#eaeaea;color:#000;margin-bottom:0;">Item Pengiriman</div>
+        <div style="font-size:7.5px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;padding:2px 6px;background:#eaeaea;color:#000;margin-bottom:0;">Item Pengiriman</div>
         <table class="item-table">
             <thead>
                 <tr>
                     <th class="col-no">#</th>
                     <th class="th-left col-name">Description</th>
-                    {{-- <th class="th-center col-unit">Satuan</th> --}}
                     <th class="th-right col-qty">Qty</th>
                 </tr>
             </thead>
@@ -286,19 +283,16 @@
                     <td>
                         <div style="font-weight:bold;">{{ $item->item_name }}</div>
                         @if($item->description)
-                            <div style="font-size:7px;color:#666;">{{ $item->description }}</div>
+                            <div style="font-size:6.5px;color:#666;">{{ $item->description }}</div>
                         @endif
                     </td>
-                    {{-- <td style="text-align:center;">{{ $item->unit }}</td> --}}
                     <td style="text-align:right;">{{ number_format($item->qty, 2, ',', '.') }}</td>
                 </tr>
-            
                 @endforeach
             </tbody>
             <tfoot>
                 <tr class="total-row">
                     <td colspan="4" style="text-align:right;">Total Item: {{ $deliveryOrder->items->count() }}</td>
-                    {{-- <td style="text-align:right;">{{ number_format($deliveryOrder->items->sum('qty'), 2, ',', '.') }}</td> --}}
                 </tr>
             </tfoot>
         </table>
@@ -316,15 +310,13 @@
             <tr>
                 <td>
                     <div>Pengirim,</div>
-                    <br>
                     <div class="signature-line"></div>
-                    <div style="margin-top:4px;font-weight:bold;">Agung Indrianto</div>
+                    <div style="margin-top:3px;font-weight:bold;">Agung Indrianto</div>
                 </td>
                 <td>
                     <div>Diterima Oleh,</div>
-                    <br>
                     <div class="signature-line"></div>
-                    <div style="margin-top:4px;font-weight:bold;">&nbsp;</div>
+                    <div style="margin-top:3px;font-weight:bold;">&nbsp;</div>
                 </td>
             </tr>
         </table>

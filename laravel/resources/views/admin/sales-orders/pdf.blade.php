@@ -66,7 +66,7 @@
         .meta-value {
             background: #fff;
             min-width: 120px;
-            font-family: 'DejaVu Sans Mono', monospace;
+            /* font-family: 'DejaVu Sans Mono', monospace; */
         }
 
         .divider {
@@ -365,8 +365,13 @@
                     </td>
                     <td style="text-align:right;">{{ number_format($item->qty, 2, ',', '.') }}</td>
                     <td style="text-align:center;">{{ $item->unit }}</td>
-                    <td style="text-align:right;">Rp {{ number_format($item->unit_price, 0, ',', '.') }}</td>
+                    <td style="text-align:center;">&nbsp;{{ floatval($item->unit_price) > 0 ? 'Rp '.number_format($item->unit_price, 0, ',', '.') : '-' }}</td>
+                    @if($item->materials && $item->materials->count())
+                    &nbsp;
+                    <td style="text-align:right;">Rp {{ number_format($item->materials_subtotal, 0, ',', '.') }}</td>
+                    @else
                     <td style="text-align:right;">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</td>
+                    @endif
                 </tr>
                 @endforeach
             </tbody>
@@ -437,7 +442,7 @@
                     <td>{{ $i + 1 }}</td>
                     <td><strong>{{ $cost->cost_name }}</strong></td>
                     <td style="text-align:center;">{{ number_format($cost->qty, 2, ',', '.') }}</td>
-                    <td style="text-align:right;">Rp {{ number_format($cost->rate, 0, ',', '.') }}</td>
+                    <td style="text-align:center;">&nbsp;{{ floatval($cost->unit_price) > 0 ? 'Rp '.number_format($cost->unit_price, 0, ',', '.') : '-' }}</td>
                     <td style="text-align:right;">Rp {{ number_format($cost->subtotal, 0, ',', '.') }}</td>
                 </tr>
                 @endforeach
