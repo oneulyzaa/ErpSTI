@@ -45,7 +45,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('quotation_id')->constrained('quotations')->cascadeOnDelete();
             $table->integer('sort_order')->default(0);
-            $table->string('item_name');
+            $table->string('material_name');
             $table->text('description')->nullable();
             $table->string('unit')->default('Unit');
             $table->decimal('qty', 10, 2)->default(1);
