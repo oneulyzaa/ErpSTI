@@ -77,21 +77,21 @@
                 <div class="card-body">
                     <div class="section-label">Nomor & Referensi</div>
                     <div class="row g-3 mb-3">
-                        <div class="col-12 col-sm-3">
+                        <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">No. SO <span class="text-danger">*</span></label>
                             <input type="text" name="so_number"
                                    class="form-control form-control-sm @error('so_number') is-invalid @enderror"
                                    value="{{ old('so_number', $isEdit ? $salesOrder->so_number : $soNumber) }}" required>
                             @error('so_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
-                        <div class="col-12 col-sm-3">
+                        <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">Nomor PO</label>
                             <input type="text" name="nomor_po"
                                    class="form-control form-control-sm @error('nomor_po') is-invalid @enderror"
                                    value="{{ old('nomor_po', $isEdit ? $salesOrder->nomor_po : '') }}">
                             @error('nomor_po')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
-                        <div class="col-12 col-sm-3">
+                        <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">Referensi Quotation</label>
                             <select name="quotation_id" id="quotation_id" class="form-select form-select-sm"
                                     data-url-template="{{ route('admin.sales-orders.quotation-data', ['quotation' => '__ID__']) }}">
@@ -106,14 +106,7 @@
                             <input type="hidden" name="quote_number" id="quote_number"
                                    value="{{ old('quote_number', $isEdit ? $salesOrder->quote_number : ($copyQuote ? $quotation->quote_number : '')) }}">
                         </div>
-                        <div class="col-12 col-sm-3">
-                            <label class="form-label fw-semibold" style="font-size:13px">Status <span class="text-danger">*</span></label>
-                            <select name="status" class="form-select form-select-sm" required>
-                                @foreach(['draft'=>'Draft','confirmed'=>'Confirmed','in_progress'=>'In Progress','completed'=>'Completed','cancelled'=>'Cancelled'] as $v=>$l)
-                                    <option value="{{ $v }}" {{ old('status', $isEdit ? $salesOrder->status : 'draft') === $v ? 'selected' : '' }}>{{ $l }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+                        
                     </div>
 
                     <div class="row g-3 mb-4">
@@ -124,9 +117,12 @@
                             @error('date')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold" style="font-size:13px">Tanggal Pengiriman</label>
-                            <input type="date" name="delivery_date" class="form-control form-control-sm"
-                                   value="{{ old('delivery_date', $isEdit && $salesOrder->delivery_date ? $salesOrder->delivery_date->format('Y-m-d') : '') }}">
+                            <label class="form-label fw-semibold" style="font-size:13px">Status <span class="text-danger">*</span></label>
+                            <select name="status" class="form-select form-select-sm" required>
+                                @foreach(['draft'=>'Draft','confirmed'=>'Confirmed','in_progress'=>'In Progress','completed'=>'Completed','cancelled'=>'Cancelled'] as $v=>$l)
+                                    <option value="{{ $v }}" {{ old('status', $isEdit ? $salesOrder->status : 'draft') === $v ? 'selected' : '' }}>{{ $l }}</option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
 
