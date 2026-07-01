@@ -123,7 +123,7 @@
             </div>
             @else
             <div class="card-body text-muted" style="font-size:13px;">
-                <i class="bi bi-info-circle"></i> Belum ada bahan baku yang ditentukan.
+                <i>Tidak ada bahan baku yang ditentukan.</i>
             </div>
             @endif
         </div>

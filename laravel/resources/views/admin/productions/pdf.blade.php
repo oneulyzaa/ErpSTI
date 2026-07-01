@@ -24,7 +24,7 @@
         .header-wrap td { vertical-align: top; padding: 0; }
 
         .logo-cell { width: 220px; }
-        .logo-cell img { width: 165px; display: block; }
+        .logo-cell img { width: 95px; display: block; }
 
         .company-info {
             font-size: 7.5px;
@@ -66,7 +66,7 @@
         .meta-value {
             background: #fff;
             min-width: 120px;
-            font-family: 'DejaVu Sans Mono', monospace;
+            /* font-family: 'DejaVu Sans Mono',arial; */
         }
 
         .divider {
@@ -112,8 +112,6 @@
             margin-bottom: 6px;
         }
         .product-header {
-            background: #1e3a5f;
-            color: #fff;
             font-size: 8.5px;
             font-weight: bold;
             padding: 4px 8px;
@@ -123,7 +121,6 @@
             float: right;
             font-weight: normal;
             font-size: 7.5px;
-            color: #b8cae0;
         }
 
         .mat-table {
@@ -131,13 +128,11 @@
             border-collapse: collapse;
         }
         .mat-table th {
-            background: #2c4f8a;
-            color: #fff;
             font-size: 7px;
             font-weight: bold;
             text-transform: uppercase;
             padding: 3px 5px;
-            border: 1px solid #1e3a6e;
+            border: 1px solid #e0e0e0;
         }
         .mat-table td {
             border: 1px solid #ccd3df;
@@ -302,10 +297,10 @@
                     @endforeach
                 </tbody>
             </table>
-            @else
+            {{-- @else
             <div style="padding:6px 8px;font-size:8px;color:#888;font-style:italic;">
                 Belum ada bahan baku yang ditentukan.
-            </div>
+            </div> --}}
             @endif
         </div>
         @endforeach
