@@ -14,7 +14,7 @@ use App\Http\Controllers\SalesOrderController;
 use App\Http\Controllers\ProductionController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login');
 });
 
 // Login
