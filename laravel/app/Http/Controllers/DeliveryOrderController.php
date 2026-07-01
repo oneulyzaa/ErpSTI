@@ -166,8 +166,8 @@ class DeliveryOrderController extends Controller
         }
 
         $pdf = Pdf::loadView('admin.delivery-orders.pdf', compact('deliveryOrder', 'logoBase64'))
-            ->setPaper('a4', 'portrait')
-            ->setOption('defaultFont', 'DejaVu Sans')
+            ->setPaper('a5', 'landscape')
+            // ->setOption('defaultFont', 'DejaVu Sans')
             ->setOption('isHtml5ParserEnabled', true)
             ->setOption('isRemoteEnabled', false);
 
