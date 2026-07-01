@@ -60,7 +60,7 @@
         .meta-value {
             background: #fff;
             min-width: 130px;
-            font-family: 'DejaVu Sans Mono', monospace;
+            /* font-family: 'DejaVu Sans Mono', monospace; */
         }
 
         /* ── STATUS BADGES ── */
