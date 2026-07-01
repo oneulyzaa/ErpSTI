@@ -75,15 +75,13 @@
                                     value="{{ old('nomor_po', $isEdit ? $receipt->nomor_po : '') }}"
                                     placeholder="Auto-load dari Invoice">
                          </div>
-                         <div class="col-12 col-sm-4">
+                         <div class="col-12 col-sm-6">
                              <label class="form-label fw-semibold" style="font-size:13px">Nama Project</label>
                              <input type="text" name="project_name" id="project_name" class="form-control form-control-sm"
                                     value="{{ old('project_name', $isEdit ? $receipt->project_name : '') }}"
                                     placeholder="Auto-load dari Invoice">
                          </div>
-                     </div>
-                     <div class="row g-3 mb-4">
-                         <div class="col-12 col-sm-4">
+                         <div class="col-12 col-sm-6">
                              <label class="form-label fw-semibold" style="font-size:13px">Status <span class="text-danger">*</span></label>
                             <select name="status" class="form-select form-select-sm" required>
                                 @foreach(['draft'=>'Draft','confirmed'=>'Confirmed','cancelled'=>'Cancelled'] as $v=>$l)

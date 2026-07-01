@@ -94,8 +94,7 @@ class ReceiptController extends Controller
         }
 
         $pdf = Pdf::loadView('admin.receipts.pdf', compact('receipt', 'logoBase64'))
-            ->setPaper('a4', 'portrait')
-            ->setOption('defaultFont', 'DejaVu Sans')
+            ->setPaper('a5', 'landscape')
             ->setOption('isHtml5ParserEnabled', true)
             ->setOption('isRemoteEnabled', false);
 
