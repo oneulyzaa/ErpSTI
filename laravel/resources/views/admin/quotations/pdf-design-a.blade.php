@@ -23,7 +23,7 @@
         }
         .header-wrap td { vertical-align: top; padding: 0; }
         .logo-cell { width: 220px; }
-        .logo-cell img { width: 165px; display: block; }
+        .logo-cell img { width: 95px; display: block; }
         .company-info {
             font-size: 7.5px;
             color: #555;
@@ -61,7 +61,7 @@
         .meta-value {
             background: #fff;
             min-width: 120px;
-            font-family: 'DejaVu Sans Mono', monospace;
+            /* font-family: 'DejaVu Sans Mono', monospace; */
         }
         /* ══════════════════════════════
            DIVIDERS
@@ -504,8 +504,8 @@
                 <td>{{ $row['data']->material_name }}</td>
                 <td class="tc">{{ $row['data']->unit }}</td>
                 <td class="tr mono">{{ number_format($row['data']->qty, 0, ',', '.') }}</td>
-                <td class="tr mono">Rp&nbsp;{{ number_format($row['data']->unit_price, 0, ',', '.') }}</td>
-                <td class="tr mono">Rp&nbsp;{{ number_format($row['data']->subtotal, 0, ',', '.') }}</td>
+                <td class="tr mono">&nbsp;{{ floatval($row['data']->unit_price) > 0 ? 'Rp '.number_format($row['data']->unit_price, 0, ',', '.') : '-' }}</td>
+                <td class="tr mono">&nbsp;{{ floatval($row['data']->subtotal) > 0 ? 'Rp '.number_format($row['data']->subtotal, 0, ',', '.') : '-' }}</td>
             </tr>
             @else
             <tr class="{{ $i % 2 === 0 ? 'row-odd' : 'row-even' }}">

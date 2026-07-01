@@ -1003,6 +1003,8 @@ function recalc() {
 
 
 /* ══ Boot ═══════════════════════════════════════════ */
+const isEdit = @json($isEdit);
+
 document.addEventListener('DOMContentLoaded', () => {
     // Render existing items as product cards
     (initItems.length ? initItems : [{}]).forEach(item => addProductCard(item));
@@ -1010,11 +1012,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Labors
     (initLabors.length ? initLabors : [{}]).forEach(l => addLaborRow(l));
 
-    // ── Tambah overhead row pertama (index 0) ──
-    const tbody = document.getElementById('other-costs-tbody');
-    tbody.appendChild(createOverheadRow());
+    // Other Costs: Hanya buat overhead row default jika MODE CREATE
+    // Jika MODE EDIT, gunakan data yang sudah ada di database (initOtherCosts)
+    if (!isEdit) {
+        // ── Tambah overhead row pertama (index 0) ──
+        const tbody = document.getElementById('other-costs-tbody');
+        tbody.appendChild(createOverheadRow());
+    }
     
-    // Other Costs
+    // Load other costs dari database (untuk mode EDIT) atau kosong (mode CREATE)
     (initOtherCosts.length ? initOtherCosts : []).forEach(c => addOtherCostRow(c));
 
     document.getElementById('btn-add-product')?.addEventListener('click',     () => addProductCard());

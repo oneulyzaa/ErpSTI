@@ -15,6 +15,43 @@
     .badge-rejected { background:#fee2e2; color:#b91c1c; }
     .badge-expired  { background:#fef9c3; color:#92400e; }
     .mat-section-header th { background:#2c4f8a !important; color:#fff !important; font-size:10px; text-transform:uppercase; }
+    .mat-table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 12.5px;
+    }
+    .mat-table thead th {
+        background: #f8faff;
+        color: #64748b;
+        font-size: 10.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        padding: 8px 10px;
+        border: none;
+        border-bottom: 1.5px solid #e2e8f0;
+    }
+    .mat-table tbody td {
+        padding: 9px 10px;
+        border: none;
+        border-bottom: 1px solid #f1f5f9;
+        color: #334155;
+        vertical-align: middle;
+    }
+    .mat-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+    .mat-table tbody tr:hover td {
+        background: #f8faff;
+    }
+    .mat-table .mat-num {
+        font-family: monospace;
+    }
+    .mat-wrap {
+        border: 1px solid #eef1f6;
+        border-radius: 10px;
+        overflow: hidden;
+    }
 </style>
 @endpush
 
@@ -106,9 +143,9 @@
 
         {{-- Produk --}}
         <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
+            <div class="card-header border-bottom py-3 d-flex align-items-center justify-content-between text-white" style="background:#1B5DBC;">
                 <span class="fw-semibold">Produk</span>
-                <span class="badge bg-secondary bg-opacity-10 text-secondary">{{ $quotation->items->count() }} produk</span>
+                <span class="badge bg-white bg-opacity-25 text-white ">{{ $quotation->items->count() }} produk</span>
             </div>
             <div class="card-body p-0">
                 @foreach($quotation->items as $i => $item)
@@ -120,45 +157,67 @@
                             <small class="text-muted d-block">{{ $item->description }}</small>
                             @endif
                         </div>
-                        <div class="text-end" style="font-size:13px;">
-                            <span class="text-muted">{{ number_format($item->qty, 2, ',', '.') }} {{ $item->unit }}</span>
-                            &nbsp;×&nbsp;
-                            <span>Rp {{ number_format($item->unit_price, 0, ',', '.') }}</span>
-                            &nbsp;=&nbsp;
-                            <span class="fw-bold" style="font-family:monospace;">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</span>
-                        </div>
+                        
+                         <div class="text-end" style="font-size:13px;">
+                             <span class="text-muted">{{ number_format($item->qty, 2, ',', '.') }} {{ $item->unit }}</span>
+                             &nbsp;&nbsp;
+                             {{-- Hanya tampilkan unit price & subtotal jika TIDAK punya materials --}}
+                             @unless($item->materials && $item->materials->count())
+                             x <span>Rp {{ number_format($item->unit_price, 0, ',', '.') }}</span>
+                             &nbsp;=&nbsp;
+                             <span class="fw-bold" style="font-family:monospace;">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</span>
+                             @endunless
+
+                             {{-- Jika punya materials, tampilkan total materials sebagai subtotal produk --}}
+                             @if($item->materials && $item->materials->count())
+                             &nbsp;
+                             <span class="fw-bold" style="font-family:monospace;">
+                                 = Rp {{ number_format($item->materials_subtotal, 0, ',', '.') }}
+                             </span>
+                             @endif
+                         </div>
+                        
                     </div>
 
                     {{-- Materials under this product --}}
                     @if($item->materials && $item->materials->count())
-                    <div class="ms-3 mt-2">
-                        <div style="font-size:11px;font-weight:700;color:#1B5DBC;text-transform:uppercase;margin-bottom:4px;">Material</div>
-                        <table class="table table-sm table-bordered" style="font-size:12px;">
-                            <thead>
-                                <tr class="mat-section-header">
-                                    <th style="width:28px;">#</th>
-                                    <th>Nama Material</th>
-                                    <th style="width:70px;text-align:center;">Satuan</th>
-                                    <th style="width:80px;text-align:right;">Qty</th>
-                                    <th style="width:110px;text-align:right;">Harga Satuan</th>
-                                    <th style="width:110px;text-align:right;">Subtotal</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($item->materials as $mi => $mat)
-                                <tr>
-                                    <td class="text-center text-muted">{{ $mi+1 }}</td>
-                                    <td>{{ $mat->material_name }}</td>
-                                    <td class="text-center">{{ $mat->satuan }}</td>
-                                    <td class="text-end">{{ number_format($mat->qty_required, 2, ',', '.') }}</td>
-                                    <td class="text-end">Rp {{ number_format($mat->unit_price, 0, ',', '.') }}</td>
-                                    <td class="text-end fw-semibold">Rp {{ number_format($mat->subtotal, 0, ',', '.') }}</td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                    <div class="ms-3 mt-3">
+                        <div style="font-size:10.5px;font-weight:700;color:#1B5DBC;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">Material</div>
+                        <div class="mat-wrap">
+                            <table class="mat-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:28px;">#</th>
+                                        <th>Nama Material</th>
+                                        <th style="width:70px;text-align:center;">Satuan</th>
+                                        <th style="width:80px;text-align:right;">Qty</th>
+                                        <th style="width:130px;text-align:right;">Harga Satuan</th>
+                                        <th style="width:155px;text-align:right;">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($item->materials as $mi => $mat)
+                                    <tr>
+                                        <td class="mat-num text-center text-muted">{{ $mi+1 }}</td>
+                                        <td class="fw-medium">{{ $mat->material_name }}</td>
+                                        <td class="text-center text-muted">{{ $mat->satuan }}</td>
+                                        <td class="mat-num text-end">{{ number_format($mat->qty_required, 2, ',', '.') }}</td>
+                                        <td class="mat-num text-end text-muted">Rp {{ number_format($mat->unit_price, 0, ',', '.') }}</td>
+                                        <td class="mat-num text-end fw-semibold">Rp {{ number_format($mat->subtotal, 0, ',', '.') }}</td>
+                                    </tr>
+                                    @endforeach
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="5" class="text-end fw-semibold" style="padding:9px 10px;background:#f8faff;border-top:1.5px solid #e2e8f0;font-size:11.5px;color:#475569;">Subtotal Material</td>
+                                        <td class="mat-num text-end fw-bold" style="padding:9px 10px;background:#f8faff;border-top:1.5px solid #e2e8f0;color:#1B5DBC;">Rp {{ number_format($item->materials->sum('subtotal'), 0, ',', '.') }}</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
                     </div>
                     @endif
+
                 </div>
                 @endforeach
 
