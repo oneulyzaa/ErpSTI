@@ -28,7 +28,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             // Nilai agregat
             $table->decimal('subtotal', 15, 2)->default(0);
-            $table->enum('status', ['draft', 'in_transit', 'delivered', 'cancelled'])->default('draft');
+            $table->string('status')->default('draft');
             $table->text('notes')->nullable();
             $table->timestamps();
         });

@@ -62,7 +62,7 @@ return new class extends Migration
             $table->decimal('total', 15, 2)->default(0);
             
             // Status Pembayaran
-            $table->enum('status', ['draft', 'sent', 'partial', 'paid', 'overdue', 'cancelled'])->default('draft');
+            $table->string('status')->default('draft');
             
             // Jumlah yang sudah dibayar
             $table->decimal('amount_paid', 15, 2)->default(0);

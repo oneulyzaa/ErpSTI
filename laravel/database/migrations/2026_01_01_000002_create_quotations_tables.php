@@ -34,7 +34,7 @@ return new class extends Migration
             $table->decimal('tax_percentage', 5, 2)->default(11);
             $table->decimal('tax_amount', 15, 2)->default(0);
             $table->decimal('total', 15, 2)->default(0);
-            $table->enum('status', ['draft', 'sent', 'confirmed', 'rejected', 'cancelled'])->default('draft');
+            $table->string('status')->default('draft');
             $table->text('notes')->nullable();
             $table->text('term_and_condition')->nullable();
             $table->timestamps();

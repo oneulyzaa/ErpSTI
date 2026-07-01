@@ -42,7 +42,7 @@ return new class extends Migration
             // Jumlah pembayaran
             $table->decimal('amount', 15, 2)->default(0);
             
-            $table->enum('status', ['draft', 'confirmed', 'cancelled'])->default('draft');
+            $table->string('status')->default('draft');
             $table->text('notes')->nullable();
             $table->timestamps();
         });

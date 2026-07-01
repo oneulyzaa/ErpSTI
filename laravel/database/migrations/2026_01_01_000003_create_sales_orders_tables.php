@@ -36,7 +36,7 @@ return new class extends Migration
             $table->decimal('tax_percentage', 5, 2)->default(11);
             $table->decimal('tax_amount', 15, 2)->default(0);
             $table->decimal('total', 15, 2)->default(0);
-            $table->enum('status', ['draft', 'confirmed', 'in_progress', 'completed', 'cancelled'])->default('draft');
+            $table->string('status')->default('draft');
             $table->text('notes')->nullable();
             $table->timestamps();
         });
@@ -46,7 +46,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('sales_order_id')->constrained('sales_orders')->cascadeOnDelete();
             $table->integer('sort_order')->default(0);
-            $table->string('item_name');
             $table->string('material_name')->nullable();
             $table->text('description')->nullable();
             $table->string('unit')->default('Unit');
