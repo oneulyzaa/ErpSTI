@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('project_name')->nullable();
             $table->date('date');
             $table->date('start_date')->nullable();
-            $table->date('end_date')->nullable();
+            $table->date('target_date')->nullable();
             $table->string('client_name')->nullable();
             $table->string('client_company')->nullable();
             $table->text('description')->nullable();
@@ -31,7 +31,7 @@ return new class extends Migration
             $table->decimal('tax_percentage', 5, 2)->default(11);
             $table->decimal('tax_amount', 15, 2)->default(0);
             $table->decimal('total', 15, 2)->default(0);
-            $table->string('status')->default('draft');
+            $table->string('status')->default('planned');
             $table->text('notes')->nullable();
             $table->timestamps();
         });
@@ -40,13 +40,15 @@ return new class extends Migration
         Schema::create('production_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('production_id')->constrained('productions')->cascadeOnDelete();
+            $table->foreignId('sales_order_item_id')->nullable()->constrained('sales_order_items')->nullOnDelete();
             $table->integer('sort_order')->default(0);
-            $table->string('item_name');
+            $table->string('product_name');
             $table->text('description')->nullable();
+            $table->decimal('product_qty', 10, 2)->default(1);
             $table->string('unit')->default('Unit');
-            $table->decimal('qty', 10, 2)->default(1);
             $table->decimal('unit_price', 15, 2)->default(0);
             $table->decimal('subtotal', 15, 2)->default(0);
+            $table->string('status')->default('pending');
             $table->timestamps();
         });
 
@@ -55,7 +57,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('production_item_id')->constrained('production_items')->cascadeOnDelete();
             $table->foreignId('asset_id')->nullable()->constrained('assets')->nullOnDelete();
-            $table->string('material_name');
+            $table->string('nama_bahan_baku');
             $table->string('satuan')->default('pcs');
             $table->decimal('qty_required', 10, 2)->default(0);
             $table->decimal('qty_used', 10, 2)->default(0);

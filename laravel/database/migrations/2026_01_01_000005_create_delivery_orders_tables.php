@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('client_attention')->nullable();
             $table->string('client_cc')->nullable();
             $table->string('client_email')->nullable();
-            $table->text('client_address')->nullable();
+            $table->text('destination_address')->nullable();
             $table->text('description')->nullable();
             // Nilai agregat
             $table->decimal('subtotal', 15, 2)->default(0);
