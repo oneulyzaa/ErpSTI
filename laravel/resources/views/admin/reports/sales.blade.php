@@ -10,19 +10,6 @@
     .badge-so-completed   { background:#dcfce7; color:#15803d; }
     .badge-so-cancelled   { background:#fee2e2; color:#b91c1c; }
 
-    .progress-module {
-        font-size: 12px;
-        padding: 2px 8px;
-        border-radius: 4px;
-        display: inline-block;
-        white-space: nowrap;
-    }
-    .status-dot {
-        width: 8px; height: 8px;
-        border-radius: 50%;
-        display: inline-block;
-        margin-right: 4px;
-    }
     .report-table th {
         font-size: 11px;
         text-transform: uppercase;
@@ -81,7 +68,7 @@
     <div>
         <h4 class="fw-bold mb-1">Laporan Penjualan</h4>
         <p class="text-muted mb-0" style="font-size:13px">
-      Ringkasan penjualan dari Quotation → Sales Order → Produksi → Delivery Order → Invoice → Pembayaran
+            Ringkasan nilai project dari Sales Order yang telah dibuat
         </p>
     </div>
     <div class="d-flex align-items-center gap-2">
@@ -103,7 +90,7 @@
 @endphp
 <div class="grand-total-card mb-4 d-flex align-items-center justify-content-between">
     <div>
-        <div class="label">Grand Total Sales Order</div>
+        <div class="label">Grand Total Nilai Project</div>
         <div class="value">Rp {{ number_format($grandTotal, 0, ',', '.') }}</div>
     </div>
     <div style="font-size:13px;opacity:.8;">
@@ -134,45 +121,9 @@
                    placeholder="No. SO, Proyek, Klien..." value="{{ request('search') }}">
         </div>
 
-        {{-- Status per Modul --}}
+        {{-- Filter Invoice Status --}}
         <div class="col-6 col-sm-6 col-md-3 col-lg-2">
-            <div class="filter-label">Quotation</div>
-            <select name="quotation_status" class="form-select form-select-sm">
-                <option value="">Semua</option>
-                @foreach($quotationStatuses as $v => $l)
-                    <option value="{{ $v }}" {{ request('quotation_status') === $v ? 'selected' : '' }}>{{ $l }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="col-6 col-sm-6 col-md-3 col-lg-2">
-            <div class="filter-label">Sales Order</div>
-            <select name="so_status" class="form-select form-select-sm">
-                <option value="">Semua</option>
-                @foreach($soStatuses as $v => $l)
-                    <option value="{{ $v }}" {{ request('so_status') === $v ? 'selected' : '' }}>{{ $l }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="col-6 col-sm-6 col-md-3 col-lg-2">
-            <div class="filter-label">Produksi</div>
-            <select name="production_status" class="form-select form-select-sm">
-                <option value="">Semua</option>
-                @foreach($productionStatuses as $v => $l)
-                    <option value="{{ $v }}" {{ request('production_status') === $v ? 'selected' : '' }}>{{ $l }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="col-6 col-sm-6 col-md-3 col-lg-2">
-            <div class="filter-label">Delivery Order</div>
-            <select name="do_status" class="form-select form-select-sm">
-                <option value="">Semua</option>
-                @foreach($doStatuses as $v => $l)
-                    <option value="{{ $v }}" {{ request('do_status') === $v ? 'selected' : '' }}>{{ $l }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="col-6 col-sm-6 col-md-3 col-lg-2">
-            <div class="filter-label">Invoice</div>
+            <div class="filter-label">Status Invoice</div>
             <select name="invoice_status" class="form-select form-select-sm">
                 <option value="">Semua</option>
                 @foreach($invoiceStatuses as $v => $l)
@@ -180,6 +131,8 @@
                 @endforeach
             </select>
         </div>
+
+        {{-- Filter Payment Status --}}
         <div class="col-6 col-sm-6 col-md-3 col-lg-2">
             <div class="filter-label">Status Pembayaran</div>
             <select name="payment_status" class="form-select form-select-sm">
@@ -219,45 +172,19 @@
         <table class="table table-hover align-middle mb-0 report-table">
             <thead>
                 <tr>
-                    <th>#</th>
-                    <th>No. SO / Proyek</th>
-                    <th>Klien</th>
-                    <th>Tanggal</th>
-                    <th>Quotation</th>
-                    <th>SO</th>
-                    <th>Produksi</th>
-                    <th>DO</th>
-                    <th>Invoice</th>
-                    <th>Pembayaran</th>
-                    <th style="text-align:right;">Nilai (Rp)</th>
+                    <th>No</th>
+                    <th>Nomor Sales Order</th>
+                    <th>Nama Klien</th>
+                    <th>Nomor PO</th>
+                    <th>Nama Project</th>
+                    <th>Tanggal SO</th>
+                    <th>Status Invoice</th>
+                    <th style="text-align:right;">Nilai Project</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($salesOrders as $so)
                 @php
-                    // ── Quotation ──
-                    $quo = $so->quotation;
-                    $quoStatus = $quo ? $quo->status : '-';
-                    $quoBadge  = $quoStatus === 'approved' ? 'success' :
-                                 ($quoStatus === 'sent' ? 'primary' :
-                                 ($quoStatus === 'rejected' ? 'danger' : 'secondary'));
-
-                    // ── Production (ambil yg terbaru) ──
-                    $prodColl = $productions->get($so->id, collect());
-                    $prod     = $prodColl->first();
-                    $prodStatus = $prod ? $prod->status : '-';
-                    $prodBadge  = $prodStatus === 'completed' ? 'success' :
-                                  ($prodStatus === 'in_progress' ? 'warning' :
-                                  ($prodStatus === 'planned' ? 'info' : 'secondary'));
-
-                    // ── Delivery Order ──
-                    $doColl = $deliveryOrders->get($so->id, collect());
-                    $do     = $doColl->first();
-                    $doStatus = $do ? $do->status : '-';
-                    $doBadge  = $doStatus === 'delivered' ? 'success' :
-                                ($doStatus === 'shipped' ? 'primary' :
-                                ($doStatus === 'confirmed' ? 'info' : 'secondary'));
-
                     // ── Invoice ──
                     $invColl = $invoices->get($so->id, collect());
                     $inv     = $invColl->first();
@@ -266,99 +193,30 @@
                                  ($invStatus === 'sent' ? 'primary' :
                                  ($invStatus === 'overdue' ? 'danger' :
                                  ($invStatus === 'draft' ? 'secondary' : 'danger')));
-
-                    // ── Payment (Receipt) ──
-                    $totalPaid  = 0;
-                    $totalInv   = 0;
-                    if ($inv) {
-                        $totalInv  = $inv->total;
-                        $totalPaid = $inv->receipts->where('status', 'confirmed')->sum('amount');
-                    }
-                    $payStatus  = $totalInv > 0 && $totalPaid >= $totalInv ? 'Lunas' :
-                                  ($totalPaid > 0 ? 'Sebagian (Rp '.number_format($totalPaid,0,',','.').')' : 'Belum');
-                    $payBadge   = $totalPaid >= $totalInv && $totalInv > 0 ? 'success' :
-                                  ($totalPaid > 0 ? 'warning' : 'danger');
                 @endphp
                 <tr>
                     <td>{{ $loop->iteration + ($salesOrders->currentPage() - 1) * $salesOrders->perPage() }}</td>
                     <td>
-                        <div class="fw-semibold" style="font-family:monospace;color:#1B5DBC;">{{ $so->so_number }}</div>
-                        <div class="text-muted truncate-text" style="font-size:12px">{{ $so->project_name ?: '-' }}</div>
+                        <span style="font-family:monospace;color:#1B5DBC;font-weight:600;">{{ $so->so_number }}</span>
                     </td>
                     <td>
                         <div>{{ $so->client_company }}</div>
                         <div class="text-muted" style="font-size:12px">{{ $so->client_name ?: '-' }}</div>
                     </td>
+                    <td>
+                        <span style="font-family:monospace;">{{ $so->nomor_po ?: '-' }}</span>
+                    </td>
+                    <td>
+                        <div class="truncate-text" title="{{ $so->project_name ?: '-' }}">{{ $so->project_name ?: '-' }}</div>
+                    </td>
                     <td style="white-space:nowrap;">{{ $so->date->format('d/m/Y') }}</td>
-
-                    {{-- Quotation --}}
-                    <td>
-                        @if($quo)
-                            <span class="badge bg-{{ $quoBadge }}">{{ ucfirst($quoStatus) }}</span>
-                        @else
-                            <span class="text-muted">-</span>
-                        @endif
-                    </td>
-
-                    {{-- SO --}}
-                    <td>
-                        @php
-                            $soBadge = $so->status === 'completed' ? 'success' :
-                                       ($so->status === 'in_progress' ? 'warning' :
-                                       ($so->status === 'confirmed' ? 'info' :
-                                       ($so->status === 'cancelled' ? 'danger' : 'secondary')));
-                        @endphp
-                        <span class="badge bg-{{ $soBadge }}">{{ ucfirst(str_replace('_', ' ', $so->status)) }}</span>
-                    </td>
-
-                    {{-- Produksi --}}
-                    <td>
-                        @if($prod)
-                            <span class="badge bg-{{ $prodBadge }}">{{ ucfirst(str_replace('_', ' ', $prodStatus)) }}</span>
-                            @if($prodColl->count() > 1)
-                                <span class="text-muted" style="font-size:11px;">+{{ $prodColl->count()-1 }} lagi</span>
-                            @endif
-                        @else
-                            <span class="text-muted">-</span>
-                        @endif
-                    </td>
-
-                    {{-- DO --}}
-                    <td>
-                        @if($do)
-                            <span class="badge bg-{{ $doBadge }}">{{ ucfirst(str_replace('_', ' ', $doStatus)) }}</span>
-                            @if($doColl->count() > 1)
-                                <span class="text-muted" style="font-size:11px;">+{{ $doColl->count()-1 }} lagi</span>
-                            @endif
-                        @else
-                            <span class="text-muted">-</span>
-                        @endif
-                    </td>
-
-                    {{-- Invoice --}}
                     <td>
                         @if($inv)
                             <span class="badge bg-{{ $invBadge }}">{{ ucfirst($invStatus) }}</span>
-                            @if($invColl->count() > 1)
-                                <span class="text-muted" style="font-size:11px;">+{{ $invColl->count()-1 }} lagi</span>
-                            @endif
                         @else
                             <span class="text-muted">-</span>
                         @endif
                     </td>
-
-                    {{-- Payment --}}
-                    <td>
-                        @if($totalInv > 0)
-                            <span class="badge bg-{{ $payBadge }}">{{ $payStatus }}</span>
-                            <div style="font-size:11px;color:#94a3b8;margin-top:2px;">
-                                Rp {{ number_format($totalPaid,0,',','.') }} / Rp {{ number_format($totalInv,0,',','.') }}
-                            </div>
-                        @else
-                            <span class="text-muted">-</span>
-                        @endif
-                    </td>
-
                     <td style="font-family:monospace;font-weight:600;text-align:right;">
                         Rp {{ number_format($so->total, 0, ',', '.') }}
                     </td>
