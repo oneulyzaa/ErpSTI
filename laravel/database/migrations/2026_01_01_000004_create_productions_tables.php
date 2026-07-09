@@ -57,7 +57,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('production_item_id')->constrained('production_items')->cascadeOnDelete();
             $table->foreignId('asset_id')->nullable()->constrained('assets')->nullOnDelete();
-            $table->string('nama_bahan_baku');
+            $table->string('material_name')->nullable();
             $table->string('satuan')->default('pcs');
             $table->decimal('qty_required', 10, 2)->default(0);
             $table->decimal('qty_used', 10, 2)->default(0);
