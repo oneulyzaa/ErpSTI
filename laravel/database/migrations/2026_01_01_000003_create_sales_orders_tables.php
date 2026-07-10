@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('id_staff');
             $table->unsignedInteger('id_client');
             $table->string('nama_project', 255);
-            $table->string('referensi_po', 100)->nullable();
+            $table->string('nomor_po', 100)->nullable();
             $table->date('tanggal_pembuatan');
             $table->decimal('subtotal_produksi', 15, 2);
             $table->decimal('subtotal_material', 15, 2);

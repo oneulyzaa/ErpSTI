@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('nomor_receipt', 50)->primary();
             $table->string('nomor_invoice', 50);
             $table->string('nama_project', 255);
-            $table->string('referensi_po', 100)->nullable();
+            $table->string('nomor_po', 100)->nullable();
             $table->date('tanggal_bayar');
             $table->string('metode_bayar', 50);
             $table->decimal('jumlah_bayar', 15, 2);

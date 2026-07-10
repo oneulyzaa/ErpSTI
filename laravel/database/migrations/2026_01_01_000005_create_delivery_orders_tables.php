@@ -17,7 +17,7 @@ return new class extends Migration
             $table->unsignedInteger('id_client');
             $table->string('nomor_salesorder', 50);
             $table->string('nama_project', 255);
-            $table->string('referensi_po', 100)->nullable();
+            $table->string('nomor_po', 100)->nullable();
             $table->date('tanggal_pembuatan');
             $table->date('tanggal_pengiriman');
             $table->string('status', 50);
