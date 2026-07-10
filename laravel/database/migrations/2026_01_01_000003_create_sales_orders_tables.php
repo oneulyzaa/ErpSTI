@@ -11,10 +11,10 @@ return new class extends Migration
     {
         // Tabel SalesOrder (dokumentasi: SalesOrder)
         Schema::create('sales_orders', function (Blueprint $table) {
-            $table->unsignedInteger('id')->unique(); // belum auto_increment dulu
+            $table->unsignedBigInteger('id')->unique(); // belum auto_increment dulu
             $table->string('nomor_salesorder', 50)->primary();
             $table->unsignedBigInteger('id_staff');
-            $table->unsignedBigInteger('id_client');
+            $table->unsignedInteger('id_client');
             $table->string('nama_project', 255);
             $table->string('referensi_po', 100)->nullable();
             $table->date('tanggal_pembuatan');

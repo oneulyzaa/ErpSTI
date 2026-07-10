@@ -14,7 +14,7 @@ return new class extends Migration
             $table->unsignedInteger('id')->unique(); // belum auto_increment dulu
             $table->string('nomor_quotation', 50)->primary();
             $table->unsignedBigInteger('id_staff');
-            $table->unsignedBigInteger('id_client');
+            $table->unsignedInteger('id_client');
             $table->string('nama_project', 255);
             $table->date('tanggal_pembuatan');
             $table->date('valid_sampai');

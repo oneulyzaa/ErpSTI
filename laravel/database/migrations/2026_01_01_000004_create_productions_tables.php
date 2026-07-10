@@ -11,7 +11,7 @@ return new class extends Migration
     {
         // Tabel Produksi (dokumentasi: Produksi)
         Schema::create('productions', function (Blueprint $table) {
-            $table->unsignedInteger('id')->unique(); // belum auto_increment dulu
+            $table->unsignedBigInteger('id')->unique(); // belum auto_increment dulu
             $table->string('nomor_produksi', 50)->primary();
             $table->string('nomor_salesorder', 50);
             $table->string('PIC', 255);
