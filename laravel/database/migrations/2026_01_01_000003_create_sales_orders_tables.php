@@ -3,94 +3,90 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        // Tabel Utama Sales Orders
+        // Tabel SalesOrder (dokumentasi: SalesOrder)
         Schema::create('sales_orders', function (Blueprint $table) {
-            $table->id();
-            $table->string('so_number')->unique();
-            $table->string('project_name')->nullable();
-            $table->string('nomor_po')->nullable();
-            $table->foreignId('quotation_id')->nullable()->constrained('quotations')->nullOnDelete();
-            $table->string('quote_number')->nullable();
-            $table->foreignId('client_id')->nullable()->constrained('clients')->nullOnDelete();
-            $table->date('date');
-            $table->date('delivery_date')->nullable();
-            $table->string('customer_id')->nullable();
-            $table->string('client_name')->nullable();
-            $table->string('client_company')->nullable();
-            $table->string('client_attention')->nullable();
-            $table->string('client_cc')->nullable();
-            $table->string('client_email')->nullable();
-            $table->text('client_address')->nullable();
-            $table->text('description_of_work')->nullable();
-            // Nilai agregat
-            $table->decimal('subtotal_material', 15, 2)->default(0);
-            $table->decimal('subtotal_labor', 15, 2)->default(0);
-            $table->decimal('subtotal_other_cost', 15, 2)->default(0);
-            $table->decimal('discount', 15, 2)->default(0);
-            $table->decimal('subtotal', 15, 2)->default(0);
-            $table->decimal('tax_percentage', 5, 2)->default(11);
-            $table->decimal('tax_amount', 15, 2)->default(0);
-            $table->decimal('total', 15, 2)->default(0);
-            $table->string('status')->default('draft');
-            $table->text('notes')->nullable();
+            $table->unsignedInteger('id')->unique(); // belum auto_increment dulu
+            $table->string('nomor_salesorder', 50)->primary();
+            $table->unsignedBigInteger('id_staff');
+            $table->unsignedBigInteger('id_client');
+            $table->string('nama_project', 255);
+            $table->string('referensi_po', 100)->nullable();
+            $table->date('tanggal_pembuatan');
+            $table->decimal('subtotal_produksi', 15, 2);
+            $table->decimal('subtotal_material', 15, 2);
+            $table->decimal('subtotal_labor', 15, 2);
+            $table->decimal('subtotal_lainlain', 15, 2);
+            $table->decimal('diskon', 15, 2);
+            $table->decimal('pajak', 15, 2);
+            $table->decimal('grandtotal', 15, 2);
+            $table->text('termin')->nullable();
+            $table->string('status', 50);
+            $table->string('lampiran', 255)->nullable();
+            $table->text('keterangan')->nullable();
             $table->timestamps();
-        });
 
-        // Sales Order Items
+            $table->foreign('id_staff')->references('id')->on('users');
+            $table->foreign('id_client')->references('id')->on('customers');
+        });
+        DB::statement('ALTER TABLE sales_orders MODIFY id INT UNSIGNED NOT NULL AUTO_INCREMENT');
+
+        // Tabel SalesOrder_Item (dokumentasi: SalesOrder_Item)
         Schema::create('sales_order_items', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('sales_order_id')->constrained('sales_orders')->cascadeOnDelete();
-            $table->integer('sort_order')->default(0);
-            $table->string('material_name')->nullable();
-            $table->text('description')->nullable();
-            $table->string('unit')->default('Unit');
-            $table->decimal('qty', 10, 2)->default(1);
-            $table->decimal('unit_price', 15, 2)->default(0);
-            $table->decimal('subtotal', 15, 2)->default(0);
+            $table->id('id_item');
+            $table->string('nomor_salesorder', 50);
+            $table->string('nama_item', 255);
+            $table->text('deskripsi_item')->nullable();
+            $table->integer('jumlah_item');
+            $table->string('satuan', 50);
+            $table->decimal('harga_item', 15, 2);
             $table->timestamps();
+
+            $table->foreign('nomor_salesorder')->references('nomor_salesorder')->on('sales_orders')->onUpdate('cascade')->onDelete('cascade');
         });
 
-        // Sales Order Item Materials
+        // Tabel SalesOrder_ItemMaterial (dokumentasi: SalesOrder_ItemMaterial)
         Schema::create('sales_order_item_materials', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('sales_order_item_id')->constrained('sales_order_items')->cascadeOnDelete();
-            $table->foreignId('asset_id')->nullable()->constrained('assets')->nullOnDelete();
-            $table->string('material_name');
-            $table->string('satuan')->default('pcs');
-            $table->decimal('qty_required', 10, 2)->default(0);
-            $table->decimal('unit_price', 15, 2)->default(0);
-            $table->decimal('subtotal', 15, 2)->default(0);
+            $table->id('id_itemMaterial');
+            $table->unsignedBigInteger('id_item');
+            $table->unsignedBigInteger('id_material');
+            $table->string('nama_material', 255);
+            $table->string('satuan_material', 50);
+            $table->integer('jumlah_material');
+            $table->decimal('harga_material', 15, 2);
             $table->timestamps();
+
+            $table->foreign('id_item')->references('id_item')->on('sales_order_items')->onUpdate('cascade')->onDelete('cascade');
+            $table->foreign('id_material')->references('id_material')->on('materials');
         });
 
-        // Sales Order Labors
+        // Tabel SalesOrder_Labor (dokumentasi: SalesOrder_Labor)
         Schema::create('sales_order_labors', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('sales_order_id')->constrained('sales_orders')->cascadeOnDelete();
-            $table->integer('sort_order')->default(0);
-            $table->string('labor_name');
-            $table->integer('mp')->default(1);
-            $table->decimal('days', 8, 2)->default(1);
-            $table->decimal('rate', 15, 2)->default(0);
-            $table->decimal('subtotal', 15, 2)->default(0);
+            $table->id('id_labor');
+            $table->string('nomor_salesorder', 50);
+            $table->string('nama_labor', 255);
+            $table->integer('jumlah_sdm');
+            $table->integer('jumlah_hari');
+            $table->decimal('rate_hari', 15, 2);
             $table->timestamps();
+
+            $table->foreign('nomor_salesorder')->references('nomor_salesorder')->on('sales_orders')->onUpdate('cascade')->onDelete('cascade');
         });
 
-        // Sales Order Other Costs
+        // Tabel SalesOrder_OtherCost (dokumentasi: SalesOrder_OtherCost)
         Schema::create('sales_order_other_costs', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('sales_order_id')->constrained('sales_orders')->cascadeOnDelete();
-            $table->integer('sort_order')->default(0);
-            $table->string('cost_name');
-            $table->decimal('qty', 10, 2)->default(1);
-            $table->decimal('rate', 15, 2)->default(0);
-            $table->decimal('subtotal', 15, 2)->default(0);
+            $table->id('id_biaya');
+            $table->string('nomor_salesorder', 50);
+            $table->string('nama_biaya', 255);
+            $table->decimal('jumlah_biaya', 15, 2);
             $table->timestamps();
+
+            $table->foreign('nomor_salesorder')->references('nomor_salesorder')->on('sales_orders')->onUpdate('cascade')->onDelete('cascade');
         });
     }
 
