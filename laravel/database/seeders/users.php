@@ -16,28 +16,32 @@ class users extends Seeder
     {
          $users = [
             [
-                'name'     => 'Admin STI',
-                'email'    => 'admin@sti.com',
-                'role'     => 'admin',
+                'username' => 'admin',
                 'password' => Hash::make('admin12345'),
+                'namalengkap' => 'Admin STI',
+                'email' => 'admin@sti.com',
+                'akses' => 'admin',
             ],
             [
-                'name'     => 'Finance STI',
-                'email'    => 'finance@sti.com',
-                'role'     => 'finance',
+                'username' => 'finance',
                 'password' => Hash::make('finance12345'),
+                'namalengkap' => 'Finance STI',
+                'email' => 'finance@sti.com',
+                'akses' => 'finance',
             ],
             [
-                'name'     => 'Gudang STI',
-                'email'    => 'gudang@sti.com',
-                'role'     => 'gudang',
+                'username' => 'gudang',
                 'password' => Hash::make('gudang12345'),
+                'namalengkap' => 'Gudang STI',
+                'email' => 'gudang@sti.com',
+                'akses' => 'gudang',
             ],
             [
-                'name'     => 'Direktur STI',
-                'email'    => 'direktur@sti.com',
-                'role'     => 'direktur',
+                'username' => 'direktur',
                 'password' => Hash::make('direktur12345'),
+                'namalengkap' => 'Direktur STI',
+                'email' => 'direktur@sti.com',
+                'akses' => 'direktur',
             ],
         ];
 
