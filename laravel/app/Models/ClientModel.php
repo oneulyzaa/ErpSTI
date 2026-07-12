@@ -35,18 +35,20 @@ class ClientModel extends Model
 
     /**
      * Relasi dengan SalesOrder
+     * FK id_client di sales_orders mereferensi kolom id di customers
      */
     public function salesOrders()
     {
-        return $this->hasMany(SalesOrder::class, 'id_client', 'id_customer');
+        return $this->hasMany(SalesOrder::class, 'id_client', 'id');
     }
 
     /**
      * Relasi dengan DeliveryOrder
+     * FK id_client di delivery_orders mereferensi kolom id di customers
      */
     public function deliveryOrders()
     {
-        return $this->hasMany(DeliveryOrder::class, 'id_client', 'id_customer');
+        return $this->hasMany(DeliveryOrder::class, 'id_client', 'id');
     }
 
     /**
