@@ -6,21 +6,23 @@ use Illuminate\Database\Eloquent\Model;
 
 class ClientModel extends Model
 {
-    protected $table = 'clients';
-    
+    protected $table = 'customers';
+    protected $primaryKey = 'id_customer';
+    public $incrementing = false;
+    protected $keyType = 'string';
+
     protected $fillable = [
-        'id_perusahaan',
+        'id_customer',
         'nama_perusahaan',
+        'nama_kontak',
         'email_perusahaan',
-        'nama_kontak_perusahaan',
+        'alamat_perusahaan',
+        'alamat_faktur',
+        'alamat_efaktur',
+        'telepon_faktur',
+        'telepon_efaktur',
+        'rekening_perusahaan',
         'npwp_perusahaan',
-        'alamat_pengiriman_perusahaan',
-        'nomor_telepon_pengiriman',
-        'alamat_faktur_perusahaan',
-        'nomor_telepon_faktur',
-        'alamat_efaktur_perusahaan',
-        'nomor_rekening_perusahaan',
-        'created_by',
     ];
 
     /**
@@ -28,7 +30,7 @@ class ClientModel extends Model
      */
     public function quotations()
     {
-        return $this->hasMany(Quotation::class, 'client_id');
+        return $this->hasMany(Quotation::class, 'id_client', 'id_customer');
     }
 
     /**
@@ -36,7 +38,7 @@ class ClientModel extends Model
      */
     public function salesOrders()
     {
-        return $this->hasMany(SalesOrder::class, 'client_id');
+        return $this->hasMany(SalesOrder::class, 'id_client', 'id_customer');
     }
 
     /**
@@ -44,7 +46,7 @@ class ClientModel extends Model
      */
     public function deliveryOrders()
     {
-        return $this->hasMany(DeliveryOrder::class, 'client_id');
+        return $this->hasMany(DeliveryOrder::class, 'id_client', 'id_customer');
     }
 
     /**
@@ -52,6 +54,6 @@ class ClientModel extends Model
      */
     public function invoices()
     {
-        return $this->hasMany(Invoice::class, 'client_id');
+        return $this->hasMany(Invoice::class, 'id_client', 'id_customer');
     }
 }
