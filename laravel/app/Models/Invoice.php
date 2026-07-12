@@ -4,121 +4,89 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Invoice extends Model
 {
     use HasFactory;
 
+    protected $table = 'invoices';
+    protected $primaryKey = 'nomor_invoice';
+    public $incrementing = false;
+    protected $keyType = 'string';
+
     protected $fillable = [
-        'invoice_number',
-        'sales_order_id',
-        'so_number',
-        'quotation_id',
-        'quote_number',
-        'nomor_po',
-        'project_name',
-        'date',
-        'due_date',
-        'client_id',
-        'client_name',
-        'client_company',
-        'client_attention',
-        'client_cc',
-        'client_email',
-        'client_address',
-        'description',
-        'description_of_work',
+        'nomor_invoice',
+        'nomor_salesorder',
+        'nama_project',
+        'referensi_po',
+        'tanggal_invoice',
+        'jatuh_tempo',
+        'subtotal_produksi',
         'subtotal_material',
         'subtotal_labor',
-        'subtotal_other_cost',
-        'subtotal_before_discount',
-        'discount',
-        'subtotal',
-        'tax_percentage',
-        'tax_amount',
-        'total',
-        'status',
-        'amount_paid',
-        'amount_due',
-        'notes',
-        'term_and_condition',
+        'subtotal_lainlain',
+        'diskon',
+        'pajak',
+        'grandtotal',
+        'status_pembayaran',
+        'keterangan',
     ];
 
     protected $casts = [
-        'date' => 'date',
-        'due_date' => 'date',
+        'tanggal_invoice' => 'date',
+        'jatuh_tempo' => 'date',
+        'subtotal_produksi' => 'decimal:2',
         'subtotal_material' => 'decimal:2',
         'subtotal_labor' => 'decimal:2',
-        'subtotal_other_cost' => 'decimal:2',
-        'subtotal_before_discount' => 'decimal:2',
-        'discount' => 'decimal:2',
-        'subtotal' => 'decimal:2',
-        'tax_percentage' => 'decimal:2',
-        'tax_amount' => 'decimal:2',
-        'total' => 'decimal:2',
-        'amount_paid' => 'decimal:2',
-        'amount_due' => 'decimal:2',
+        'subtotal_lainlain' => 'decimal:2',
+        'diskon' => 'decimal:2',
+        'pajak' => 'decimal:2',
+        'grandtotal' => 'decimal:2',
     ];
 
+    /**
+     * Relasi dengan SalesOrder
+     */
+    public function salesOrder(): BelongsTo
+    {
+        return $this->belongsTo(SalesOrder::class, 'nomor_salesorder', 'nomor_salesorder');
+    }
+
+    /**
+     * Relasi dengan Receipt
+     */
+    public function receipts(): HasMany
+    {
+        return $this->hasMany(Receipt::class, 'nomor_invoice', 'nomor_invoice');
+    }
+
+    /**
+     * Hitung dari SalesOrder
+     */
     public function calculateFromSalesOrder(SalesOrder $salesOrder): self
     {
+        $this->subtotal_produksi = $salesOrder->subtotal_produksi;
         $this->subtotal_material = $salesOrder->subtotal_material;
         $this->subtotal_labor = $salesOrder->subtotal_labor;
-        $this->subtotal_other_cost = $salesOrder->subtotal_other_cost;
-        $this->discount = $salesOrder->discount;
-        $this->tax_percentage = $salesOrder->tax_percentage;
-        
-        $this->subtotal_before_discount = $this->subtotal_material + $this->subtotal_labor + $this->subtotal_other_cost;
-        $this->subtotal = $this->subtotal_before_discount - $this->discount;
-        $this->tax_amount = $this->subtotal * ($this->tax_percentage / 100);
-        $this->total = $this->subtotal + $this->tax_amount;
-        $this->amount_due = $this->total;
-        $this->amount_paid = 0;
-        
+        $this->subtotal_lainlain = $salesOrder->subtotal_lainlain;
+        $this->diskon = $salesOrder->diskon;
+        $this->pajak = $salesOrder->pajak;
+        $this->grandtotal = $salesOrder->grandtotal;
+
         return $this;
     }
 
-    public function salesOrder()
-    {
-        return $this->belongsTo(SalesOrder::class);
-    }
-
-    public function quotation()
-    {
-        return $this->belongsTo(Quotation::class);
-    }
-
-    public function client()
-    {
-        return $this->belongsTo(ClientModel::class, 'client_id');
-    }
-
-    public function receipts()
-    {
-        return $this->hasMany(Receipt::class);
-    }
-
-    public function getItemsAttribute()
-    {
-        return $this->salesOrder ? $this->salesOrder->items : collect();
-    }
-
-    public function getLaborsAttribute()
-    {
-        return $this->salesOrder ? $this->salesOrder->labors : collect();
-    }
-
-    public function getOtherCostsAttribute()
-    {
-        return $this->salesOrder ? $this->salesOrder->otherCosts : collect();
-    }
-
+    /**
+     * Generate nomor invoice otomatis
+     */
     public static function generateInvoiceNumber(): string
     {
         $prefix = 'INV-' . now()->format('Ym') . '-';
-        $last = static::where('invoice_number', 'like', $prefix . '%')
+        $last = static::where('nomor_invoice', 'like', $prefix . '%')
             ->orderByDesc('id')
-            ->value('invoice_number');
+            ->value('nomor_invoice');
 
         $next = $last ? (int) substr($last, -4) + 1 : 1;
         return $prefix . str_pad($next, 4, '0', STR_PAD_LEFT);
