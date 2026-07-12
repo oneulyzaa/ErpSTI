@@ -3,35 +3,41 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ProductionItem extends Model
 {
+    protected $table = 'production_items';
+    protected $primaryKey = 'id_item';
+
     protected $fillable = [
-        'production_id',
-        'sales_order_item_id',
-        'product_name',
-        'product_qty',
-        'unit',
-        'status',
-        'sort_order',
+        'nomor_produksi',
+        'nama_item',
+        'deskripsi_item',
+        'jumlah_item',
+        'satuan',
+        'harga_item',
     ];
 
     protected $casts = [
-        'product_qty' => 'decimal:2',
+        'jumlah_item' => 'integer',
+        'harga_item' => 'decimal:2',
     ];
 
-    public function production()
+    /**
+     * Relasi dengan Production
+     */
+    public function production(): BelongsTo
     {
-        return $this->belongsTo(Production::class);
+        return $this->belongsTo(Production::class, 'nomor_produksi', 'nomor_produksi');
     }
 
-    public function salesOrderItem()
+    /**
+     * Relasi dengan ProductionItemMaterial
+     */
+    public function materials(): HasMany
     {
-        return $this->belongsTo(SalesOrderItem::class);
-    }
-
-    public function materials()
-    {
-        return $this->hasMany(ProductionMaterial::class)->orderBy('id');
+        return $this->hasMany(ProductionItemMaterial::class, 'id_item', 'id_item');
     }
 }
