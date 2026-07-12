@@ -5,14 +5,14 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         // Tabel SalesOrder (dokumentasi: SalesOrder)
         Schema::create('sales_orders', function (Blueprint $table) {
             $table->unsignedBigInteger('id')->unique(); // belum auto_increment dulu
             $table->string('nomor_salesorder', 50)->primary();
+            $table->foreign('nomor_quotation')->references('nomor_quotation')->on('quotations')->onUpdate('cascade');
             $table->unsignedBigInteger('id_staff');
             $table->unsignedInteger('id_client');
             $table->string('nama_project', 255);
