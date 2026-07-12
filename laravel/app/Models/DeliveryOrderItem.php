@@ -3,29 +3,41 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class DeliveryOrderItem extends Model
 {
+    protected $table = 'delivery_order_items';
+    protected $primaryKey = 'id_item';
+
     protected $fillable = [
-        'delivery_order_id',
-        'sort_order',
-        'item_name',
-        'description',
-        'unit',
-        'qty',
+        'nomor_deliveryorder',
+        'nama_item',
+        'deskripsi_item',
+        'jumlah_item',
+        'satuan',
+        'harga_item',
     ];
 
     protected $casts = [
-        'qty' => 'decimal:2',
+        'jumlah_item' => 'integer',
+        'harga_item' => 'decimal:2',
     ];
 
-    public function deliveryOrder()
+    /**
+     * Relasi dengan DeliveryOrder
+     */
+    public function deliveryOrder(): BelongsTo
     {
-        return $this->belongsTo(DeliveryOrder::class);
+        return $this->belongsTo(DeliveryOrder::class, 'nomor_deliveryorder', 'nomor_deliveryorder');
     }
 
-    public function materials()
+    /**
+     * Relasi dengan DeliveryOrderItemMaterial
+     */
+    public function materials(): HasMany
     {
-        return $this->hasMany(DeliveryOrderItemMaterial::class)->orderBy('sort_order');
+        return $this->hasMany(DeliveryOrderItemMaterial::class, 'id_item', 'id_item');
     }
 }

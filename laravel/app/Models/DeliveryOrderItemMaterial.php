@@ -3,33 +3,40 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DeliveryOrderItemMaterial extends Model
 {
+    protected $table = 'delivery_order_item_materials';
+    protected $primaryKey = 'id_itemMaterial';
+
     protected $fillable = [
-        'delivery_order_item_id',
-        'asset_id',
-        'material_name',
-        'qty_required',
-        'satuan',
-        'unit_price',
-        'subtotal',
-        'sort_order',
+        'id_item',
+        'id_material',
+        'nama_material',
+        'satuan_material',
+        'jumlah_material',
+        'harga_material',
     ];
 
     protected $casts = [
-        'qty_required' => 'decimal:2',
-        'unit_price' => 'decimal:2',
-        'subtotal' => 'decimal:2',
+        'jumlah_material' => 'integer',
+        'harga_material' => 'decimal:2',
     ];
 
-    public function deliveryOrderItem()
+    /**
+     * Relasi dengan DeliveryOrderItem
+     */
+    public function deliveryOrderItem(): BelongsTo
     {
-        return $this->belongsTo(DeliveryOrderItem::class);
+        return $this->belongsTo(DeliveryOrderItem::class, 'id_item', 'id_item');
     }
 
-    public function asset()
+    /**
+     * Relasi dengan Material
+     */
+    public function material(): BelongsTo
     {
-        return $this->belongsTo(AsetModel::class, 'asset_id');
+        return $this->belongsTo(Material::class, 'id_material', 'id_material');
     }
 }
