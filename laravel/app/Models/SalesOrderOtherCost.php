@@ -3,26 +3,28 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SalesOrderOtherCost extends Model
 {
+    protected $table = 'sales_order_other_costs';
+    protected $primaryKey = 'id_biaya';
+
     protected $fillable = [
-        'sales_order_id',
-        'sort_order',
-        'cost_name',
-        'qty',
-        'rate',
-        'subtotal',
+        'nomor_salesorder',
+        'nama_biaya',
+        'jumlah_biaya',
     ];
 
     protected $casts = [
-        'qty' => 'decimal:2',
-        'rate' => 'decimal:2',
-        'subtotal' => 'decimal:2',
+        'jumlah_biaya' => 'decimal:2',
     ];
 
-    public function salesOrder()
+    /**
+     * Relasi dengan SalesOrder
+     */
+    public function salesOrder(): BelongsTo
     {
-        return $this->belongsTo(SalesOrder::class);
+        return $this->belongsTo(SalesOrder::class, 'nomor_salesorder', 'nomor_salesorder');
     }
 }
