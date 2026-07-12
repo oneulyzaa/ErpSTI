@@ -3,11 +3,11 @@ Saya perlu refactor kode setiap model berdasarkan migration. Berikut adalah daft
 [text](../database/migrations/0001_01_01_000000_create_users_table.php) ✅(sudah)
 [text](../database/migrations/2026_01_01_000001_create_master_tables.php) ✅(sudah)
 [text](../database/migrations/2026_01_01_000002_create_quotations_tables.php) ✅(sudah)
-[text](../database/migrations/2026_01_01_000003_create_sales_orders_tables.php) ❌(belum)
-[text](../database/migrations/2026_01_01_000004_create_productions_tables.php) ❌(belum)
-[text](../database/migrations/2026_01_01_000005_create_delivery_orders_tables.php) ❌(belum)
-[text](../database/migrations/2026_01_01_000006_create_invoices_table.php) ❌(belum)
-[text](../database/migrations/2026_01_01_000007_create_receipts_table.php) ❌(belum)
+[text](../database/migrations/2026_01_01_000003_create_sales_orders_tables.php) ✅(sudah)
+[text](../database/migrations/2026_01_01_000004_create_productions_tables.php) ✅(sudah)
+[text](../database/migrations/2026_01_01_000005_create_delivery_orders_tables.php) ✅(sudah)
+[text](../database/migrations/2026_01_01_000006_create_invoices_table.php) ✅(sudah)
+[text](../database/migrations/2026_01_01_000007_create_receipts_table.php) ✅(sudah)
 
 Target Model (hasil akhir yang diinginkan)
 
@@ -16,11 +16,11 @@ Target Model (hasil akhir yang diinginkan)
 | 1 | `create_users_table.php` | `User.php` | ✅ sudah dilakukan penyesuaian |
 | 2 | `create_master_tables.php` | `ClientModel.php`, `AssetModel.php` | ✅ sudah dilakukan penyesuaian |
 | 3 | `create_quotations_tables.php` | `Quotation.php`, `QuotationItem.php`, `QuotationItemMaterial.php`, `QuotationLabor.php`, `QuotationOtherCost.php` | ✅ sudah dilakukan penyesuaian |
-| 4 | `create_sales_orders_tables.php` | `SalesOrder.php`, `SalesOrderItem.php`, `SalesOrderItemMaterial.php`, `SalesOrderLabor.php`, `SalesOrderOtherCost.php` | ❌ Belum|
-| 5 | `create_productions_tables.php` | `Production.php`, `ProductionItem.php`, `ProductionItemMaterial.php` | ❌ Belum |
-| 6 | `create_delivery_orders_tables.php` | `DeliveryOrder.php`, `DeliveryOrderItem.php`, `DeliveryOrderItemMaterial.php` | ❌ Belum |
-| 7 | `create_invoices_table.php` | `Invoice.php` | ❌ Belum |
-| 8 | `create_receipts_table.php` | `Receipt.php` | ❌ Belum |
+| 4 | `create_sales_orders_tables.php` | `SalesOrder.php`, `SalesOrderItem.php`, `SalesOrderItemMaterial.php`, `SalesOrderLabor.php`, `SalesOrderOtherCost.php` | ✅ sudah dilakukan penyesuaian |
+| 5 | `create_productions_tables.php` | `Production.php`, `ProductionItem.php`, `ProductionItemMaterial.php` | ✅ sudah dilakukan penyesuaian |
+| 6 | `create_delivery_orders_tables.php` | `DeliveryOrder.php`, `DeliveryOrderItem.php`, `DeliveryOrderItemMaterial.php` | ✅ sudah dilakukan penyesuaian |
+| 7 | `create_invoices_table.php` | `Invoice.php` | ✅ sudah dilakukan penyesuaian |
+| 8 | `create_receipts_table.php` | `Receipt.php` | ✅ sudah dilakukan penyesuaian |
 
 ## Instruksi untuk AI Agent
 
