@@ -199,9 +199,9 @@
                             @forelse($penjualanTerbaru as $index => $so)
                             <tr>
                                 <td class="ps-3 text-secondary">{{ $index + 1 }}</td>
-                                <td><span class="fw-semibold text-primary">#{{ $so->so_number }}</span></td>
-                                <td>{{ $so->client_name ?? $so->client?->nama_perusahaan ?? '-' }}</td>
-                                <td class="fw-semibold">Rp {{ number_format($so->total, 0, ',', '.') }}</td>
+                                <td><span class="fw-semibold text-primary">#{{ $so->nomor_salesorder }}</span></td>
+                                <td>{{ $so->client?->nama_perusahaan ?? '-' }}</td>
+                                <td class="fw-semibold">Rp {{ number_format($so->grandtotal, 0, ',', '.') }}</td>
                                 <td>
                                     @php
                                         $statusClass = match($so->status) {
@@ -227,7 +227,7 @@
                                         <i class="bi {{ $statusIcon }} me-1"></i>{{ $statusLabel }}
                                     </span>
                                 </td>
-                                <td class="pe-3 text-secondary">{{ $so->date?->format('d M Y') ?? '-' }}</td>
+                                <td class="pe-3 text-secondary">{{ $so->tanggal_pembuatan?->format('d M Y') ?? '-' }}</td>
                             </tr>
                             @empty
                             <tr>

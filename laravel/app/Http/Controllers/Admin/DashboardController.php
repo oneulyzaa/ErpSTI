@@ -18,8 +18,8 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         // Total penjualan bulan ini dari SalesOrder
-        $totalPenjualan = SalesOrder::whereMonth('created_at', now()->month)
-            ->whereYear('created_at', now()->year)
+        $totalPenjualan = SalesOrder::whereMonth('tanggal_pembuatan', now()->month)
+            ->whereYear('tanggal_pembuatan', now()->year)
             ->sum('grandtotal');
 
         // Total klien aktif
@@ -34,7 +34,7 @@ class DashboardController extends Controller
 
         // Penjualan terbaru (Sales Orders)
         $penjualanTerbaru = SalesOrder::with('client')
-            ->latest()
+            ->orderByDesc('tanggal_pembuatan')
             ->take(5)
             ->get();
 
@@ -42,8 +42,8 @@ class DashboardController extends Controller
         $salesChartData = $this->getSalesChartData();
 
         // Hitung persentase perubahan penjualan dari bulan sebelumnya
-        $penjualanBulanLalu = SalesOrder::whereMonth('created_at', now()->subMonth()->month)
-            ->whereYear('created_at', now()->subMonth()->year)
+        $penjualanBulanLalu = SalesOrder::whereMonth('tanggal_pembuatan', now()->subMonth()->month)
+            ->whereYear('tanggal_pembuatan', now()->subMonth()->year)
             ->sum('grandtotal');
 
         $persentasePerubahan = 0;
@@ -51,9 +51,8 @@ class DashboardController extends Controller
             $persentasePerubahan = (($totalPenjualan - $penjualanBulanLalu) / $penjualanBulanLalu) * 100;
         }
 
-        // Hitung klien baru bulan ini
-        $klienBaru = ClientModel::whereMonth('created_at', now()->month)
-            ->whereYear('created_at', now()->year)
+        // Hitung klien baru bulan ini (jika ada kolom created_at di tabel customers)
+        $klienBaru = ClientModel::whereRaw("MONTH(created_at) = ? AND YEAR(created_at) = ?", [now()->month, now()->year])
             ->count();
 
         $stats = [
@@ -83,8 +82,8 @@ class DashboardController extends Controller
             $date = now()->subMonths($i);
             $labels[] = $date->translatedFormat('M');
 
-            $total = SalesOrder::whereMonth('created_at', $date->month)
-                ->whereYear('created_at', $date->year)
+            $total = SalesOrder::whereMonth('tanggal_pembuatan', $date->month)
+                ->whereYear('tanggal_pembuatan', $date->year)
                 ->sum('grandtotal');
 
             $data[] = $total;
