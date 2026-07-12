@@ -22,6 +22,29 @@ Target Model (hasil akhir yang diinginkan)
 | 7 | `create_invoices_table.php` | `Invoice.php` | ✅ sudah dilakukan penyesuaian |
 | 8 | `create_receipts_table.php` | `Receipt.php` | ✅ sudah dilakukan penyesuaian |
 
+## Quotation Views Refactor (SELESAI ✅)
+
+Semua view Quotation telah berhasil di-refactor:
+
+| File | Status |
+|------|--------|
+| `form.blade.php` | ✅ Baru - form modern dengan kalkulasi realtime |
+| `create.blade.php` | ✅ Include form (3 baris) |
+| `edit.blade.php` | ✅ Include form (3 baris) |
+| `index.blade.php` | ✅ Update nama kolom sesuai model |
+| `show.blade.php` | ✅ Baru - detail view lengkap dengan material, labor, other costs |
+
+Nama kolom yang disesuaikan:
+- `quote_number` → `nomor_quotation`
+- `client_name` → `client->nama_kontak_perusahaan`
+- `client_company` → `client->nama_perusahaan`
+- `project_name` → `nama_project`
+- `date` → `tanggal_pembuatan`
+- `valid_until` → `valid_sampai`
+- `total` → `grandtotal`
+
+---
+
 ## Instruksi untuk AI Agent
 
 Kerjakan **hanya migration #4 sampai #8** (yang statusnya ❌ Belum), satu per satu, jangan lompat, dan jangan sentuh ulang model dari migration #1–#3 yang sudah ✅ kecuali ada relasi yang perlu ditambahkan di model tersebut karena keterkaitan dengan tabel baru (misalnya `SalesOrder` perlu `hasMany(DeliveryOrder::class)` setelah delivery orders dibuat — itu boleh diedit, tapi jangan ubah struktur field yang sudah ada).

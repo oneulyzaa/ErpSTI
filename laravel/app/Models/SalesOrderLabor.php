@@ -19,8 +19,8 @@ class SalesOrderLabor extends Model
     ];
 
     protected $casts = [
-        'jumlah_sdm' => 'integer',
-        'jumlah_hari' => 'integer',
+        'jumlah_sdm' => 'decimal:2',
+        'jumlah_hari' => 'decimal:2',
         'rate_hari' => 'decimal:2',
     ];
 

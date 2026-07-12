@@ -4,87 +4,82 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\AsetModel;
+use App\Models\Material;
 
 class MasterAssetController extends Controller
 {
-    function index(){
+    function index()
+    {
         $title = 'Data Material';
         $description = 'Kelola data material perusahaan Anda dengan mudah dan efisien.';
-        $assets = AsetModel::all(); // Ambil semua data material dari database
-        return view('admin.master-asset.index', compact('assets','title','description')); // Kirim data material
+        $materials = Material::all();
+        return view('admin.master-asset.index', compact('materials', 'title', 'description'));
     }
-    function create(){
+
+    function create()
+    {
         $title = 'Tambah Data Material';
         $description = 'Tambahkan data material baru ke dalam sistem.';
         return view('admin.master-asset.create', compact('title', 'description'));
     }
-    function edit($id){
+
+    function edit($id)
+    {
         $title = 'Perbarui Data Material';
         $description = 'Perbarui data material yang sudah ada.';
-        $asset = AsetModel::findOrFail($id);
-        return view('admin.master-asset.edit', compact('asset', 'title', 'description'));
+        $material = Material::findOrFail($id);
+        return view('admin.master-asset.edit', compact('material', 'title', 'description'));
     }
-    function show($id){
-        $asset = AsetModel::findOrFail($id);
-        return view('admin.master-asset.show', compact('asset'));
-    }
-    function store(Request $request){
-        
-        // Validasi data
-        $validated = $request->validate([
-            'nama_aset' => 'required|string|max:255',
-            'harga' => 'required|string',
-            'satuan' => 'required|string|max:10',
-            'stok' => 'required|integer',
-            'supplier_from' => 'nullable|string|max:255',
-            'status' => 'required|integer',
-        ]);
-        // pada harga, semisal inputnya 3.000.000, maka kita harus menghapus titiknya agar bisa disimpan sebagai angka di database
-        $validated['harga'] = str_replace('.', '', $validated['harga']);
-        $harga = (int) $validated['harga'];
 
-        // Simpan data ke database (ganti dengan model yang sesuai)
-        $model = new AsetModel();
-        $model->nama_aset = $request->nama_aset;
-        $model->harga = $harga;
-        $model->satuan = $request->satuan;
-        $model->stok = $request->stok;
-        $model->supplier_from = $request->supplier_from ?? null;
-        $model->is_active = $request->status;
-        $model->save();
+    function show($id)
+    {
+        $material = Material::findOrFail($id);
+        return view('admin.master-asset.show', compact('material'));
+    }
+
+    function store(Request $request)
+    {
+        $validated = $request->validate([
+            'nama_material'   => 'required|string|max:255',
+            'harga_material'  => 'required|string',
+            'satuan'          => 'required|string|max:50',
+            'stok'            => 'required|integer',
+            'supplier'        => 'nullable|string|max:255',
+            'status_material' => 'required|string|max:50',
+        ]);
+
+        // Hapus format titik pada harga (contoh: 3.000.000 → 3000000)
+        $validated['harga_material'] = str_replace('.', '', $validated['harga_material']);
+
+        Material::create($validated);
 
         return redirect()->route('admin.master-assets.index')->with('success', 'Data berhasil ditambahkan.');
     }
-    function update(Request $request, $id){
-        // Validasi data
-        $validated = $request->validate([
-            'nama_aset' => 'required|string|max:255',
-            'harga' => 'required|string',
-            'satuan' => 'required|string|max:10',
-            'stok' => 'required|integer',
-            'supplier_from' => 'nullable|string|max:255',
-            'status' => 'required|integer',
-        ]);
-        // pada harga, semisal inputnya 3.000.000, maka kita harus menghapus titiknya agar bisa disimpan sebagai angka di database
-        $validated['harga'] = str_replace('.', '', $validated['harga']);
-        $harga = (int) $validated['harga'];
 
-        // Update data di database (ganti dengan model yang sesuai)
-        $model = AsetModel::findOrFail($id);
-        $model->nama_aset = $request->nama_aset;
-        $model->harga = $harga;
-        $model->satuan = $request->satuan;
-        $model->stok = $request->stok;
-        $model->supplier_from = $request->supplier_from ?? null;
-        $model->is_active = $request->status;
-        $model->save();
+    function update(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'nama_material'   => 'required|string|max:255',
+            'harga_material'  => 'required|string',
+            'satuan'          => 'required|string|max:50',
+            'stok'            => 'required|integer',
+            'supplier'        => 'nullable|string|max:255',
+            'status_material' => 'required|string|max:50',
+        ]);
+
+        // Hapus format titik pada harga
+        $validated['harga_material'] = str_replace('.', '', $validated['harga_material']);
+
+        $material = Material::findOrFail($id);
+        $material->update($validated);
 
         return redirect()->route('admin.master-assets.index')->with('success', 'Data berhasil diperbarui.');
     }
-    function destroy($id){
-        $model = AsetModel::findOrFail($id);
-        $model->delete();
+
+    function destroy($id)
+    {
+        $material = Material::findOrFail($id);
+        $material->delete();
         return redirect()->route('admin.master-assets.index')->with('success', 'Data berhasil dihapus.');
     }
 }

@@ -26,21 +26,23 @@ class MasterClientController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'id_perusahaan'                => 'required|string|unique:clients,id_perusahaan',
-            'nama_perusahaan'              => 'required|string',
-            'email_perusahaan'             => 'nullable|email',
-            'nama_kontak_perusahaan'       => 'nullable|string',
-            'npwp_perusahaan'              => 'nullable|string',
-            'alamat_pengiriman_perusahaan' => 'nullable|string',
-            'nomor_telepon_pengiriman'     => 'nullable|string',
-            'alamat_faktur_perusahaan'     => 'nullable|string',
-            'nomor_telepon_faktur'         => 'nullable|string',
-            'alamat_efaktur_perusahaan'    => 'nullable|string',
-            'nomor_rekening_perusahaan'    => 'nullable|string',
+            'id_customer'       => 'required|string|max:5|unique:customers,id_customer',
+            'nama_perusahaan'   => 'required|string',
+            'nama_kontak'       => 'required|string|max:100',
+            'email_perusahaan'  => 'nullable|email|max:100',
+            'npwp_perusahaan'   => 'nullable|string|max:50',
+            'alamat_perusahaan' => 'required|string',
+            'alamat_faktur'     => 'nullable|string',
+            'alamat_efaktur'    => 'nullable|string',
+            'telepon_faktur'    => 'nullable|string|max:20',
+            'telepon_efaktur'   => 'nullable|string|max:20',
+            'rekening_perusahaan' => 'nullable|string|max:50',
         ]);
-        $validated['created_by'] = 'System';
+
         ClientModel::create($validated);
-        return redirect()->route('admin.master-clients.index')->with('success', 'Data client berhasil ditambahkan.');
+
+        return redirect()->route('admin.master-clients.index')
+            ->with('success', 'Data client berhasil ditambahkan.');
     }
 
     public function edit($id)
@@ -54,27 +56,33 @@ class MasterClientController extends Controller
     public function update(Request $request, $id)
     {
         $client = ClientModel::findOrFail($id);
+
         $validated = $request->validate([
-            'id_perusahaan'                => 'required|string|unique:clients,id_perusahaan,' . $id,
-            'nama_perusahaan'              => 'required|string',
-            'email_perusahaan'             => 'nullable|email',
-            'nama_kontak_perusahaan'       => 'nullable|string',
-            'npwp_perusahaan'              => 'nullable|string',
-            'alamat_pengiriman_perusahaan' => 'nullable|string',
-            'nomor_telepon_pengiriman'     => 'nullable|string',
-            'alamat_faktur_perusahaan'     => 'nullable|string',
-            'nomor_telepon_faktur'         => 'nullable|string',
-            'alamat_efaktur_perusahaan'    => 'nullable|string',
-            'nomor_rekening_perusahaan'    => 'nullable|string',
+            'id_customer'       => 'required|string|max:5|unique:customers,id_customer,' . $id . ',id_customer',
+            'nama_perusahaan'   => 'required|string',
+            'nama_kontak'       => 'required|string|max:100',
+            'email_perusahaan'  => 'nullable|email|max:100',
+            'npwp_perusahaan'   => 'nullable|string|max:50',
+            'alamat_perusahaan' => 'required|string',
+            'alamat_faktur'     => 'nullable|string',
+            'alamat_efaktur'    => 'nullable|string',
+            'telepon_faktur'    => 'nullable|string|max:20',
+            'telepon_efaktur'   => 'nullable|string|max:20',
+            'rekening_perusahaan' => 'nullable|string|max:50',
         ]);
+
         $client->update($validated);
-        return redirect()->route('admin.master-clients.index')->with('success', 'Data client berhasil diupdate.');
+
+        return redirect()->route('admin.master-clients.index')
+            ->with('success', 'Data client berhasil diupdate.');
     }
 
     public function destroy($id)
     {
         $client = ClientModel::findOrFail($id);
         $client->delete();
-        return redirect()->route('admin.master-clients.index')->with('success', 'Data client berhasil dihapus.');
+
+        return redirect()->route('admin.master-clients.index')
+            ->with('success', 'Data client berhasil dihapus.');
     }
 }

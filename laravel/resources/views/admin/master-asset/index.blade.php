@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', $title ?? 'Data Asset')
-@section('breadcrumb', $title ?? 'Data Asset')
+@section('title', $title ?? 'Data Material')
+@section('breadcrumb', $title ?? 'Data Material')
 
 @push('styles')
 @endpush
@@ -11,7 +11,7 @@
 {{-- ── Page Header ── --}}
 <div class="mb-4">
     <h1 class="h4 fw-bold text-dark mb-1">{{ $title }}</h1>
-    <p class="text-secondary mb-0">{{ $description}}</p>
+    <p class="text-secondary mb-0">{{ $description }}</p>
 </div>
 
 {{-- ── Stat Cards ── --}}
@@ -25,7 +25,7 @@
                 <thead class="table-light">
                     <tr>
                         <th width=5>No</th>
-                        <th>Nama Aset</th>
+                        <th>Nama Material</th>
                         <th>Harga</th>
                         <th>Satuan</th>
                         <th>Stok</th>
@@ -35,26 +35,26 @@
                     </tr>
                 </thead>
                 <tbody>
-                @forelse ($assets as $asset)
+                @forelse ($materials as $material)
                     <tr>
                         <td>{{ $loop->iteration }}</td>
-                        <td>{{ $asset->nama_aset }}</td>
-                        <td>{{ \App\Http\Controllers\Controller::rupiah($asset->harga) }}</td>
-                        <td>{{ $asset->satuan }}</td>
-                        <td>{{ $asset->stok }}</td>
-                        <td>{{ $asset->supplier_from }}</td>
+                        <td>{{ $material->nama_material }}</td>
+                        <td>{{ \App\Http\Controllers\Controller::rupiah($material->harga_material) }}</td>
+                        <td>{{ $material->satuan }}</td>
+                        <td>{{ $material->stok }}</td>
+                        <td>{{ $material->supplier }}</td>
                         <td>
-                            @if($asset->is_active == 1)
-                                <span class="badge bg-success">Aktif</span>
+                            @if($material->status_material == 'Tersedia')
+                                <span class="badge bg-success">Tersedia</span>
                             @else
-                                <span class="badge bg-dark">Tidak Aktif</span>
+                                <span class="badge bg-dark">Habis</span>
                             @endif
                         </td>
                         <td>
-                            <a href="{{ route('admin.master-assets.edit', $asset->id) }}" class="btn btn-sm btn-primary">
+                            <a href="{{ route('admin.master-assets.edit', $material->id_material) }}" class="btn btn-sm btn-primary">
                                 <i class="bi-pencil"></i> Ubah
                             </a>
-                            <form action="{{ route('admin.master-assets.destroy', $asset->id) }}" method="POST" class="d-inline">
+                            <form action="{{ route('admin.master-assets.destroy', $material->id_material) }}" method="POST" class="d-inline">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
@@ -65,7 +65,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6" class="text-center">Tidak ada data material tersedia.</td>
+                        <td colspan="9" class="text-center">Tidak ada data material tersedia.</td>
                     </tr>
                 @endforelse
                 </tbody>
@@ -74,8 +74,6 @@
     </div>
 </div>
 
-
 @push('scripts')
-
 @endpush
 @endsection

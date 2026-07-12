@@ -1,1 +1,4 @@
-@include('admin.quotations.create')
+@php
+    $isEdit = true;
+@endphp
+@include('admin.quotations.form')

@@ -21,7 +21,7 @@ class DeliveryOrderItem extends Model
     ];
 
     protected $casts = [
-        'jumlah_item' => 'integer',
+        'jumlah_item' => 'decimal:2',
         'harga_item' => 'decimal:2',
     ];
 

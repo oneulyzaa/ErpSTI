@@ -24,7 +24,7 @@ return new class extends Migration
 
             $table->foreign('nomor_invoice')->references('nomor_invoice')->on('invoices')->onUpdate('cascade');
         });
-        DB::statement('ALTER TABLE quotations MODIFY id INT UNSIGNED NOT NULL AUTO_INCREMENT');
+        DB::statement('ALTER TABLE receipts MODIFY id INT UNSIGNED NOT NULL AUTO_INCREMENT');
 
     }
 

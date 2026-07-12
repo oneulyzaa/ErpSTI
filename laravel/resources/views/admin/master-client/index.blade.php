@@ -11,7 +11,7 @@
 {{-- ── Page Header ── --}}
 <div class="mb-4">
     <h1 class="h4 fw-bold text-dark mb-1">{{ $title }}</h1>
-    <p class="text-secondary mb-0">{{ $description}}</p>
+    <p class="text-secondary mb-0">{{ $description }}</p>
 </div>
 
 {{-- ── Stat Cards ── --}}
@@ -25,16 +25,16 @@
                 <thead class="table-light">
                     <tr>
                         <th>No</th>
-                        <th>ID Perusahaan</th>
+                        <th>ID Customer</th>
                         <th>Nama Perusahaan</th>
+                        <th>Nama Kontak</th>
                         <th>Email</th>
-                        <th>Kontak</th>
                         <th>NPWP</th>
-                        <th>Alamat Pengiriman</th>
-                        <th>Telepon Pengiriman</th>
+                        <th>Alamat Perusahaan</th>
                         <th>Alamat Faktur</th>
                         <th>Telepon Faktur</th>
-                        <th>Alamat Efaktur</th>
+                        <th>Alamat E-Faktur</th>
+                        <th>Telepon E-Faktur</th>
                         <th>Rekening</th>
                         <th>Aksi</th>
                     </tr>
@@ -43,22 +43,22 @@
                 @forelse ($clients as $client)
                     <tr>
                         <td>{{ $loop->iteration }}</td>
-                        <td>{{ $client->id_perusahaan }}</td>
+                        <td>{{ $client->id_customer }}</td>
                         <td>{{ $client->nama_perusahaan }}</td>
+                        <td>{{ $client->nama_kontak ?? '-' }}</td>
                         <td>{{ $client->email_perusahaan ?? '-' }}</td>
-                        <td>{{ $client->nama_kontak_perusahaan ?? '-' }}</td>
                         <td>{{ $client->npwp_perusahaan ?? '-' }}</td>
-                        <td>{{ $client->alamat_pengiriman_perusahaan ?? '-' }}</td>
-                        <td>{{ $client->nomor_telepon_pengiriman ?? '-' }}</td>
-                        <td>{{ $client->alamat_faktur_perusahaan ?? '-' }}</td>
-                        <td>{{ $client->nomor_telepon_faktur ?? '-' }}</td>
-                        <td>{{ $client->alamat_efaktur_perusahaan ?? '-' }}</td>
-                        <td>{{ $client->nomor_rekening_perusahaan ?? '-' }}</td>
+                        <td>{{ $client->alamat_perusahaan ?? '-' }}</td>
+                        <td>{{ $client->alamat_faktur ?? '-' }}</td>
+                        <td>{{ $client->telepon_faktur ?? '-' }}</td>
+                        <td>{{ $client->alamat_efaktur ?? '-' }}</td>
+                        <td>{{ $client->telepon_efaktur ?? '-' }}</td>
+                        <td>{{ $client->rekening_perusahaan ?? '-' }}</td>
                         <td>
-                            <a href="{{ route('admin.master-clients.edit', $client->id) }}" class="btn btn-sm btn-primary">
+                            <a href="{{ route('admin.master-clients.edit', $client->id_customer) }}" class="btn btn-sm btn-primary">
                                 <i class="bi-pencil"></i> Ubah
                             </a>
-                            <form action="{{ route('admin.master-clients.destroy', $client->id) }}" method="POST" class="d-inline">
+                            <form action="{{ route('admin.master-clients.destroy', $client->id_customer) }}" method="POST" class="d-inline">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">

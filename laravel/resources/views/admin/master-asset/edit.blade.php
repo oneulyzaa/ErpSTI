@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $title ?? 'Edit Data Client')
+@section('title', $title ?? 'Edit Data Material')
 @section('breadcrumb', $title)
 
 @push('styles')
@@ -8,85 +8,70 @@
 
 @section('content')
 <div class="mb-4">
-    <a href="{{ route('admin.master-clients.index') }}" class="btn btn-secondary btn-sm">
+    <a href="{{ route('admin.master-assets.index') }}" class="btn btn-secondary btn-sm">
         <i class="bi-arrow-left"></i> Kembali
     </a>
 </div>
 <div class="mb-4">
     <h1 class="h4 fw-bold text-dark mb-1">{{ $title }}</h1>
-    <p class="text-secondary mb-0">{{ $description}}</p>
+    <p class="text-secondary mb-0">{{ $description }}</p>
 </div>
 <div class="row g-3 mb-4">
-    <div class="col-lg-8 col-md-12 bg-white p-3 rounded">
-        <form action="{{ route('admin.master-clients.update', $client->id) }}" method="POST">
+    <div class="col-lg-6 col-md-12 bg-white p-3 rounded">
+        <form action="{{ route('admin.master-assets.update', $material->id_material) }}" method="POST">
             @csrf
             @method('PUT')
             <div class="form-group mb-3">
-                <label for="id_perusahaan">ID Perusahaan</label>
-                <input type="text" class="form-control" id="id_perusahaan" name="id_perusahaan" value="{{ $client->id_perusahaan }}" required>
+                <label for="nama_material">Nama Material <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="nama_material" name="nama_material" value="{{ $material->nama_material }}" required>
             </div>
-            <div class="form-group">
-                <div class="row">
-                    <div class="col-lg-6 col-md-12 mb-3">
-                        <label for="nama_perusahaan">Nama Perusahaan</label>
-                        <input type="text" class="form-control" id="nama_perusahaan" name="nama_perusahaan" value="{{ $client->nama_perusahaan }}" required>
-                    </div>
-                    <div class="col-lg-6 col-md-12 mb-3">
-                        <label for="email_perusahaan">Email Perusahaan</label>
-                        <input type="email" class="form-control" id="email_perusahaan" name="email_perusahaan" value="{{ $client->email_perusahaan }}">
-                    </div>
-                </div>
-            </div>
-            <div class="form-group">
-                <div class="row">
-                    <div class="col-lg-6 col-md-12 mb-3">
-                        <label for="nama_kontak_perusahaan">Nama Kontak Perusahaan</label>
-                        <input type="text" class="form-control" id="nama_kontak_perusahaan" name="nama_kontak_perusahaan" value="{{ $client->nama_kontak_perusahaan }}" required>
-                    </div>
-                    <div class="col-lg-6 col-md-12 mb-3">
-                        <label for="npwp_perusahaan">NPWP Perusahaan</label>
-                        <input type="text" class="form-control" id="npwp_perusahaan" name="npwp_perusahaan" value="{{ $client->npwp_perusahaan }}">
-                    </div>
-                </div>
-            </div>
-            <div class="form-group">
-                <div class="row">
-                    <div class="col-lg-4 col-md-12">
-                        <div class="mb-3">
-                            <label for="alamat_pengiriman_perusahaan">Alamat Pengiriman</label>
-                            <textarea class="form-control" id="alamat_pengiriman_perusahaan" name="alamat_pengiriman_perusahaan" rows="3">{{ $client->alamat_pengiriman_perusahaan }}</textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="nomor_telepon_pengiriman">Telepon Pengiriman</label>
-                            <input type="text" class="form-control" id="nomor_telepon_pengiriman" name="nomor_telepon_pengiriman" value="{{ $client->nomor_telepon_pengiriman }}">
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-md-12">
-                        <div class="mb-3">
-                            <label for="alamat_faktur_perusahaan">Alamat Faktur</label>
-                            <textarea class="form-control" id="alamat_faktur_perusahaan" name="alamat_faktur_perusahaan" rows="3">{{ $client->alamat_faktur_perusahaan }}</textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label for="nomor_telepon_faktur">Telepon Faktur</label>
-                            <input type="text" class="form-control" id="nomor_telepon_faktur" name="nomor_telepon_faktur" value="{{ $client->nomor_telepon_faktur }}">
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-md-12">
-                        <div class="mb-3">
-                            <label for="alamat_efaktur_perusahaan">Alamat E-Faktur</label>
-                            <textarea class="form-control" id="alamat_efaktur_perusahaan" name="alamat_efaktur_perusahaan" rows="3">{{ $client->alamat_efaktur_perusahaan }}</textarea>
-                        </div>
-                    </div>
+            <div class="form-group mb-3">
+                <label for="harga_material">Harga <span class="text-danger">*</span></label>
+                <div class="input-group">
+                    <span class="input-group-text">Rp</span>
+                    <input type="text" class="form-control" id="harga_material" name="harga_material" value="{{ number_format($material->harga_material, 0, ',', '.') }}" required oninput="formatRupiah(this)" autocomplete="off">
                 </div>
             </div>
             <div class="form-group mb-3">
-                <label for="nomor_rekening_perusahaan">Nomor Rekening</label>
-                <input type="text" class="form-control" id="nomor_rekening_perusahaan" name="nomor_rekening_perusahaan" value="{{ $client->nomor_rekening_perusahaan }}">
+                <label for="satuan">Satuan <span class="text-danger">*</span></label>
+                <select class="form-select" id="satuan" name="satuan" required>
+                    <option value="" disabled>- Pilih Satuan -</option>
+                    <option value="pcs" {{ $material->satuan == 'pcs' ? 'selected' : '' }}>Pcs</option>
+                    <option value="meter" {{ $material->satuan == 'meter' ? 'selected' : '' }}>Meter</option>
+                    <option value="box" {{ $material->satuan == 'box' ? 'selected' : '' }}>Box</option>
+                    <option value="kg" {{ $material->satuan == 'kg' ? 'selected' : '' }}>Kg</option>
+                </select>
+            </div>
+            <div class="form-group mb-3">
+                <label for="stok">Stok <span class="text-danger">*</span></label>
+                <input type="number" class="form-control" id="stok" name="stok" min="0" value="{{ $material->stok }}" required>
+            </div>
+            <div class="form-group mb-3">
+                <label for="supplier">Supplier</label>
+                <input type="text" class="form-control" id="supplier" name="supplier" value="{{ $material->supplier }}">
+            </div>
+            <div class="form-group mb-3">
+                <label for="status_material">Status <span class="text-danger">*</span></label>
+                <select class="form-select" id="status_material" name="status_material" required>
+                    <option value="" disabled>- Pilih Status -</option>
+                    <option value="Tersedia" {{ $material->status_material == 'Tersedia' ? 'selected' : '' }}>Tersedia</option>
+                    <option value="Habis" {{ $material->status_material == 'Habis' ? 'selected' : '' }}>Habis</option>
+                </select>
             </div>
             <button type="submit" class="btn btn-primary">Simpan</button>
         </form>
     </div>
 </div>
 @push('scripts')
+<script>
+function formatRupiah(el) {
+    let value = el.value.replace(/[^\d]/g, "");
+    if (!value) {
+        el.value = "";
+        return;
+    }
+    el.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+</script>
 @endpush
 @endsection

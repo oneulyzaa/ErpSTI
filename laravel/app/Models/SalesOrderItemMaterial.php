@@ -20,7 +20,7 @@ class SalesOrderItemMaterial extends Model
     ];
 
     protected $casts = [
-        'jumlah_material' => 'integer',
+        'jumlah_material' => 'decimal:2',
         'harga_material' => 'decimal:2',
     ];
 

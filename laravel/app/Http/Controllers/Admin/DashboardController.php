@@ -20,7 +20,7 @@ class DashboardController extends Controller
         // Total penjualan bulan ini dari SalesOrder
         $totalPenjualan = SalesOrder::whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
-            ->sum('total');
+            ->sum('grandtotal');
 
         // Total klien aktif
         $totalKlien = ClientModel::count();
@@ -29,8 +29,8 @@ class DashboardController extends Controller
         $penawaranPending = Quotation::where('status', 'pending')->count();
 
         // Invoice belum lunas
-        $invoiceBelumLunas = Invoice::whereNotIn('status', ['paid', 'lunas'])->count();
-        $invoiceOutstanding = Invoice::whereNotIn('status', ['paid', 'lunas'])->sum('total');
+        $invoiceBelumLunas = Invoice::whereNotIn('status_pembayaran', ['paid', 'lunas'])->count();
+        $invoiceOutstanding = Invoice::whereNotIn('status_pembayaran', ['paid', 'lunas'])->sum('grandtotal');
 
         // Penjualan terbaru (Sales Orders)
         $penjualanTerbaru = SalesOrder::with('client')
@@ -44,7 +44,7 @@ class DashboardController extends Controller
         // Hitung persentase perubahan penjualan dari bulan sebelumnya
         $penjualanBulanLalu = SalesOrder::whereMonth('created_at', now()->subMonth()->month)
             ->whereYear('created_at', now()->subMonth()->year)
-            ->sum('total');
+            ->sum('grandtotal');
 
         $persentasePerubahan = 0;
         if ($penjualanBulanLalu > 0) {
@@ -85,7 +85,7 @@ class DashboardController extends Controller
 
             $total = SalesOrder::whereMonth('created_at', $date->month)
                 ->whereYear('created_at', $date->year)
-                ->sum('total');
+                ->sum('grandtotal');
 
             $data[] = $total;
         }

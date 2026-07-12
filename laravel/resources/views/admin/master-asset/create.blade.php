@@ -1,12 +1,9 @@
 @extends('layouts.app')
 
-@section('title', $title ?? 'Tambah Data Asset')
+@section('title', $title ?? 'Tambah Data Material')
 @section('breadcrumb', $title)
 
 @push('styles')
-<style>
-    
-</style>
 @endpush
 
 @section('content')
@@ -19,7 +16,7 @@
 </div>
 <div class="mb-4">
     <h1 class="h4 fw-bold text-dark mb-1">{{ $title }}</h1>
-    <p class="text-secondary mb-0">{{ $description}}</p>
+    <p class="text-secondary mb-0">{{ $description }}</p>
 </div>
 
 <div class="row g-3 mb-4">
@@ -27,47 +24,47 @@
         <form action="{{ route('admin.master-assets.store') }}" method="POST">
             @csrf
             <div class="form-group mb-3">
-                <label for="nama_aset">Nama Material</label>
-                <input type="text" class="form-control" id="nama_aset" name="nama_aset" required>
+                <label for="nama_material">Nama Material <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="nama_material" name="nama_material" required>
             </div>
             <div class="form-group mb-3">
-                <label for="harga">Harga</label>
+                <label for="harga_material">Harga <span class="text-danger">*</span></label>
                 <div class="input-group">
                     <span class="input-group-text">Rp</span>
-                    <input type="text" class="form-control" id="harga" name="harga" required oninput="formatRupiah(this)" autocomplete="off">
+                    <input type="text" class="form-control" id="harga_material" name="harga_material" required oninput="formatRupiah(this)" autocomplete="off">
                 </div>
             </div>
             <div class="form-group mb-3">
-                <label for="satuan">Satuan</label>
+                <label for="satuan">Satuan <span class="text-danger">*</span></label>
                 <select class="form-select" id="satuan" name="satuan" required>
                     <option value="" disabled selected>- Pilih Satuan -</option>
-                    <option value="pcs" >Pcs</option>
-                    <option value="meter" >Meter</option>
-                    <option value="box" >Box</option>
-                    <option value="kg" >Kg</option>
+                    <option value="pcs">Pcs</option>
+                    <option value="meter">Meter</option>
+                    <option value="box">Box</option>
+                    <option value="kg">Kg</option>
                 </select>
             </div>
             <div class="form-group mb-3">
-                <label for="stok">Stok</label>
-                <input type="text" class="form-control" id="stok" name="stok" required>
+                <label for="stok">Stok <span class="text-danger">*</span></label>
+                <input type="number" class="form-control" id="stok" name="stok" min="0" required>
             </div>
             <div class="form-group mb-3">
-                <label for="supplier_from">Supplier</label>
-                <input type="text" class="form-control" id="supplier_from" name="supplier_from">
+                <label for="supplier">Supplier</label>
+                <input type="text" class="form-control" id="supplier" name="supplier">
             </div>
             <div class="form-group mb-3">
-                <label for="status">Status</label>
-                <select class="form-select" id="status" name="status" required>
+                <label for="status_material">Status <span class="text-danger">*</span></label>
+                <select class="form-select" id="status_material" name="status_material" required>
                     <option value="" disabled selected>- Pilih Status -</option>
-                    <option value="1" selected>Aktif</option>
-                    <option value="0">Tidak Aktif</option>
+                    <option value="Tersedia" selected>Tersedia</option>
+                    <option value="Habis">Habis</option>
                 </select>
             </div>
             <button type="submit" class="btn btn-primary">Simpan</button>
         </form>
     </div>
 </div>
-  
+
 @push('scripts')
 <script>
 function formatRupiah(el) {

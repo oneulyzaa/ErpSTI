@@ -66,6 +66,7 @@ Route::middleware('auth')->prefix('admin')->as('admin.')->group(function () {
 
     // ─── Quick-add asset/material from quotation page ───────────
     Route::post('quotations/quick-add-asset', [QuotationController::class, 'quickAddAsset'])->name('quotations.quick-add-asset');
+    Route::post('quotations/quick-add-material', [QuotationController::class, 'quickAddMaterial'])->name('quotations.quickAddMaterial');
 
     // ─── Invoice ─────────────────────────────────────────────────
     Route::get('invoices/{invoice}/pdf', [InvoiceController::class, 'pdf'])->name('invoices.pdf');

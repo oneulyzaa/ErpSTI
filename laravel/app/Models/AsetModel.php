@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class AsetModel extends Model
 {
-    protected $table = 'assets';
+    protected $table = 'materials';
     
     protected $fillable = [
         'nama_aset',

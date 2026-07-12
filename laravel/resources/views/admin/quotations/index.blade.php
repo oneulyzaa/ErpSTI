@@ -108,13 +108,13 @@
                 @endphp
                 <tr>
                     <td>{{ $loop->iteration }}</td>
-                    <td class="quote-no">{{ $q->quote_number }}</td>
-                    <td>{{ $q->client?->nama_kontak_perusahaan ?? $q->client_name }}</td>
-                    <td>{{ $q->client?->nama_perusahaan ?? $q->client_company }}</td>
-                    <td>{{ $q->project_name ?? '-' }}</td>
-                    <td>{{ $q->date->format('d M Y') }}</td>
-                    <td>{{ $q->valid_until->format('d M Y') }}</td>
-                    <td class="text-end">{{ number_format($q->total,0,',','.') }}</td>
+                    <td class="quote-no">{{ $q->nomor_quotation }}</td>
+                    <td>{{ $q->client?->nama_kontak_perusahaan ?? '-' }}</td>
+                    <td>{{ $q->client?->nama_perusahaan ?? '-' }}</td>
+                    <td>{{ $q->nama_project ?? '-' }}</td>
+                    <td>{{ $q->tanggal_pembuatan->format('d M Y') }}</td>
+                    <td>{{ $q->valid_sampai->format('d M Y') }}</td>
+                    <td class="text-end">{{ number_format($q->grandtotal,0,',','.') }}</td>
                     <td><span class="badge badge-{{ $s[0] }}">{{ $s[1] }}</span></td>
                     <td class="text-center table-actions">
                         <a href="{{ route('admin.quotations.show', $q) }}" class="btn btn-info btn-sm"><i class="bi bi-eye"></i></a>
