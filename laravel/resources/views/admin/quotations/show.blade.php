@@ -112,9 +112,9 @@
                         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:10px;">Kepada</div>
                         @php
                             $clientName = $quotation->client?->nama_perusahaan ?? '-';
-                            $contactName = $quotation->client?->nama_kontak_perusahaan ?? '-';
+                            $contactName = $quotation->client?->nama_kontak ?? '-';
                             $contactEmail = $quotation->client?->email_perusahaan ?? '';
-                            $contactAddress = $quotation->client?->alamat_pengiriman_perusahaan ?? '';
+                            $contactAddress = $quotation->client?->alamat_perusahaan ?? '';
                         @endphp
                         <div class="fw-bold" style="font-size:15px">{{ $clientName }}</div>
                         <div class="text-muted mt-1" style="font-size:13px;line-height:1.8;">
@@ -233,6 +233,7 @@
         </div>
 
         {{-- Labor --}}
+        @if($quotation->labors && $quotation->labors->count())
         <div class="card border-0 shadow-sm">
             <div class="card-header py-3 d-flex align-items-center justify-content-between"
                  style="background:#1B5DBC;">
@@ -275,7 +276,7 @@
                 </table>
             </div>
         </div>
-
+        @endif
         {{-- Biaya Lain-Lain --}}
         @if($quotation->otherCosts && $quotation->otherCosts->count())
         <div class="card border-0 shadow-sm">
@@ -321,10 +322,13 @@
             <div class="card-header bg-white border-bottom py-3"><span class="fw-semibold">Ringkasan</span></div>
             <div class="card-body">
                 <div class="summary-row"><span>Total Produksi</span><span class="summary-val">Rp {{ number_format($quotation->subtotal_material, 0, ',', '.') }}</span></div>
+                @if($quotation->labors && $quotation->labors->count())
                 <div class="summary-row"><span>Total Labor</span><span class="summary-val">Rp {{ number_format($quotation->subtotal_labor, 0, ',', '.') }}</span></div>
+                @endif
+                @if($quotation->otherCosts && $quotation->otherCosts->count())
                 <div class="summary-row"><span>Total Biaya Lain-Lain</span><span class="summary-val">Rp {{ number_format($quotation->subtotal_lainlain, 0, ',', '.') }}</span></div>
+                @endif
                 <div class="summary-row"><span>Diskon</span><span class="summary-val">Rp {{ number_format($quotation->diskon ?? 0, 0, ',', '.') }}</span></div>
-                <div class="summary-row"><span>Pajak</span><span class="summary-val">Rp {{ number_format($quotation->pajak ?? 0, 0, ',', '.') }}</span></div>
                 <div class="summary-row total-row"><span>GRAND TOTAL</span><span class="summary-val">Rp {{ number_format($quotation->grandtotal, 0, ',', '.') }}</span></div>
             </div>
         </div>

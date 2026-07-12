@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Project Quote {{ $quotation->quote_number }}</title>
+    <title>Project Quote {{ $quotation->nomor_quotation }}</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -386,19 +386,19 @@
                 <table class="meta-table">
                     <tr>
                         <td class="meta-label">Date</td>
-                        <td class="meta-value">{{ $quotation->date->format('d/m/Y') }}</td>
+                        <td class="meta-value">{{ $quotation->tanggal_pembuatan->format('d/m/Y') }}</td>
                     </tr>
                     <tr>
                         <td class="meta-label">Quote #</td>
-                        <td class="meta-value">{{ $quotation->quote_number }}</td>
+                        <td class="meta-value">{{ $quotation->nomor_quotation }}</td>
                     </tr>
                     <tr>
                         <td class="meta-label">Customer ID</td>
-                        <td class="meta-value">{{ $quotation->customer_id ?? '-' }}</td>
+                        <td class="meta-value">{{ $quotation->client->id_customer ?? '-' }}</td>
                     </tr>
                     <tr>
                         <td class="meta-label">Valid Until</td>
-                        <td class="meta-value">{{ $quotation->valid_until->format('d/m/Y') }}</td>
+                        <td class="meta-value">{{ $quotation->valid_sampai->format('d/m/Y') }}</td>
                     </tr>
                 </table>
             </td>
@@ -410,24 +410,24 @@
          CLIENT BLOCK
     ══════════════════════════════ --}}
     @php
-        $clCompany = $quotation->client?->nama_perusahaan ?? $quotation->client_company;
-        $clName    = $quotation->client?->nama_kontak_perusahaan ?? $quotation->client_name;
-        $clEmail   = $quotation->client?->email_perusahaan ?? $quotation->client_email;
-        $clAddr    = $quotation->client_address ?? ($quotation->client?->alamat_pengiriman_perusahaan ?? '');
+        $clCompany = $quotation->client?->nama_perusahaan ?? '-';
+        $clName    = $quotation->client?->nama_kontak ?? '-';
+        $clEmail   = $quotation->client?->email_perusahaan ?? '-';
+        $clAddr    = $quotation->client?->alamat_perusahaan ?? '-';
     @endphp
     <table class="client-block">
         <tr>
             <td class="client-divider" style="width:30%;">
                 <div class="client-lbl">Attention</div>
-                <div class="client-val">{{ $quotation->client_attention ?? $clName }}</div>
+                <div class="client-val">{{ $clName }}</div>
             </td>
             <td class="client-divider" style="width:30%;">
                 <div class="client-lbl">Company</div>
                 <div class="client-val">{{ $clCompany }}</div>
             </td>
             <td style="width:40%;">
-                <div class="client-lbl">Cc</div>
-                <div class="client-sub">{{ $quotation->client_cc ?? '-' }}</div>
+                <div class="client-lbl">Project</div>
+                <div class="client-sub">{{ $quotation->nama_project ?? '-' }}</div>
             </td>
         </tr>
         <tr class="client-sep">
@@ -437,21 +437,13 @@
             </td>
             <td class="client-divider">
                 <div class="client-lbl">Email</div>
-                <div class="client-sub">{{ $clEmail ?? '-' }}</div>
+                <div class="client-sub">{{ $clEmail }}</div>
             </td>
             <td>
-                <div class="client-lbl">Description of Work</div>
-                <div class="client-sub">{{ $quotation->description_of_work ?? '-' }}</div>
+                <div class="client-lbl">Status</div>
+                <div class="client-sub">{{ ucfirst($quotation->status ?? '-') }}</div>
             </td>
         </tr>
-        @if($quotation->project_name)
-        <tr class="client-sep">
-            <td colspan="3">
-                <div class="client-lbl">Project Name</div>
-                <div class="client-val">{{ $quotation->project_name }}</div>
-            </td>
-        </tr>
-        @endif
         @if($clAddr)
         <tr class="client-sep">
             <td colspan="3">
@@ -472,12 +464,14 @@
         $totalMat = 0;
         $tableRows = [];
         foreach ($itemList as $i => $item) {
-            $totalMat += $item->subtotal;
-            $tableRows[] = ['type'=>'product', 'data'=>$item, 'idx'=>$i+1];
+            $itemSubtotal = ($item->jumlah_item ?? 0) * ($item->harga_item ?? 0);
+            $totalMat += $itemSubtotal;
+            $tableRows[] = ['type'=>'product', 'data'=>$item, 'idx'=>$i+1, 'subtotal'=>$itemSubtotal];
             if ($item->materials && $item->materials->count()) {
                 foreach ($item->materials as $mi => $mat) {
-                    $totalMat += $mat->subtotal;
-                    $tableRows[] = ['type'=>'material', 'data'=>$mat, 'idx'=>($i+1).'.'.($mi+1)];
+                    $matSubtotal = ($mat->jumlah_material ?? 0) * ($mat->harga_material ?? 0);
+                    $totalMat += $matSubtotal;
+                    $tableRows[] = ['type'=>'material', 'data'=>$mat, 'idx'=>($i+1).'.'.($mi+1), 'subtotal'=>$matSubtotal];
                 }
             }
         }
@@ -501,20 +495,20 @@
             @if($row['type'] === 'product')
             <tr style="background:#eef2f7;font-weight:bold;">
                 <td class="col-no mono tc">{{ $row['idx'] }}</td>
-                <td>{{ $row['data']->material_name }}</td>
-                <td class="tc">{{ $row['data']->unit }}</td>
-                <td class="tr mono">{{ number_format($row['data']->qty, 0, ',', '.') }}</td>
-                <td class="tr mono">&nbsp;{{ floatval($row['data']->unit_price) > 0 ? 'Rp '.number_format($row['data']->unit_price, 0, ',', '.') : '-' }}</td>
-                <td class="tr mono">&nbsp;{{ floatval($row['data']->subtotal) > 0 ? 'Rp '.number_format($row['data']->subtotal, 0, ',', '.') : '-' }}</td>
+                <td>{{ $row['data']->nama_item }}</td>
+                <td class="tc">{{ $row['data']->satuan }}</td>
+                <td class="tr mono">{{ number_format($row['data']->jumlah_item, 0, ',', '.') }}</td>
+                <td class="tr mono">&nbsp;{{ floatval($row['data']->harga_item) > 0 ? 'Rp '.number_format($row['data']->harga_item, 0, ',', '.') : '-' }}</td>
+                <td class="tr mono">&nbsp;{{ floatval($row['subtotal']) > 0 ? 'Rp '.number_format($row['subtotal'], 0, ',', '.') : '-' }}</td>
             </tr>
             @else
             <tr class="{{ $i % 2 === 0 ? 'row-odd' : 'row-even' }}">
                 <td class="col-no mono tc muted" style="font-size:7px;">{{ $row['idx'] }}</td>
-                <td style="padding-left:16px;">{{ $row['data']->material_name }}</td>
-                <td class="tc">{{ $row['data']->satuan }}</td>
-                <td class="tr mono">{{ number_format($row['data']->qty_required, 2, ',', '.') }}</td>
-                <td class="tr mono">Rp&nbsp;{{ number_format($row['data']->unit_price, 0, ',', '.') }}</td>
-                <td class="tr mono">Rp&nbsp;{{ number_format($row['data']->subtotal, 0, ',', '.') }}</td>
+                <td style="padding-left:16px;">{{ $row['data']->nama_material }}</td>
+                <td class="tc">{{ $row['data']->satuan_material }}</td>
+                <td class="tr mono">{{ number_format($row['data']->jumlah_material, 2, ',', '.') }}</td>
+                <td class="tr mono">Rp&nbsp;{{ number_format($row['data']->harga_material, 0, ',', '.') }}</td>
+                <td class="tr mono">Rp&nbsp;{{ number_format($row['subtotal'], 0, ',', '.') }}</td>
             </tr>
             @endif
             @endforeach
@@ -533,48 +527,51 @@
     ══════════════════════════════ --}}
     @php
         $labors   = $quotation->labors;
-        $totalLab = $labors->sum('subtotal');
+        $totalLab = 0;
         $padLab   = max(0, 8 - $labors->count());
     @endphp
-    <div class="section-bar" style="background:#2c6bc4;">Labor</div>
-    <table class="lab-table">
-        <thead>
-            <tr>
-                <th class="th-center" style="width:22px;">#</th>
-                <th class="th-left">Work Item</th>
-                <th class="th-center" style="width:28px;">MP</th>
-                <th class="th-center" style="width:36px;">Days</th>
-                <th class="th-right" style="width:82px;">Rate / Day</th>
-                <th class="th-right" style="width:82px;">Subtotal</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($labors as $i => $labor)
-            <tr class="{{ $i % 2 === 0 ? 'row-odd' : 'row-even' }}">
-                <td class="tc mono">{{ $i + 1 }}</td>
-                <td>{{ $labor->labor_name }}</td>
-                <td class="tc mono">{{ $labor->mp }}</td>
-                <td class="tc mono">{{ number_format($labor->days, 0) }}</td>
-                <td class="tr mono">Rp&nbsp;{{ number_format($labor->rate, 0, ',', '.') }}</td>
-                <td class="tr mono">Rp&nbsp;{{ number_format($labor->subtotal, 0, ',', '.') }}</td>
-            </tr>
-            @endforeach
+    @if($quotation->labors && $quotation->labors->count())
+        <div class="section-bar" style="background:#2c6bc4;">Labor</div>
+        <table class="lab-table">
+            <thead>
+                <tr>
+                    <th class="th-center" style="width:22px;">#</th>
+                    <th class="th-left">Work Item</th>
+                    <th class="th-center" style="width:28px;">MP</th>
+                    <th class="th-center" style="width:36px;">Days</th>
+                    <th class="th-right" style="width:82px;">Rate / Day</th>
+                    <th class="th-right" style="width:82px;">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($labors as $i => $labor)
+                @php $laborSubtotal = ($labor->jumlah_sdm ?? 0) * ($labor->jumlah_hari ?? 0) * ($labor->rate_hari ?? 0); $totalLab += $laborSubtotal; @endphp
+                <tr class="{{ $i % 2 === 0 ? 'row-odd' : 'row-even' }}">
+                    <td class="tc mono">{{ $i + 1 }}</td>
+                    <td>{{ $labor->nama_labor }}</td>
+                    <td class="tc mono">{{ $labor->jumlah_sdm }}</td>
+                    <td class="tc mono">{{ number_format($labor->jumlah_hari, 0) }}</td>
+                    <td class="tr mono">Rp&nbsp;{{ number_format($labor->rate_hari, 0, ',', '.') }}</td>
+                    <td class="tr mono">Rp&nbsp;{{ number_format($laborSubtotal, 0, ',', '.') }}</td>
+                </tr>
+                @endforeach
 
-            <tr class="total-lab-row">
-                <td colspan="5" class="tr" style="font-size:8px;letter-spacing:.5px;color:#1B5DBC;">
-                    TOTAL LABOR
-                </td>
-                <td class="tr mono">Rp&nbsp;{{ number_format($totalLab, 0, ',', '.') }}</td>
-            </tr>
-        </tbody>
-    </table>
+                <tr class="total-lab-row">
+                    <td colspan="5" class="tr" style="font-size:8px;letter-spacing:.5px;color:#1B5DBC;">
+                        TOTAL LABOR
+                    </td>
+                    <td class="tr mono">Rp&nbsp;{{ number_format($totalLab, 0, ',', '.') }}</td>
+                </tr>
+            </tbody>
+        </table>
+    @endif
 
     {{-- ══════════════════════════════
          BIAYA LAIN-LAIN TABLE
     ══════════════════════════════ --}}
     @php
         $otherCosts = $quotation->otherCosts ?? collect();
-        $totalOth   = $otherCosts->sum('subtotal');
+        $totalOth   = $otherCosts->sum('jumlah_biaya');
     @endphp
     @if($otherCosts->count())
     <div class="section-bar" style="background:#4a7bd4;">Biaya Lain-Lain</div>
@@ -583,23 +580,19 @@
             <tr>
                 <th class="th-center" style="width:22px;">#</th>
                 <th class="th-left">Nama Biaya</th>
-                <th class="th-center" style="width:40px;">Qty</th>
-                <th class="th-right" style="width:82px;">Rate</th>
-                <th class="th-right" style="width:82px;">Subtotal</th>
+                <th class="th-right" style="width:82px;">Jumlah</th>
             </tr>
         </thead>
         <tbody>
             @foreach($otherCosts as $i => $cost)
             <tr class="{{ $i % 2 === 0 ? 'row-odd' : 'row-even' }}">
                 <td class="tc mono">{{ $i + 1 }}</td>
-                <td>{{ $cost->cost_name }}</td>
-                <td class="tc mono">{{ number_format($cost->qty, 2, ',', '.') }}</td>
-                <td class="tr mono">Rp&nbsp;{{ number_format($cost->rate, 0, ',', '.') }}</td>
-                <td class="tr mono">Rp&nbsp;{{ number_format($cost->subtotal, 0, ',', '.') }}</td>
+                <td>{{ $cost->nama_biaya }}</td>
+                <td class="tr mono">Rp&nbsp;{{ number_format($cost->jumlah_biaya, 0, ',', '.') }}</td>
             </tr>
             @endforeach
             <tr class="total-lab-row">
-                <td colspan="4" class="tr" style="font-size:8px;letter-spacing:.5px;color:#1B5DBC;">
+                <td colspan="2" class="tr" style="font-size:8px;letter-spacing:.5px;color:#1B5DBC;">
                     TOTAL BIAYA LAIN-LAIN
                 </td>
                 <td class="tr mono">Rp&nbsp;{{ number_format($totalOth, 0, ',', '.') }}</td>
@@ -612,7 +605,7 @@
          GRAND TOTAL
     ══════════════════════════════ --}}
     @php
-        $discount   = $quotation->discount ?? 0;
+        $discount   = $quotation->diskon ?? 0;
         $grandTotal = $totalMat + $totalLab + $totalOth - $discount;
     @endphp
     <table class="grand-wrap">
@@ -624,11 +617,13 @@
                         <td class="grand-lbl">Total Produksi</td>
                         <td class="grand-val mono">Rp&nbsp;{{ number_format($totalMat, 0, ',', '.') }}</td>
                     </tr>
+                    @if($quotation->labors && $quotation->labors->count())
                     <tr>
                         <td class="grand-lbl">Total Labor</td>
                         <td class="grand-val mono">Rp&nbsp;{{ number_format($totalLab, 0, ',', '.') }}</td>
                     </tr>
-                    @if($totalOth > 0)
+                    @endif
+                    @if($quotation->otherCosts && $quotation->otherCosts->count())
                     <tr>
                         <td class="grand-lbl">Total Biaya Lain-Lain</td>
                         <td class="grand-val mono">Rp&nbsp;{{ number_format($totalOth, 0, ',', '.') }}</td>
@@ -653,10 +648,10 @@
          OPSI A — TERMS (full width)
     ══════════════════════════════ --}}
 
-    <div class="terms-bar">Terms &amp; Conditions</div>
+    <div class="terms-bar">Terms & Conditions</div>
     <div class="terms-body">
-        @if($quotation->term_and_condition)
-            {!! nl2br(e($quotation->term_and_condition)) !!}
+        @if($quotation->keterangan)
+            {!! nl2br(e($quotation->keterangan)) !!}
         @else
             1. Penawaran ini hanya berlaku sampai tanggal yang tertera di atas.<br>
             2. Untuk menerima penawaran, tanda tangan dan kembalikan dokumen ini.<br>
@@ -689,7 +684,7 @@
          OPSI A — SIGNATURE BLOCK (full width, 3 kolom)
     ══════════════════════════════ --}}
     <div class="sig-section">
-        <div class="sig-section-lbl">Agreement &amp; Signatures</div>
+        <div class="sig-section-lbl">Agreement & Signatures</div>
         <table class="sig-outer">
             <tr>
                 <td>
@@ -704,7 +699,7 @@
                 </td>
                 <td>
                     <div class="sig-box"></div>
-                    <div class="sig-name-line">{{ $quotation->client_company }}</div>
+                    <div class="sig-name-line">{{ $quotation->client?->nama_perusahaan ?? '-' }}</div>
                     <div class="sig-role">Approved by Customer</div>
                 </td>
             </tr>
@@ -731,7 +726,7 @@
 </div>{{-- end .page --}}
 <div class="footer-strip"></div>
 <div class="footer-text">
-    Generated: {{ now()->format('d/m/Y H:i') }} WIB &nbsp;&middot;&nbsp; {{ $quotation->quote_number }}
+    Generated: {{ now()->format('d/m/Y H:i') }} WIB &nbsp;&middot;&nbsp; {{ $quotation->nomor_quotation }}
 </div>
 </body>
 </html>

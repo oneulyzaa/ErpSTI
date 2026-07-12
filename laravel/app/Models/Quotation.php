@@ -59,7 +59,7 @@ class Quotation extends Model
      */
     public function client()
     {
-        return $this->belongsTo(ClientModel::class, 'id_client', 'id_customer');
+        return $this->belongsTo(ClientModel::class, 'id_client', 'id');
     }
 
     /**

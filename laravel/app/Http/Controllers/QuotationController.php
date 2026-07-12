@@ -11,6 +11,7 @@ use App\Models\ClientModel;
 use App\Models\Material;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class QuotationController extends Controller
@@ -67,7 +68,7 @@ class QuotationController extends Controller
         // return response()->json($request->all());
         DB::transaction(function () use ($validated, $request) {
             $diskon = (float) ($validated['diskon'] ?? 0);
-            $pajak  = (float) ($validated['pajak'] ?? 0);
+            $pajak = (float) ($validated['pajak'] ?? 0);
 
             [$subMat, $subLab, $subOth, $subtotal, $grandtotal] = $this->calculateTotals(
                 $request->items ?? [],
@@ -78,22 +79,22 @@ class QuotationController extends Controller
             );
 
             $quotation = Quotation::create([
-                'nomor_quotation'    => $validated['nomor_quotation'],
-                'id_staff'           => auth()->id() ?? 1,
-                'id_client'          => $validated['id_client'] ?? null,
-                'nama_project'       => $validated['nama_project'] ?? null,
-                'tanggal_pembuatan'  => $validated['tanggal_pembuatan'],
-                'valid_sampai'       => $validated['valid_sampai'],
-                'subtotal_produksi'  => 0,
-                'subtotal_material'  => $subMat,
-                'subtotal_labor'     => $subLab,
-                'subtotal_lainlain'  => $subOth,
-                'grandtotal'         => $grandtotal,
-                'diskon'             => $diskon,
-                'pajak'              => $pajak,
-                'termin'             => $validated['termin'] ?? null,
-                'keterangan'         => $validated['keterangan'] ?? null,
-                'status'             => $validated['status'],
+                'nomor_quotation' => $validated['nomor_quotation'],
+                'id_staff' => auth()->id() ?? 1,
+                'id_client' => $validated['id_client'] ?? null,
+                'nama_project' => $validated['nama_project'] ?? null,
+                'tanggal_pembuatan' => $validated['tanggal_pembuatan'],
+                'valid_sampai' => $validated['valid_sampai'],
+                'subtotal_produksi' => 0,
+                'subtotal_material' => $subMat,
+                'subtotal_labor' => $subLab,
+                'subtotal_lainlain' => $subOth,
+                'grandtotal' => $grandtotal,
+                'diskon' => $diskon,
+                'pajak' => $pajak,
+                'termin' => $validated['termin'] ?? null,
+                'keterangan' => $validated['keterangan'] ?? null,
+                'status' => $validated['status'],
             ]);
 
             $this->syncItems($quotation, $request->items ?? []);
@@ -130,7 +131,7 @@ class QuotationController extends Controller
 
         DB::transaction(function () use ($validated, $request, $quotation) {
             $diskon = (float) ($validated['diskon'] ?? 0);
-            $pajak  = (float) ($validated['pajak'] ?? 0);
+            $pajak = (float) ($validated['pajak'] ?? 0);
 
             [$subMat, $subLab, $subOth, $subtotal, $grandtotal] = $this->calculateTotals(
                 $request->items ?? [],
@@ -141,19 +142,19 @@ class QuotationController extends Controller
             );
 
             $quotation->update([
-                'id_client'          => $validated['id_client'] ?? null,
-                'nama_project'       => $validated['nama_project'] ?? null,
-                'tanggal_pembuatan'  => $validated['tanggal_pembuatan'],
-                'valid_sampai'       => $validated['valid_sampai'],
-                'subtotal_material'  => $subMat,
-                'subtotal_labor'     => $subLab,
-                'subtotal_lainlain'  => $subOth,
-                'grandtotal'         => $grandtotal,
-                'diskon'             => $diskon,
-                'pajak'              => $pajak,
-                'termin'             => $validated['termin'] ?? null,
-                'keterangan'         => $validated['keterangan'] ?? null,
-                'status'             => $validated['status'],
+                'id_client' => $validated['id_client'] ?? null,
+                'nama_project' => $validated['nama_project'] ?? null,
+                'tanggal_pembuatan' => $validated['tanggal_pembuatan'],
+                'valid_sampai' => $validated['valid_sampai'],
+                'subtotal_material' => $subMat,
+                'subtotal_labor' => $subLab,
+                'subtotal_lainlain' => $subOth,
+                'grandtotal' => $grandtotal,
+                'diskon' => $diskon,
+                'pajak' => $pajak,
+                'termin' => $validated['termin'] ?? null,
+                'keterangan' => $validated['keterangan'] ?? null,
+                'status' => $validated['status'],
             ]);
 
             $this->syncItems($quotation, $request->items ?? []);
@@ -224,11 +225,11 @@ class QuotationController extends Controller
     public function quickAddMaterial(Request $request)
     {
         $validated = $request->validate([
-            'nama_material'   => 'required|string|max:255',
-            'harga_material'  => 'nullable|numeric|min:0',
-            'satuan'          => 'nullable|string|max:50',
-            'stok'            => 'nullable|integer|min:0',
-            'supplier'        => 'nullable|string|max:255',
+            'nama_material' => 'required|string|max:255',
+            'harga_material' => 'nullable|numeric|min:0',
+            'satuan' => 'nullable|string|max:50',
+            'stok' => 'nullable|integer|min:0',
+            'supplier' => 'nullable|string|max:255',
         ]);
         $validated['status_material'] = 'Tersedia'; // Set default status to "Tersedia"
 
@@ -247,38 +248,43 @@ class QuotationController extends Controller
     // ─── Helpers ──────────────────────────────────────────────────────────────
     private function validateQuotation(Request $request, ?string $ignoreId = null): array
     {
+        $nomorQuotationRule = Rule::unique('quotations', 'nomor_quotation');
+        if ($ignoreId) {
+            $nomorQuotationRule->ignore($ignoreId, 'nomor_quotation');
+        }
+
         return $request->validate([
-            'nomor_quotation'    => 'required|string|max:50|unique:quotations,nomor_quotation' . ($ignoreId ? ",$ignoreId" : ''),
-            'id_client'          => 'nullable|integer|exists:customers,id',
-            'nama_project'       => 'nullable|string|max:255',
-            'tanggal_pembuatan'  => 'required|date',
-            'valid_sampai'       => 'required|date|after_or_equal:tanggal_pembuatan',
-            'diskon'             => 'nullable|numeric|min:0',
-            'pajak'              => 'nullable|numeric|min:0',
-            'status'             => 'required|in:draft,sent,approved,rejected,expired',
-            'termin'             => 'nullable|string',
-            'keterangan'         => 'nullable|string',
-            'items'              => 'nullable|array',
-            'items.*.nama_item'       => 'required_with:items|string|max:255',
-            'items.*.deskripsi_item'  => 'nullable|string',
-            'items.*.satuan'          => 'required_with:items|string|max:50',
-            'items.*.jumlah_item'     => 'required_with:items|numeric|min:0',
-            'items.*.harga_item'      => 'required_with:items|numeric|min:0',
-            'items.*.materials'       => 'nullable|array',
-            'items.*.materials.*.id_material'       => 'nullable|exists:materials,id_material',
-            'items.*.materials.*.nama_material'     => 'required_with:items.*.materials|string|max:255',
-            'items.*.materials.*.jumlah_material'   => 'required_with:items.*.materials|numeric|min:0',
-            'items.*.materials.*.satuan_material'   => 'required_with:items.*.materials|string|max:50',
-            'items.*.materials.*.harga_material'    => 'nullable|numeric|min:0',
-            'labors'             => 'nullable|array',
-            'labors.*.nama_labor'     => 'required_with:labors|string|max:255',
-            'labors.*.jumlah_sdm'     => 'required_with:labors|integer|min:0',
-            'labors.*.jumlah_hari'    => 'required_with:labors|numeric|min:0',
-            'labors.*.rate_hari'      => 'required_with:labors|numeric|min:0',
-            'other_costs'        => 'nullable|array',
-            'other_costs.*.nama_biaya'   => 'required_with:other_costs|string|max:255',
-            'other_costs.*.qty'          => 'required_with:other_costs|numeric|min:0',
-            'other_costs.*.rate'         => 'required_with:other_costs|numeric|min:0',
+            'nomor_quotation' => array_merge(['required', 'string', 'max:50'], [$nomorQuotationRule]),
+            'id_client' => 'nullable|integer|exists:customers,id',
+            'nama_project' => 'nullable|string|max:255',
+            'tanggal_pembuatan' => 'required|date',
+            'valid_sampai' => 'required|date|after_or_equal:tanggal_pembuatan',
+            'diskon' => 'nullable|numeric|min:0',
+            'pajak' => 'nullable|numeric|min:0',
+            'status' => 'required|in:draft,sent,approved,rejected,expired',
+            'termin' => 'nullable|string',
+            'keterangan' => 'nullable|string',
+            'items' => 'nullable|array',
+            'items.*.nama_item' => 'required_with:items|string|max:255',
+            'items.*.deskripsi_item' => 'nullable|string',
+            'items.*.satuan' => 'required_with:items|string|max:50',
+            'items.*.jumlah_item' => 'required_with:items|numeric|min:0',
+            'items.*.harga_item' => 'required_with:items|numeric|min:0',
+            'items.*.materials' => 'nullable|array',
+            'items.*.materials.*.id_material' => 'nullable|exists:materials,id_material',
+            'items.*.materials.*.nama_material' => 'required_with:items.*.materials|string|max:255',
+            'items.*.materials.*.jumlah_material' => 'required_with:items.*.materials|numeric|min:0',
+            'items.*.materials.*.satuan_material' => 'required_with:items.*.materials|string|max:50',
+            'items.*.materials.*.harga_material' => 'nullable|numeric|min:0',
+            'labors' => 'nullable|array',
+            'labors.*.nama_labor' => 'required_with:labors|string|max:255',
+            'labors.*.jumlah_sdm' => 'required_with:labors|integer|min:0',
+            'labors.*.jumlah_hari' => 'required_with:labors|numeric|min:0',
+            'labors.*.rate_hari' => 'required_with:labors|numeric|min:0',
+            'other_costs' => 'nullable|array',
+            'other_costs.*.nama_biaya' => 'required_with:other_costs|string|max:255',
+            'other_costs.*.qty' => 'required_with:other_costs|numeric|min:0',
+            'other_costs.*.rate' => 'required_with:other_costs|numeric|min:0',
         ]);
     }
 
@@ -311,11 +317,11 @@ class QuotationController extends Controller
                 continue;
             $quoteItem = QuotationItem::create([
                 'nomor_quotation' => $quotation->nomor_quotation,
-                'nama_item'       => $item['nama_item'],
-                'deskripsi_item'  => $item['deskripsi_item'] ?? null,
-                'satuan'          => $item['satuan'] ?? 'Unit',
-                'jumlah_item'     => $item['jumlah_item'],
-                'harga_item'      => $item['harga_item'],
+                'nama_item' => $item['nama_item'],
+                'deskripsi_item' => $item['deskripsi_item'] ?? null,
+                'satuan' => $item['satuan'] ?? 'Unit',
+                'jumlah_item' => $item['jumlah_item'],
+                'harga_item' => $item['harga_item'],
             ]);
 
             // Sync materials under this item
@@ -324,12 +330,12 @@ class QuotationController extends Controller
                 if (empty($mat['nama_material']))
                     continue;
                 QuotationItemMaterial::create([
-                    'id_item'          => $quoteItem->id_item,
-                    'id_material'      => $mat['id_material'] ?? null,
-                    'nama_material'    => $mat['nama_material'],
-                    'jumlah_material'  => $mat['jumlah_material'] ?? 0,
-                    'satuan_material'  => $mat['satuan_material'] ?? 'pcs',
-                    'harga_material'   => $mat['harga_material'] ?? 0,
+                    'id_item' => $quoteItem->id_item,
+                    'id_material' => $mat['id_material'] ?? null,
+                    'nama_material' => $mat['nama_material'],
+                    'jumlah_material' => $mat['jumlah_material'] ?? 0,
+                    'satuan_material' => $mat['satuan_material'] ?? 'pcs',
+                    'harga_material' => $mat['harga_material'] ?? 0,
                 ]);
             }
         }
@@ -343,10 +349,10 @@ class QuotationController extends Controller
                 continue;
             QuotationLabor::create([
                 'nomor_quotation' => $quotation->nomor_quotation,
-                'nama_labor'      => $labor['nama_labor'],
-                'jumlah_sdm'      => $labor['jumlah_sdm'],
-                'jumlah_hari'     => $labor['jumlah_hari'],
-                'rate_hari'       => $labor['rate_hari'],
+                'nama_labor' => $labor['nama_labor'],
+                'jumlah_sdm' => $labor['jumlah_sdm'],
+                'jumlah_hari' => $labor['jumlah_hari'],
+                'rate_hari' => $labor['rate_hari'],
             ]);
         }
     }
@@ -361,8 +367,8 @@ class QuotationController extends Controller
             $rate = $cost['rate'] ?? 0;
             QuotationOtherCost::create([
                 'nomor_quotation' => $quotation->nomor_quotation,
-                'nama_biaya'      => $cost['nama_biaya'],
-                'jumlah_biaya'    => $qty * $rate,
+                'nama_biaya' => $cost['nama_biaya'],
+                'jumlah_biaya' => $qty * $rate,
             ]);
         }
     }

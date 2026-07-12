@@ -8,6 +8,10 @@
     })->toArray() : []);
     $oldLabors = old('labors', $isEdit && isset($quotation) ? $quotation->labors->toArray() : []);
     $oldOtherCosts = old('other_costs', $isEdit && isset($quotation) ? $quotation->otherCosts->toArray() : []);
+
+    // Flag untuk menentukan apakah section labor/other costs harus disembunyikan saat edit
+    $hideLaborSection = $isEdit && count($oldLabors) === 0;
+    $hideOtherCostSection = $isEdit && count($oldOtherCosts) === 0;
 @endphp
 
 @extends('layouts.app')
@@ -246,7 +250,11 @@
                             <input type="text" name="nomor_quotation"
                                    class="form-control form-control-sm @error('nomor_quotation') is-invalid @enderror"
                                    value="{{ old('nomor_quotation', $isEdit ? $quotation->nomor_quotation : $quoteNumber) }}"
-                                   placeholder="QUO-202601-0001" required>
+                                   placeholder="QUO-202601-0001" required
+                                   {{ $isEdit ? 'readonly' : '' }}>
+                            @if($isEdit)
+                            <small class="text-muted" style="font-size:11px">Nomor quotation tidak dapat diubah saat edit</small>
+                            @endif
                             @error('nomor_quotation')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-12 col-sm-4">
@@ -369,14 +377,14 @@
             </div>
 
             {{-- Labor --}}
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0 shadow-sm" id="labor-card">
                 <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
                     <span class="fw-semibold">Biaya Labor</span>
                     <button type="button" class="btn btn-primary btn-sm d-flex align-items-center gap-1" id="btn-add-labor">
                         <i class="bi bi-plus-lg"></i> Tambah Labor
                     </button>
                 </div>
-                <div class="table-responsive">
+                <div class="table-responsive labor-section-content {{ $hideLaborSection ? 'd-none' : '' }}">
                     <table class="table labor-table mb-0" style="font-size:13px;">
                         <thead>
                             <tr>
@@ -392,7 +400,7 @@
                         <tbody id="labors-tbody"></tbody>
                     </table>
                 </div>
-                <div class="card-footer bg-white border-top py-2 d-flex justify-content-between align-items-center">
+                <div class="card-footer bg-white border-top py-2 d-flex justify-content-between align-items-center labor-section-content {{ $hideLaborSection ? 'd-none' : '' }}">
                     <button type="button" class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1" id="btn-add-labor-2">
                         <i class="bi bi-plus-lg"></i> Tambah Labor
                     </button>
@@ -401,14 +409,14 @@
             </div>
 
             {{-- Biaya Lain-Lain --}}
-            <div class="card border-0 shadow-sm">
+            <div class="card border-0 shadow-sm" id="other-cost-card">
                 <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
                     <span class="fw-semibold">Biaya Lain-Lain</span>
                     <button type="button" class="btn btn-primary btn-sm d-flex align-items-center gap-1" id="btn-add-cost">
                         <i class="bi bi-plus-lg"></i> Tambah Biaya
                     </button>
                 </div>
-                <div class="table-responsive">
+                <div class="table-responsive other-cost-section-content {{ $hideOtherCostSection ? 'd-none' : '' }}">
                     <table class="table cost-table mb-0" style="font-size:13px;">
                         <thead>
                             <tr>
@@ -423,7 +431,7 @@
                         <tbody id="costs-tbody"></tbody>
                     </table>
                 </div>
-                <div class="card-footer bg-white border-top py-2 d-flex justify-content-between align-items-center">
+                <div class="card-footer bg-white border-top py-2 d-flex justify-content-between align-items-center other-cost-section-content {{ $hideOtherCostSection ? 'd-none' : '' }}">
                     <button type="button" class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1" id="btn-add-cost-2">
                         <i class="bi bi-plus-lg"></i> Tambah Biaya
                     </button>
@@ -577,7 +585,7 @@
                         </div>
                         <div class="col-12 col-sm-6">
                             <label class="form-label fw-semibold" style="font-size:13px">Stok</label>
-                            <input type="number" name="stok" class="item-input" min="0" value="0" placeholder="0">
+                            <input type="number" name="stok" class="item-input" min="1" value="1" placeholder="0">
                         </div>
                         <div class="col-12 col-sm-6">
                             <label class="form-label fw-semibold" style="font-size:13px">Supplier</label>
@@ -756,9 +764,8 @@ function createItemRow(item = {}) {
         el.addEventListener('input', () => { updateItemSubtotal(tr); recalcAll(); });
     });
 
-    // Load existing materials
-    const mats = item.materials || [];
-    mats.forEach(m => addMaterialRow(tr.querySelector('.mat-section button'), idx, m));
+    // Store materials data for later loading (after tr is appended to DOM)
+    tr._pendingMaterials = item.materials || [];
 
     return tr;
 }
@@ -791,6 +798,16 @@ function addItem(item = {}) {
     const container = document.getElementById('items-container');
     const row = createItemRow(item);
     container.appendChild(row);
+
+    // Load existing materials AFTER row is appended to DOM
+    // This ensures mat-tbody-{idx} exists before we try to access it
+    if (row._pendingMaterials && row._pendingMaterials.length) {
+        const idx = row.dataset.idx;
+        const btn = row.querySelector('.mat-section button');
+        row._pendingMaterials.forEach(m => addMaterialRow(btn, idx, m));
+        delete row._pendingMaterials;
+    }
+
     reorderItems();
     recalcAll();
 }
@@ -798,6 +815,7 @@ function addItem(item = {}) {
 // ─── MATERIAL SELECT2 DROPDOWN ──────────────────────────────────────────────
 function addMaterialRow(btn, itemIdx, mat = {}) {
     const tbody = document.getElementById(`mat-tbody-${itemIdx}`);
+    if (!tbody) return; // Safety check: tbody belum ada di DOM
     const mIdx = tbody.rows.length;
 
     const tr = document.createElement('tr');
@@ -880,6 +898,7 @@ function updateMatSubtotal(tr, itemIdx) {
 
 function recalcMatSubtotal(itemIdx) {
     const tbody = document.getElementById(`mat-tbody-${itemIdx}`);
+    if (!tbody) return; // Safety check
     let total = 0;
     tbody.querySelectorAll('tr').forEach(tr => {
         const qty = parseNum(tr.querySelector('.mat-qty')?.value);
@@ -894,6 +913,7 @@ function removeMaterialRow(btn, itemIdx) {
     btn.closest('tr').remove();
     // Renumber
     const tbody = document.getElementById(`mat-tbody-${itemIdx}`);
+    if (!tbody) return; // Safety check
     tbody.querySelectorAll('tr').forEach((tr, i) => {
         tr.querySelector('td:first-child').textContent = i + 1;
     });
@@ -1112,29 +1132,61 @@ document.addEventListener('DOMContentLoaded', function() {
     const items = initialItems.length ? initialItems : [{}];
     items.forEach(item => addItem(item));
 
-    // Labors
+    // Labors - hanya load jika ada data (jangan load defaultLabors saat edit)
     if (initialLabors.length) {
         initialLabors.forEach(l => addLabor(l));
-    } else {
+    } else if (!@json($isEdit)) {
+        // Hanya load defaultLabors saat create, bukan edit
         defaultLabors.forEach(l => addLabor(l));
     }
 
-    // Other costs - add overhead row first, then any existing costs
-    const overheadRow = createOverheadRow();
-    document.getElementById('costs-tbody').appendChild(overheadRow);
-    reorderCosts();
+    // Other costs - overhead row HANYA ditambah saat create, tidak saat edit
+    const hasCosts = initialCosts.length > 0;
 
-    if (initialCosts.length) {
+    if (!@json($isEdit)) {
+        // Saat create: tambah overhead row
+        const overheadRow = createOverheadRow();
+        document.getElementById('costs-tbody').appendChild(overheadRow);
+        reorderCosts();
+    }
+
+    // Load existing costs (jika ada)
+    if (hasCosts) {
         initialCosts.forEach(c => addCost(c));
     }
 
     // Button bindings
     document.getElementById('btn-add-item').addEventListener('click', () => addItem());
     document.getElementById('btn-add-item-2').addEventListener('click', () => addItem());
-    document.getElementById('btn-add-labor').addEventListener('click', () => addLabor());
-    document.getElementById('btn-add-labor-2').addEventListener('click', () => addLabor());
-    document.getElementById('btn-add-cost').addEventListener('click', () => addCost());
-    document.getElementById('btn-add-cost-2').addEventListener('click', () => addCost());
+    document.getElementById('btn-add-labor').addEventListener('click', () => {
+        // Tampilkan section labor jika tersembunyi
+        document.querySelectorAll('.labor-section-content').forEach(el => el.classList.remove('d-none'));
+        addLabor();
+    });
+    document.getElementById('btn-add-labor-2').addEventListener('click', () => {
+        document.querySelectorAll('.labor-section-content').forEach(el => el.classList.remove('d-none'));
+        addLabor();
+    });
+    document.getElementById('btn-add-cost').addEventListener('click', () => {
+        // Tampilkan section other cost jika tersembunyi
+        document.querySelectorAll('.other-cost-section-content').forEach(el => el.classList.remove('d-none'));
+        // Add overhead row jika belum ada
+        if (!document.querySelector('tr[data-overhead="true"]')) {
+            const overheadRow = createOverheadRow();
+            document.getElementById('costs-tbody').appendChild(overheadRow);
+            reorderCosts();
+        }
+        addCost();
+    });
+    document.getElementById('btn-add-cost-2').addEventListener('click', () => {
+        document.querySelectorAll('.other-cost-section-content').forEach(el => el.classList.remove('d-none'));
+        if (!document.querySelector('tr[data-overhead="true"]')) {
+            const overheadRow = createOverheadRow();
+            document.getElementById('costs-tbody').appendChild(overheadRow);
+            reorderCosts();
+        }
+        addCost();
+    });
 
     // Diskon
     document.getElementById('input-diskon')?.addEventListener('input', recalcAll);
