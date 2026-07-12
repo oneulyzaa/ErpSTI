@@ -6,24 +6,28 @@ use Illuminate\Database\Eloquent\Model;
 
 class QuotationLabor extends Model
 {
+    protected $table = 'quotation_labors';
+    protected $primaryKey = 'id_labor';
+
     protected $fillable = [
-        'quotation_id',
-        'sort_order',
-        'labor_name',
-        'mp',
-        'days',
-        'rate',
-        'subtotal',
+        'nomor_quotation',
+        'nama_labor',
+        'jumlah_sdm',
+        'jumlah_hari',
+        'rate_hari',
     ];
 
     protected $casts = [
-        'days'     => 'decimal:2',
-        'rate'     => 'decimal:2',
-        'subtotal' => 'decimal:2',
+        'jumlah_sdm' => 'integer',
+        'jumlah_hari' => 'integer',
+        'rate_hari' => 'decimal:2',
     ];
 
+    /**
+     * Relasi dengan Quotation
+     */
     public function quotation()
     {
-        return $this->belongsTo(Quotation::class);
+        return $this->belongsTo(Quotation::class, 'nomor_quotation', 'nomor_quotation');
     }
 }

@@ -6,23 +6,24 @@ use Illuminate\Database\Eloquent\Model;
 
 class QuotationOtherCost extends Model
 {
+    protected $table = 'quotation_other_costs';
+    protected $primaryKey = 'id_biaya';
+
     protected $fillable = [
-        'quotation_id',
-        'sort_order',
-        'cost_name',
-        'qty',
-        'rate',
-        'subtotal',
+        'nomor_quotation',
+        'nama_biaya',
+        'jumlah_biaya',
     ];
 
     protected $casts = [
-        'qty' => 'decimal:2',
-        'rate' => 'decimal:2',
-        'subtotal' => 'decimal:2',
+        'jumlah_biaya' => 'decimal:2',
     ];
 
+    /**
+     * Relasi dengan Quotation
+     */
     public function quotation()
     {
-        return $this->belongsTo(Quotation::class);
+        return $this->belongsTo(Quotation::class, 'nomor_quotation', 'nomor_quotation');
     }
 }

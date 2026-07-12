@@ -6,65 +6,36 @@ use Illuminate\Database\Eloquent\Model;
 
 class QuotationItem extends Model
 {
+    protected $table = 'quotation_items';
+    protected $primaryKey = 'id_item';
+
     protected $fillable = [
-        'quotation_id',
-        'sort_order',
-        'material_name',
-        'description',
-        'unit',
-        'qty',
-        'unit_price',
-        'subtotal',
+        'nomor_quotation',
+        'nama_item',
+        'deskripsi_item',
+        'jumlah_item',
+        'satuan',
+        'harga_item',
     ];
 
     protected $casts = [
-        'qty' => 'decimal:2',
-        'unit_price' => 'decimal:2',
-        'subtotal' => 'decimal:2',
+        'jumlah_item' => 'integer',
+        'harga_item' => 'decimal:2',
     ];
 
+    /**
+     * Relasi dengan Quotation
+     */
     public function quotation()
     {
-        return $this->belongsTo(Quotation::class);
+        return $this->belongsTo(Quotation::class, 'nomor_quotation', 'nomor_quotation');
     }
 
+    /**
+     * Relasi dengan QuotationItemMaterial
+     */
     public function materials()
     {
-        return $this->hasMany(QuotationItemMaterial::class)->orderBy('sort_order');
-    }
-
-    /**
-     * Total subtotal dari semua materials item ini
-     */
-    public function getMaterialsSubtotalAttribute()
-    {
-        return $this->materials->sum('subtotal');
-    }
-
-    /**
-     * Harga per unit dihitung dari total materials / qty item
-     * (jika punya materials)
-     */
-    public function getCalculatedUnitPriceAttribute()
-    {
-        if ($this->materials->count() > 0) {
-            $matSubtotal = $this->materials_subtotal;
-            if ($this->qty > 0) {
-                return $matSubtotal / $this->qty;
-            }
-            return $matSubtotal;
-        }
-        return $this->unit_price;
-    }
-
-    /**
-     * Subtotal yang dihitung: jika punya materials, gunakan total materials
-     */
-    public function getCalculatedSubtotalAttribute()
-    {
-        if ($this->materials->count() > 0) {
-            return $this->materials_subtotal;
-        }
-        return $this->subtotal;
+        return $this->hasMany(QuotationItemMaterial::class, 'id_item', 'id_item');
     }
 }
