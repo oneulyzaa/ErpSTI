@@ -216,7 +216,7 @@
                 <div class="dropdown">
                     <div class="user-chip d-flex align-items-center gap-2 dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                         <img src="/assets/gambar/user.png" alt="" width="30" height="30" class="rounded-circle">
-                        <span class="text-dark fw-500 d-none d-sm-block" style="font-size:13px"> {{ Auth::user()->name }}</span>
+                        <span class="text-dark fw-500 d-none d-sm-block" style="font-size:13px"> {{ Auth::user()->namalengkap }}</span>
                     
                     </div>
                     <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" style="border-radius: 10px; min-width: 180px;">

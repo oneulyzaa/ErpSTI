@@ -84,7 +84,7 @@
                 <tr>
                     <th class="text-muted fw-semibold" style="font-size:12px;width:40px">#</th>
                     <th class="text-muted fw-semibold" style="font-size:12px">NO. QUOTATION</th>
-                    <th class="text-muted fw-semibold" style="font-size:12px">KLIEN</th>
+                    {{-- <th class="text-muted fw-semibold" style="font-size:12px">KLIEN</th> --}}
                     <th class="text-muted fw-semibold" style="font-size:12px">PERUSAHAAN</th>
                     <th class="text-muted fw-semibold" style="font-size:12px">PROJECT</th>
                     <th class="text-muted fw-semibold" style="font-size:12px">TANGGAL</th>
@@ -109,7 +109,7 @@
                 <tr>
                     <td>{{ $loop->iteration }}</td>
                     <td class="quote-no">{{ $q->nomor_quotation }}</td>
-                    <td>{{ $q->client?->nama_kontak_perusahaan ?? '-' }}</td>
+                    {{-- <td>{{ $q->client?->nama_kontak ?? '-' }}</td> --}}
                     <td>{{ $q->client?->nama_perusahaan ?? '-' }}</td>
                     <td>{{ $q->nama_project ?? '-' }}</td>
                     <td>{{ $q->tanggal_pembuatan->format('d M Y') }}</td>

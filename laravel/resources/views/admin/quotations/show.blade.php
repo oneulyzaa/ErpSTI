@@ -128,12 +128,7 @@
                 <div class="p-4 border-top" style="background:#f8faff;">
                     <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:6px;">Nama Project</div>
                     <div style="font-size:14px;font-weight:600;">{{ $quotation->nama_project }}</div>
-                </div>
-                @endif
-                @if($quotation->keterangan)
-                <div class="p-4 border-top bg-light">
-                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:6px;">Keterangan</div>
-                    <div style="font-size:14px;">{{ $quotation->keterangan }}</div>
+                    <div style="font-size:14px;">{!! $quotation->keterangan ?? '<small style="color:#818181">Tidak ada keterangan</small>' !!}</div>
                 </div>
                 @endif
             </div>
