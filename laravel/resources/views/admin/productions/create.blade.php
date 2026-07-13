@@ -74,52 +74,50 @@
                     <div class="row g-3 mb-3">
                         <div class="col-12 col-sm-3">
                             <label class="form-label fw-semibold" style="font-size:13px">No. Produksi <span class="text-danger">*</span></label>
-                            <input type="text" name="production_number"
-                                   class="form-control form-control-sm @error('production_number') is-invalid @enderror"
-                                   value="{{ old('production_number', $isEdit ? $production->production_number : $productionNumber) }}" required>
-                            @error('production_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <input type="text" name="nomor_produksi"
+                                   class="form-control form-control-sm @error('nomor_produksi') is-invalid @enderror"
+                                   value="{{ old('nomor_produksi', $isEdit ? $production->nomor_produksi : $productionNumber) }}" required>
+                            @error('nomor_produksi')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-12 col-sm-3">
                             <label class="form-label fw-semibold" style="font-size:13px">Ref. Sales Order <span class="text-danger">*</span></label>
-                            <select name="sales_order_id" id="sales_order_id" class="form-select form-select-sm" required
+                            <select name="nomor_salesorder" id="nomor_salesorder" class="form-select form-select-sm" required
                                     data-url="{{ route('admin.productions.so-items', ['salesOrder' => '__ID__']) }}">
                                 <option value="">-- Pilih Sales Order --</option>
                                 @foreach($salesOrders as $so)
-                                    <option value="{{ $so->id }}"
-                                        {{ old('sales_order_id', ($isEdit ? $production->sales_order_id : ($selected?->id ?? ''))) == $so->id ? 'selected' : '' }}>
-                                        {{ $so->so_number }} — {{ $so->project_name ?: $so->client_company }}
+                                    <option value="{{ $so->nomor_salesorder }}"
+                                        {{ old('nomor_salesorder', ($isEdit ? $production->nomor_salesorder : ($selected->nomor_salesorder ?? ''))) == $so->nomor_salesorder ? 'selected' : '' }}>
+                                        {{ $so->nomor_salesorder }} — {{ $so->nama_project ?: ($so->client->nama_perusahaan ?? '') }}
                                     </option>
                                 @endforeach
                             </select>
-                            @error('sales_order_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            <input type="hidden" name="so_number" id="so_number"
-                                   value="{{ old('so_number', $isEdit ? $production->so_number : '') }}">
+                            @error('nomor_salesorder')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-12 col-sm-3">
                             <label class="form-label fw-semibold" style="font-size:13px">Nomor PO</label>
                             <input type="text" name="nomor_po" id="nomor_po" class="form-control form-control-sm"
-                                   value="{{ old('nomor_po', $isEdit ? $production->nomor_po : ($selected->nomor_po ?? '')) }}" readonly>
+                                   value="{{ old('nomor_po', $isEdit ? $production->salesOrder->nomor_po ?? '' : ($selected->nomor_po ?? '')) }}" readonly>
                         </div>
                         <div class="col-12 col-sm-3">
                             <label class="form-label fw-semibold" style="font-size:13px">Status <span class="text-danger">*</span></label>
-                            <select name="status" class="form-select form-select-sm" required>
+                            <select name="status_produksi" class="form-select form-select-sm" required>
                                 @foreach(['planned'=>'Planned','in_progress'=>'In Progress','completed'=>'Completed','cancelled'=>'Cancelled'] as $v=>$l)
-                                    <option value="{{ $v }}" {{ old('status', $isEdit ? $production->status : 'planned') === $v ? 'selected' : '' }}>{{ $l }}</option>
+                                    <option value="{{ $v }}" {{ old('status_produksi', $isEdit ? $production->status_produksi : 'planned') === $v ? 'selected' : '' }}>{{ $l }}</option>
                                 @endforeach
                             </select>
                         </div>
                     </div>
                     <div class="row g-3 mb-4">
                         <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold" style="font-size:13px">Tanggal <span class="text-danger">*</span></label>
-                            <input type="date" name="date" class="form-control form-control-sm @error('date') is-invalid @enderror"
-                                   value="{{ old('date', $isEdit ? $production->date->format('Y-m-d') : now()->format('Y-m-d')) }}" required>
-                            @error('date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <label class="form-label fw-semibold" style="font-size:13px">Tanggal Mulai <span class="text-danger">*</span></label>
+                            <input type="date" name="tanggal_mulai" class="form-control form-control-sm @error('tanggal_mulai') is-invalid @enderror"
+                                   value="{{ old('tanggal_mulai', $isEdit ? $production->tanggal_mulai->format('Y-m-d') : now()->format('Y-m-d')) }}" required>
+                            @error('tanggal_mulai')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold" style="font-size:13px">Target Selesai</label>
-                            <input type="date" name="target_date" class="form-control form-control-sm"
-                                   value="{{ old('target_date', $isEdit && $production->target_date ? $production->target_date->format('Y-m-d') : '') }}">
+                            <label class="form-label fw-semibold" style="font-size:13px">Estimasi Selesai</label>
+                            <input type="date" name="estimasi_selesai" class="form-control form-control-sm"
+                                   value="{{ old('estimasi_selesai', $isEdit && $production->estimasi_selesai ? $production->estimasi_selesai->format('Y-m-d') : '') }}">
                         </div>
                     </div>
 
@@ -127,19 +125,23 @@
                     <div class="row g-3 mb-3">
                         <div class="col-12 col-sm-6">
                             <label class="form-label fw-semibold" style="font-size:13px">Nama Project</label>
-                            <input type="text" name="project_name" id="project_name" class="form-control form-control-sm"
-                                   value="{{ old('project_name', $isEdit ? $production->project_name : ($selected->project_name ?? '')) }}" readonly>
+                            <input type="text" name="nama_project" id="nama_project" class="form-control form-control-sm"
+                                   value="{{ old('nama_project', $isEdit ? $production->salesOrder->nama_project ?? '' : ($selected->nama_project ?? '')) }}" readonly>
                         </div>
                         <div class="col-12 col-sm-6">
                             <label class="form-label fw-semibold" style="font-size:13px">Perusahaan</label>
-                            <input type="text" name="client_company" id="client_company" class="form-control form-control-sm"
-                                   value="{{ old('client_company', $isEdit ? $production->client_company : ($selected->client_company ?? '')) }}" readonly>
+                            <input type="text" name="nama_perusahaan" id="nama_perusahaan" class="form-control form-control-sm"
+                                   value="{{ old('nama_perusahaan', $isEdit ? ($production->salesOrder->client->nama_perusahaan ?? '') : ($selected->client->nama_perusahaan ?? '')) }}" readonly>
                         </div>
                     </div>
 
-                    <label class="form-label fw-semibold" style="font-size:13px">Catatan</label>
-                    <textarea name="notes" class="form-control form-control-sm" rows="2"
-                              placeholder="Catatan produksi...">{{ old('notes', $isEdit ? $production->notes : '') }}</textarea>
+                    <div class="row g-3">
+                        <div class="col-12 col-sm-12">
+                            <label class="form-label fw-semibold" style="font-size:13px">Keterangan</label>
+                    <textarea name="keterangan" class="form-control form-control-sm" rows="2"
+                              placeholder="Catatan produksi...">{{ old('keterangan', $isEdit ? $production->keterangan : '') }}</textarea>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -166,20 +168,19 @@
                             @php
                                 $soMaterials = $soItem->materials->map(function($mat) {
                                     return [
-                                        'asset_id' => $mat->asset_id,
-                                        'nama_bahan_baku' => $mat->material_name,
-                                        'qty_required' => $mat->qty_required,
-                                        'satuan' => $mat->satuan,
+                                        'id_material' => $mat->id_material,
+                                        'nama_material' => $mat->nama_material ?? $mat->material_name,
+                                        'jumlah_material' => $mat->qty_required ?? $mat->jumlah_material ?? 1,
+                                        'satuan_material' => $mat->satuan ?? $mat->satuan_material ?? 'pcs',
                                     ];
                                 })->toArray();
                             @endphp
                             @include('admin.productions._product_card', [
                                 'pIdx' => $pIdx,
                                 'pItem' => [
-                                    'product_name' => $soItem->material_name,
-                                    'product_qty' => $soItem->qty,
-                                    'unit' => $soItem->unit,
-                                    'sales_order_item_id' => $soItem->id,
+                                    'nama_item' => $soItem->nama_item ?? $soItem->material_name,
+                                    'jumlah_item' => $soItem->jumlah_item ?? $soItem->qty,
+                                    'satuan' => $soItem->satuan ?? $soItem->unit,
                                     'materials' => $soMaterials,
                                 ],
                                 'assets' => $assets ?? [],
@@ -234,7 +235,7 @@ let pIdx = {{ count($oldItems) }};
 let mIdx = {};
 
 /* ── Load products from selected SO ── */
-document.getElementById('sales_order_id')?.addEventListener('change', async function() {
+document.getElementById('nomor_salesorder')?.addEventListener('change', async function() {
     const opt = this.options[this.selectedIndex];
     if (!opt.value) return;
 
@@ -245,27 +246,34 @@ document.getElementById('sales_order_id')?.addEventListener('change', async func
         if (!res.ok) throw new Error('Failed');
         const data = await res.json();
 
-        document.getElementById('project_name').value = data.project_name || '';
-        document.getElementById('client_company').value = data.client_company || '';
-        document.getElementById('so_number').value = opt.text.split(' — ')[0] || '';
+        console.log(data);
+
+        document.getElementById('nama_project').value = data.nama_project || '';
+        document.getElementById('nama_perusahaan').value = data.nama_perusahaan || '';
         document.getElementById('nomor_po').value = data.nomor_po || '';
 
         // Clear existing products
         document.getElementById('products-container').innerHTML = '';
 
         if (data.items && data.items.length) {
-            data.items.forEach((item, i) => {
+            data.items.forEach((item) => {
+                const hasMaterials = Array.isArray(item.materials) && item.materials.length > 0;
+
                 addProductCard({
-                    product_name: item.material_name,
-                    product_qty: item.qty,
-                    unit: item.unit,
-                    sales_order_item_id: item.id,
-                    materials: (item.materials || []).map(m => ({
-                        asset_id: m.asset_id || '',
-                        nama_bahan_baku: m.material_name || '',
-                        qty_required: m.qty_required || 1,
-                        satuan: m.satuan || 'pcs',
-                    })),
+                    nama_item: item.nama_item || item.material_name || '',
+                    jumlah_item: item.jumlah_item || item.qty || 1,
+                    satuan: item.satuan || item.unit || 'Unit',
+                    // Item tanpa breakdown material -> harga langsung dari harga_item
+                    harga_item: !hasMaterials ? (item.harga_item || 0) : 0,
+                    materials: hasMaterials
+                        ? item.materials.map(m => ({
+                            id_material: m.id_material || '',
+                            nama_material: m.nama_material || '',
+                            jumlah_material: m.jumlah_material || 1,
+                            satuan_material: m.satuan_material || 'pcs',
+                            harga_material: m.harga_material || 0,
+                        }))
+                        : [],
                 });
             });
         }
@@ -290,18 +298,13 @@ function addProductCard(item = {}) {
         <div class="product-card-header">
             <div class="d-flex align-items-center gap-3 flex-wrap">
                 <span class="fw-semibold" style="font-size:14px;min-width:60px;" id="pnum-${idx}">#${container.children.length + 1}</span>
-                <input type="hidden" name="items[${idx}][sales_order_item_id]" value="${item.sales_order_item_id || ''}">
-                <input type="text" name="items[${idx}][product_name]" class="form-control form-control-sm" required
-                       style="width:200px;" value="${esc(item.product_name || '')}" placeholder="Nama Produk">
-                <input type="number" name="items[${idx}][product_qty]" class="form-control form-control-sm" required
-                       style="width:80px;" min="0" step="any" value="${item.product_qty || 1}" placeholder="Qty">
-                <input type="text" name="items[${idx}][unit]" class="form-control form-control-sm" required
-                       style="width:80px;" value="${item.unit || 'Unit'}" placeholder="Satuan">
-                <select name="items[${idx}][status]" class="form-select form-select-sm" style="width:120px;">
-                    <option value="pending">Pending</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="completed">Completed</option>
-                </select>
+                <input type="text" name="items[${idx}][nama_item]" class="form-control form-control-sm" required
+                       style="width:200px;" value="${esc(item.nama_item || '')}" placeholder="Nama Produk">
+                <input type="number" name="items[${idx}][jumlah_item]" class="form-control form-control-sm" required
+                       style="width:80px;" min="0" step="any" value="${item.jumlah_item || 1}" placeholder="Qty">
+                <input type="text" name="items[${idx}][satuan]" class="form-control form-control-sm" required
+                       style="width:80px;" value="${item.satuan || 'Unit'}" placeholder="Satuan">
+                <input type="hidden" name="items[${idx}][harga_item]" class="harga-item-hidden" value="${item.harga_item || 0}">
                 <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeProduct(this)"><i class="bi bi-trash"></i></button>
             </div>
         </div>
@@ -318,7 +321,7 @@ function addProductCard(item = {}) {
                         <th style="width:36px;">#</th>
                         <th style="min-width:160px;">Nama Bahan Baku</th>
                         <th style="width:80px;text-align:center;">Satuan</th>
-                        <th style="width:100px;text-align:right;">Qty Dibutuhkan</th>
+                        <th style="width:100px;text-align:right;">Jumlah</th>
                         <th style="width:36px;"></th>
                     </tr>
                 </thead>
@@ -331,7 +334,6 @@ function addProductCard(item = {}) {
     // Seed materials from SO if present
     const materials = item.materials || [];
     if (materials.length) {
-        const addBtn = card.querySelector('.btn-outline-primary');
         materials.forEach(mat => {
             const tbody = card.querySelector('tbody[id^="mattbody-"]');
             if (!tbody) return;
@@ -342,19 +344,20 @@ function addProductCard(item = {}) {
             tr.innerHTML = `
                 <td class="item-no" id="mno-${idx}-${mSeq}"></td>
                 <td>
-                    <select name="items[${idx}][materials][${mSeq}][asset_id]" class="form-select form-select-sm material-select"
+                    <select name="items[${idx}][materials][${mSeq}][id_material]" class="form-select form-select-sm material-select"
                             onchange="onMatSelect(this, ${idx}, ${mSeq})"
                             style="font-size:12px;">
                         <option value="">-- Pilih Bahan Baku --</option>
                         ${assets.map(a => {
-                            const sel = (mat.asset_id == a.id) ? 'selected' : '';
-                            return `<option value="${a.id}" data-nama="${esc(a.nama_aset)}" data-satuan="${esc(a.satuan)}" ${sel}>${esc(a.nama_aset)}</option>`;
+                            const sel = (mat.id_material == a.id_material) ? 'selected' : '';
+                            return `<option value="${a.id_material}" data-nama="${esc(a.nama_material)}" data-satuan="${esc(a.satuan_material)}" data-harga="${a.harga_material || 0}" ${sel}>${esc(a.nama_material)}</option>`;
                         }).join('')}
                     </select>
-                    <input type="hidden" name="items[${idx}][materials][${mSeq}][nama_bahan_baku]" class="mat-name-hidden" value="${esc(mat.nama_bahan_baku || '')}">
+                    <input type="hidden" name="items[${idx}][materials][${mSeq}][nama_material]" class="mat-name-hidden" value="${esc(mat.nama_material || '')}">
+                    <input type="hidden" name="items[${idx}][materials][${mSeq}][harga_material]" class="mat-harga-hidden" value="${mat.harga_material || 0}">
                 </td>
-                <td><input type="text" name="items[${idx}][materials][${mSeq}][satuan]" class="form-control form-control-sm mat-satuan" style="font-size:12px;text-align:center;" value="${esc(mat.satuan || 'pcs')}"></td>
-                <td><input type="number" name="items[${idx}][materials][${mSeq}][qty_required]" class="form-control form-control-sm" style="font-size:12px;text-align:right;" min="0" step="any" value="${mat.qty_required || 1}"></td>
+                <td><input type="text" name="items[${idx}][materials][${mSeq}][satuan_material]" class="form-control form-control-sm mat-satuan" style="font-size:12px;text-align:center;" value="${esc(mat.satuan_material || 'pcs')}"></td>
+                <td><input type="number" name="items[${idx}][materials][${mSeq}][jumlah_material]" class="form-control form-control-sm" style="font-size:12px;text-align:right;" min="0" step="any" value="${mat.jumlah_material || 1}"></td>
                 <td><button type="button" class="btn-remove-row" onclick="removeMatRow(this)"><i class="bi bi-x-lg"></i></button></td>
             `;
             tbody.appendChild(tr);
@@ -392,16 +395,17 @@ function addMaterialRow(btn, pIdx) {
     tr.innerHTML = `
         <td class="item-no" id="mno-${pIdx}-${idx}"></td>
         <td>
-            <select name="items[${pIdx}][materials][${idx}][asset_id]" class="form-select form-select-sm material-select"
+            <select name="items[${pIdx}][materials][${idx}][id_material]" class="form-select form-select-sm material-select"
                     onchange="onMatSelect(this, ${pIdx}, ${idx})"
                     style="font-size:12px;">
                 <option value="">-- Pilih Bahan Baku --</option>
-                ${assets.map(a => `<option value="${a.id}" data-nama="${esc(a.nama_aset)}" data-satuan="${esc(a.satuan)}">${esc(a.nama_aset)}</option>`).join('')}
+                ${assets.map(a => `<option value="${a.id_material}" data-nama="${esc(a.nama_material)}" data-satuan="${esc(a.satuan_material)}" data-harga="${a.harga_material || 0}">${esc(a.nama_material)}</option>`).join('')}
             </select>
-            <input type="hidden" name="items[${pIdx}][materials][${idx}][nama_bahan_baku]" class="mat-name-hidden">
+            <input type="hidden" name="items[${pIdx}][materials][${idx}][nama_material]" class="mat-name-hidden">
+            <input type="hidden" name="items[${pIdx}][materials][${idx}][harga_material]" class="mat-harga-hidden" value="0">
         </td>
-        <td><input type="text" name="items[${pIdx}][materials][${idx}][satuan]" class="form-control form-control-sm mat-satuan" style="font-size:12px;text-align:center;" value="pcs"></td>
-        <td><input type="number" name="items[${pIdx}][materials][${idx}][qty_required]" class="form-control form-control-sm" style="font-size:12px;text-align:right;" min="0" step="any" value="1"></td>
+        <td><input type="text" name="items[${pIdx}][materials][${idx}][satuan_material]" class="form-control form-control-sm mat-satuan" style="font-size:12px;text-align:center;" value="pcs"></td>
+        <td><input type="number" name="items[${pIdx}][materials][${idx}][jumlah_material]" class="form-control form-control-sm" style="font-size:12px;text-align:right;" min="0" step="any" value="1"></td>
         <td><button type="button" class="btn-remove-row" onclick="removeMatRow(this)"><i class="bi bi-x-lg"></i></button></td>
     `;
     tbody.appendChild(tr);
@@ -411,14 +415,17 @@ function addMaterialRow(btn, pIdx) {
 
 function onMatSelect(select, pIdx, idx) {
     const opt = select.options[select.selectedIndex];
-    const hidden = select.closest('td').querySelector('.mat-name-hidden');
+    const hiddenName = select.closest('td').querySelector('.mat-name-hidden');
+    const hiddenHarga = select.closest('td').querySelector('.mat-harga-hidden');
     const satuanInput = select.closest('tr').querySelector('.mat-satuan');
     if (!opt.value) {
-        if (hidden) hidden.value = '';
+        if (hiddenName) hiddenName.value = '';
+        if (hiddenHarga) hiddenHarga.value = 0;
         if (satuanInput) satuanInput.value = 'pcs';
         return;
     }
-    if (hidden) hidden.value = opt.dataset.nama || '';
+    if (hiddenName) hiddenName.value = opt.dataset.nama || '';
+    if (hiddenHarga) hiddenHarga.value = opt.dataset.harga || 0;
     if (satuanInput && opt.dataset.satuan) satuanInput.value = opt.dataset.satuan;
 }
 

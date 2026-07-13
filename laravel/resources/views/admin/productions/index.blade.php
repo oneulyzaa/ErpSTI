@@ -101,15 +101,15 @@
                         'completed'   => ['completed',   'Completed'],
                         'cancelled'   => ['cancelled',   'Cancelled'],
                     ];
-                    $s = $statusMap[$prd->status] ?? ['planned','-'];
+                    $s = $statusMap[$prd->status_produksi] ?? ['planned','-'];
                 @endphp
                 <tr>
                     <td>{{ $loop->iteration }}</td>
-                    <td class="prd-no">{{ $prd->production_number }}</td>
-                    <td>{{ $prd->so_number ?: '-' }}</td>
-                    <td>{{ $prd->project_name ?: '-' }}</td>
-                    <td>{{ $prd->client_company ?: '-' }}</td>
-                    <td>{{ $prd->date->format('d M Y') }}</td>
+                    <td class="prd-no">{{ $prd->nomor_produksi }}</td>
+                    <td>{{ $prd->nomor_salesorder ?: '-' }}</td>
+                    <td>{{ $prd->salesOrder->nama_project ?: '-' }}</td>
+                    <td>{{ $prd->salesOrder->client->nama_perusahaan ?? '-' }}</td>
+                    <td>{{ $prd->tanggal_mulai->format('d M Y') }}</td>
                     <td><span class="badge badge-{{ $s[0] }}">{{ $s[1] }}</span></td>
                     <td class="text-center table-actions">
                         <a href="{{ route('admin.productions.show', $prd) }}" class="btn btn-info btn-sm" title="Lihat"><i class="bi bi-eye"></i></a>

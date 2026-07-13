@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Detail ' . $production->production_number)
+@section('title', 'Detail ' . $production->nomor_produksi)
 @section('breadcrumb', 'Detail Produksi')
 
 @push('styles')
@@ -8,10 +8,6 @@
     .badge-in_progress { background:#fef3c7; color:#92400e; }
     .badge-completed   { background:#dcfce7; color:#15803d; }
     .badge-cancelled   { background:#fee2e2; color:#b91c1c; }
-    .badge-pending        { background:#e2e8f0; color:#475569; }
-    .badge-pending_item   { background:#e2e8f0; color:#475569; }
-    .badge-in_progress_item { background:#fef3c7; color:#92400e; }
-    .badge-completed_item   { background:#dcfce7; color:#15803d; }
     .mat-table-header th { background: #2c4f8a !important; color: #fff !important; font-size: 10px; text-transform: uppercase; }
 </style>
 @endpush
@@ -21,16 +17,19 @@
 <div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
     <div>
         <div class="d-flex align-items-center gap-2 mb-1">
-            <h4 class="fw-bold mb-0" style="font-family:monospace">{{ $production->production_number }}</h4>
-            <span class="badge badge-{{ $production->status }} rounded-pill px-2 py-1">{{ ucfirst(str_replace('_',' ',$production->status)) }}</span>
+            <h4 class="fw-bold mb-0" style="font-family:monospace">{{ $production->nomor_produksi }}</h4>
+            <span class="badge badge-{{ $production->status_produksi }} rounded-pill px-2 py-1">{{ ucfirst(str_replace('_',' ',$production->status_produksi)) }}</span>
         </div>
         <p class="text-muted mb-0" style="font-size:13px">
-            Tanggal: {{ $production->date->format('d M Y') }}
-            @if($production->target_date)
-                &nbsp;·&nbsp; Target: {{ $production->target_date->format('d M Y') }}
+            Tanggal: {{ $production->tanggal_mulai->format('d M Y') }}
+            @if($production->estimasi_selesai)
+                &nbsp;·&nbsp; Estimasi: {{ $production->estimasi_selesai->format('d M Y') }}
             @endif
-            @if($production->so_number)
-                &nbsp;·&nbsp; Ref. SO: {{ $production->so_number }}
+            @if($production->nomor_salesorder)
+                &nbsp;·&nbsp; Ref. SO: {{ $production->nomor_salesorder }}
+            @endif
+            @if($production->salesOrder->nomor_po)
+                &nbsp;·&nbsp; Nomor PO: {{ $production->salesOrder->nomor_po }}
             @endif
         </p>
     </div>
@@ -64,11 +63,11 @@
                 <div class="row g-0">
                     <div class="col-12 col-sm-6 p-4 border-end">
                         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:10px;">Info Produksi</div>
-                        <div class="fw-bold" style="font-size:15px">{{ $production->project_name ?: '-' }}</div>
+                        <div class="fw-bold" style="font-size:15px">{{ $production->salesOrder->nama_project ?: '-' }}</div>
                         <div class="text-muted mt-1" style="font-size:13px;line-height:1.8;">
-                            Klien: {{ $production->client_company ?: '-' }}<br>
-                            No. Produksi: {{ $production->production_number }}<br>
-                            Ref. SO: {{ $production->so_number ?: '-' }}
+                            Klien: {{ $production->salesOrder->client->nama_perusahaan ?? '-' }}<br>
+                            No. Produksi: {{ $production->nomor_produksi }}<br>
+                            Ref. SO: {{ $production->nomor_salesorder ?: '-' }}
                         </div>
                     </div>
                     <div class="col-12 col-sm-6 p-4">
@@ -79,10 +78,10 @@
                         </div>
                     </div>
                 </div>
-                @if($production->notes)
+                @if($production->keterangan)
                 <div class="p-4 border-top bg-light">
-                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:6px;">Catatan</div>
-                    <div style="font-size:14px;white-space:pre-line;">{{ $production->notes }}</div>
+                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:6px;">Keterangan</div>
+                    <div style="font-size:14px;white-space:pre-line;">{{ $production->keterangan }}</div>
                 </div>
                 @endif
             </div>
@@ -93,10 +92,9 @@
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center gap-2">
-                    <span class="fw-semibold">#{{ $loop->iteration }} {{ $product->product_name }}</span>
-                    <span class="badge badge-{{ $product->status }}_item">{{ ucfirst(str_replace('_',' ',$product->status)) }}</span>
+                    <span class="fw-semibold">#{{ $loop->iteration }} {{ $product->nama_item }}</span>
                 </div>
-                <span class="text-muted" style="font-size:13px;">Qty: {{ number_format($product->product_qty, 2) }} {{ $product->unit }}</span>
+                <span class="text-muted" style="font-size:13px;">Qty: {{ number_format($product->jumlah_item, 2) }} {{ $product->satuan }}</span>
             </div>
             @if($product->materials->isNotEmpty())
             <div class="table-responsive">
@@ -106,16 +104,16 @@
                             <th style="width:36px;">#</th>
                             <th>Bahan Baku</th>
                             <th style="width:80px;text-align:center;">Satuan</th>
-                            <th style="width:120px;text-align:right;">Qty Dibutuhkan</th>
+                            <th style="width:120px;text-align:right;">Jumlah Material</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($product->materials as $mi => $mat)
                         <tr>
                             <td class="text-center text-muted" style="font-family:monospace;">{{ $loop->iteration }}</td>
-                            <td class="fw-semibold">{{ $mat->nama_bahan_baku }}</td>
-                            <td class="text-center">{{ $mat->satuan }}</td>
-                            <td class="text-end" style="font-family:monospace;">{{ number_format($mat->qty_required, 2, ',', '.') }}</td>
+                            <td class="fw-semibold">{{ $mat->nama_material }}</td>
+                            <td class="text-center">{{ $mat->satuan_material }}</td>
+                            <td class="text-end" style="font-family:monospace;">{{ number_format($mat->jumlah_material, 2, ',', '.') }}</td>
                         </tr>
                         @endforeach
                     </tbody>

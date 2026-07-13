@@ -3,9 +3,64 @@
 @php
     $isEdit        = isset($salesOrder);
     $action        = $isEdit ? route('admin.sales-orders.update', $salesOrder) : route('admin.sales-orders.store');
-    $oldItems      = old('items',       $isEdit ? $salesOrder->items->load('materials')->toArray()      : []);
-    $oldLabors     = old('labors',      $isEdit ? $salesOrder->labors->toArray()     : []);
-    $oldOtherCosts = old('other_costs', $isEdit ? $salesOrder->otherCosts->toArray() : []);
+    
+    // Map DB field names to JS-expected field names for edit mode
+    $mapItemForJs = function(array $item) {
+        return [
+            'material_name' => $item['nama_item'] ?? '',
+            'description'   => $item['deskripsi_item'] ?? '',
+            'unit'          => $item['satuan'] ?? 'Unit',
+            'qty'           => (float)($item['jumlah_item'] ?? 0),
+            'unit_price'    => (float)($item['harga_item'] ?? 0),
+            'materials'     => collect($item['materials'] ?? [])->map(function($m) {
+                return [
+                    'material_name' => $m['nama_material'] ?? '',
+                    'satuan'        => $m['satuan_material'] ?? 'pcs',
+                    'qty_required'  => (float)($m['jumlah_material'] ?? 0),
+                    'unit_price'    => (float)($m['harga_material'] ?? 0),
+                    'asset_id'      => $m['id_material'] ?? null,
+                ];
+            })->toArray(),
+        ];
+    };
+    $mapLaborForJs = function(array $labor) {
+        return [
+            'labor_name' => $labor['nama_labor'] ?? '',
+            'mp'         => (int)($labor['jumlah_sdm'] ?? 1),
+            'days'       => (float)($labor['jumlah_hari'] ?? 1),
+            'rate'       => (float)($labor['rate_hari'] ?? 0),
+        ];
+    };
+    $mapOtherCostForJs = function(array $cost) {
+        return [
+            'cost_name' => $cost['nama_biaya'] ?? '',
+            'qty'       => 1,
+            'rate'      => (float)($cost['jumlah_biaya'] ?? 0),
+        ];
+    };
+
+    // Load data from database for edit mode - ensure relations are loaded
+    if ($isEdit) {
+        $salesOrder->loadMissing('items.materials');
+        $salesOrder->loadMissing('labors');
+        $salesOrder->loadMissing('otherCosts');
+        
+        $rawItems = $salesOrder->items->map(function($item) {
+            return array_merge($item->toArray(), [
+                'materials' => $item->materials->toArray()
+            ]);
+        })->toArray();
+        $rawLabors = $salesOrder->labors->toArray();
+        $rawOtherCosts = $salesOrder->otherCosts->toArray();
+    } else {
+        $rawItems = [];
+        $rawLabors = [];
+        $rawOtherCosts = [];
+    }
+
+    $oldItems      = old('items',       array_map($mapItemForJs, $rawItems));
+    $oldLabors     = old('labors',      array_map($mapLaborForJs, $rawLabors));
+    $oldOtherCosts = old('other_costs', array_map($mapOtherCostForJs, $rawOtherCosts));
     $copyQuote    = isset($quotation);
 @endphp
 
@@ -51,6 +106,38 @@
 
 @section('content')
 
+{{-- Alert untuk error dari session flash --}}
+@if(session('error'))
+<div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    <strong>Gagal!</strong> {{ session('error') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
+
+{{-- Alert untuk error validasi Laravel --}}
+@if($errors->any())
+<div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    <strong>Gagal menambahkan Sales Order!</strong> Terdapat {{ $errors->count() }} error:
+    <ul class="mb-0 mt-2">
+        @foreach($errors->all() as $error)
+            <li>{{ $error }}</li>
+        @endforeach
+    </ul>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
+
+{{-- Alert untuk sukses dari session flash --}}
+@if(session('success'))
+<div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+    <i class="bi bi-check-circle-fill me-2"></i>
+    <strong>Berhasil!</strong> {{ session('success') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
+
 <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
         <h4 class="fw-bold mb-1">{{ $isEdit ? 'Edit Sales Order' : 'Buat Sales Order Baru' }}</h4>
@@ -79,10 +166,10 @@
                     <div class="row g-3 mb-3">
                         <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">No. SO <span class="text-danger">*</span></label>
-                            <input type="text" name="so_number"
-                                   class="form-control form-control-sm @error('so_number') is-invalid @enderror"
-                                   value="{{ old('so_number', $isEdit ? $salesOrder->so_number : $soNumber) }}" required>
-                            @error('so_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <input type="text" name="nomor_salesorder"
+                                   class="form-control form-control-sm @error('nomor_salesorder') is-invalid @enderror"
+                                   value="{{ old('nomor_salesorder', $isEdit ? $salesOrder->nomor_salesorder  : $soNumber) }}" required>
+                            @error('nomor_salesorder')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">Nomor PO</label>
@@ -93,18 +180,19 @@
                         </div>
                         <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">Referensi Quotation</label>
-                            <select name="quotation_id" id="quotation_id" class="form-select form-select-sm"
+                            @php
+                                $selectedQuotation = old('nomor_quotation', $isEdit ? ($salesOrder->nomor_quotation ?? '') : ($copyQuote ? $quotation->nomor_quotation : ''));
+                            @endphp
+                            <select name="nomor_quotation" id="nomor_quotation" class="form-select form-select-sm"
                                     data-url-template="{{ route('admin.sales-orders.quotation-data', ['quotation' => '__ID__']) }}">
                                 <option value="">-- Pilih Quotation (opsional) --</option>
                                 @foreach($quotations as $q)
-                                    <option value="{{ $q->id }}"
-                                        {{ old('quotation_id', ($isEdit ? $salesOrder->quotation_id : ($copyQuote ? $quotation->id : ''))) == $q->id ? 'selected' : '' }}>
-                                        {{ $q->quote_number }} — {{ $q->project_name ?: $q->client_company }}
+                                    <option value="{{ $q->nomor_quotation }}"
+                                        {{ $selectedQuotation == $q->nomor_quotation ? 'selected' : '' }}>
+                                        {{ $q->nomor_quotation }} — {{ $q->nama_project ?: ($q->client->nama_perusahaan ?? '') }}
                                     </option>
                                 @endforeach
                             </select>
-                            <input type="hidden" name="quote_number" id="quote_number"
-                                   value="{{ old('quote_number', $isEdit ? $salesOrder->quote_number : ($copyQuote ? $quotation->quote_number : '')) }}">
                         </div>
                         
                     </div>
@@ -112,9 +200,9 @@
                     <div class="row g-3 mb-4">
                         <div class="col-12 col-sm-6">
                             <label class="form-label fw-semibold" style="font-size:13px">Tanggal SO <span class="text-danger">*</span></label>
-                            <input type="date" name="date" class="form-control form-control-sm @error('date') is-invalid @enderror"
-                                   value="{{ old('date', $isEdit ? $salesOrder->date->format('Y-m-d') : now()->format('Y-m-d')) }}" required>
-                            @error('date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <input type="date" name="tanggal_pembuatan" class="form-control form-control-sm @error('tanggal_pembuatan') is-invalid @enderror"
+                                   value="{{ old('tanggal_pembuatan', $isEdit ? $salesOrder->tanggal_pembuatan->format('Y-m-d') : now()->format('Y-m-d')) }}" required>
+                            @error('tanggal_pembuatan')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-12 col-sm-6">
                             <label class="form-label fw-semibold" style="font-size:13px">Status <span class="text-danger">*</span></label>
@@ -132,51 +220,43 @@
                     <div class="row g-3 mb-3">
                         <div class="col-12 col-sm-6">
                             <label class="form-label fw-semibold" style="font-size:13px">Nama Project</label>
-                            <input type="text" name="project_name" id="project_name" class="form-control form-control-sm"
-                                   value="{{ old('project_name', $isEdit ? $salesOrder->project_name : ($copyQuote ? $quotation->project_name : '')) }}"
+                            <input type="text" name="nama_project" id="nama_project" class="form-control form-control-sm"
+                                   value="{{ old('nama_project', $isEdit ? $salesOrder->nama_project : ($copyQuote ? $quotation->nama_project : '')) }}"
                                    placeholder="Auto-load dari Quotation">
                         </div>
                         <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold" style="font-size:13px">Perusahaan</label>
-                            <input type="text" name="client_company" id="client_company" class="form-control form-control-sm"
-                                   value="{{ old('client_company', $isEdit ? $salesOrder->client_company : ($copyQuote ? $quotation->client_company : '')) }}"
-                                   placeholder="Auto-load dari Quotation">
+                            <label class="form-label fw-semibold" style="font-size:13px">Client</label>
+                            <select name="id_client" id="id_client" class="form-select form-select-sm"
+                                    data-url-template="{{ route('admin.sales-orders.client-data', ['client' => '__ID__']) }}">
+                                <option value="">-- Pilih Client --</option>
+                                @foreach($clients as $c)
+                                    <option value="{{ $c->id }}"
+                                        {{ old('id_client', ($isEdit ? $salesOrder->id_client : '')) == $c->id ? 'selected' : '' }}>
+                                        {{ $c->nama_perusahaan }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="col-12 col-sm-6">
                             <label class="form-label fw-semibold" style="font-size:13px">Nama Kontak</label>
-                            <input type="text" name="client_name" id="client_name" class="form-control form-control-sm"
-                                   value="{{ old('client_name', $isEdit ? $salesOrder->client_name : ($copyQuote ? $quotation->client_name : '')) }}">
+                            <input type="text" name="nama_kontak_display" id="nama_kontak_display" class="form-control form-control-sm" readonly
+                                   value="{{ old('nama_kontak_display', ($isEdit && $salesOrder->client) ? $salesOrder->client->nama_kontak : ($copyQuote ? ($quotation->client->nama_kontak ?? '') : '')) }}">
                         </div>
                         <div class="col-12 col-sm-6">
                             <label class="form-label fw-semibold" style="font-size:13px">Email</label>
-                            <input type="email" name="client_email" id="client_email" class="form-control form-control-sm"
-                                   value="{{ old('client_email', $isEdit ? $salesOrder->client_email : ($copyQuote ? $quotation->client_email : '')) }}">
-                        </div>
-                        <div class="col-12 col-sm-4">
-                            <label class="form-label fw-semibold" style="font-size:13px">Attn</label>
-                            <input type="text" name="client_attention" id="client_attention" class="form-control form-control-sm"
-                                   value="{{ old('client_attention', $isEdit ? $salesOrder->client_attention : ($copyQuote ? $quotation->client_attention : '')) }}">
-                        </div>
-                        <div class="col-12 col-sm-4">
-                            <label class="form-label fw-semibold" style="font-size:13px">CC</label>
-                            <input type="text" name="client_cc" id="client_cc" class="form-control form-control-sm"
-                                   value="{{ old('client_cc', $isEdit ? $salesOrder->client_cc : ($copyQuote ? $quotation->client_cc : '')) }}">
-                        </div>
-                        <div class="col-12 col-sm-4">
-                            <label class="form-label fw-semibold" style="font-size:13px">Customer ID</label>
-                            <input type="text" name="customer_id" id="customer_id" class="form-control form-control-sm"
-                                   value="{{ old('customer_id', $isEdit ? $salesOrder->customer_id : ($copyQuote ? ($quotation->client?->id_perusahaan ?? $quotation->customer_id) : '')) }}">
+                            <input type="email" name="email_display" id="email_display" class="form-control form-control-sm" readonly
+                                   value="{{ old('email_display', ($isEdit && $salesOrder->client) ? $salesOrder->client->email_perusahaan : ($copyQuote ? ($quotation->client->email_perusahaan ?? '') : '')) }}">
                         </div>
                     </div>
                     <div>
                         <label class="form-label fw-semibold" style="font-size:13px">Alamat</label>
-                        <textarea name="client_address" id="client_address" class="form-control form-control-sm" rows="2"
-                                  placeholder="Alamat klien...">{{ old('client_address', $isEdit ? $salesOrder->client_address : ($copyQuote ? $quotation->client_address : '')) }}</textarea>
+                        <textarea name="alamat_display" id="alamat_display" class="form-control form-control-sm" rows="2" readonly
+                                  placeholder="Alamat klien...">{{ old('alamat_display', ($isEdit && $salesOrder->client) ? $salesOrder->client->alamat_perusahaan : ($copyQuote ? ($quotation->client->alamat_perusahaan ?? '') : '')) }}</textarea>
                     </div>
                     <div>
-                        <label class="form-label fw-semibold" style="font-size:13px">Description of Work</label>
-                        <textarea name="description_of_work" id="description_of_work" class="form-control form-control-sm" rows="2"
-                                  placeholder="Jelaskan lingkup pekerjaan...">{{ old('description_of_work', $isEdit ? $salesOrder->description_of_work : ($copyQuote ? $quotation->description_of_work : '')) }}</textarea>
+                        <label class="form-label fw-semibold" style="font-size:13px">Keterangan</label>
+                        <textarea name="keterangan" id="keterangan" class="form-control form-control-sm" rows="2"
+                                  placeholder="Keterangan...">{{ old('keterangan', $isEdit ? $salesOrder->keterangan : ($copyQuote ? $quotation->keterangan : '')) }}</textarea>
                     </div>
                 </div>
             </div>
@@ -191,11 +271,8 @@
                 </div>
                 <div class="card-body" id="items-container"></div>
                 <div class="card-footer bg-white d-flex align-items-center justify-content-between py-2">
-                    <button type="button" class="btn btn-outline-primary btn-sm" id="btn-add-item-2">
-                        <i class="bi bi-plus-lg"></i> Tambah Produk
-                    </button>
                     <div class="fw-semibold" style="font-size:13px;">
-                        Total Produksi: <span class="text-primary ms-2" id="disp-mat" style="font-family:monospace;">Rp 0</span>
+                        Total Produksi + Material: <span class="text-primary ms-2" id="disp-mat" style="font-family:monospace;">Rp 0</span>
                     </div>
                 </div>
             </div>
@@ -226,9 +303,6 @@
                     </table>
                 </div>
                 <div class="card-footer bg-white d-flex align-items-center justify-content-between py-2">
-                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-add-labor-2">
-                        <i class="bi bi-plus-lg"></i> Tambah Labor
-                    </button>
                     <div class="fw-semibold" style="font-size:13px;">
                         Total Labor: <span class="ms-2" id="disp-lab" style="font-family:monospace;color:#1B5DBC;">Rp 0</span>
                     </div>
@@ -260,9 +334,6 @@
                     </table>
                 </div>
                 <div class="card-footer bg-white d-flex align-items-center justify-content-between py-2">
-                    <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-add-other-cost-2">
-                        <i class="bi bi-plus-lg"></i> Tambah Biaya
-                    </button>
                     <div class="fw-semibold" style="font-size:13px;">
                         Total Biaya Lain-Lain: <span class="ms-2" id="disp-oth" style="font-family:monospace;color:#1B5DBC;">Rp 0</span>
                     </div>
@@ -279,16 +350,16 @@
                     <span class="fw-semibold">Ringkasan</span>
                 </div>
                 <div class="card-body">
-                    <div class="summary-row"><span>Total Produksi</span><span class="summary-val" id="sum-mat">Rp 0</span></div>
+                    <div class="summary-row"><span>Total Produksi + Material</span><span class="summary-val" id="sum-mat">Rp 0</span></div>
                     <div class="summary-row"><span>Total Labor</span><span class="summary-val" id="sum-lab">Rp 0</span></div>
                     <div class="summary-row"><span>Total Biaya Lain-Lain</span><span class="summary-val" id="sum-oth">Rp 0</span></div>
                     <div class="summary-row"><span>Subtotal</span><span class="summary-val" id="sum-sub">Rp 0</span></div>
                     <div class="summary-row align-items-start gap-2" style="flex-wrap:wrap;">
                         <div>
-                            <div style="font-size:13px;margin-bottom:4px;">PPN (%)</div>
-                            <input type="number" name="tax_percentage" id="tax_percentage"
+                            <div style="font-size:13px;margin-bottom:4px;">Pajak (%)</div>
+                            <input type="number" name="pajak" id="pajak"
                                    class="form-control form-control-sm" min="0" max="100" step="0.01"
-                                   value="{{ old('tax_percentage', $isEdit ? $salesOrder->tax_percentage : 0) }}"
+                                   value="{{ old('pajak', $isEdit ? $salesOrder->pajak : 0) }}"
                                    style="width:80px;">
                         </div>
                         <span class="summary-val mt-4" id="sum-tax">Rp 0</span>
@@ -300,9 +371,9 @@
                             <input type="text" id="discount-display"
                                    class="form-control form-control-sm" placeholder="0"
                                    style="text-align:right;"
-                                   oninput="formatNumberInput(this, 'discount')">
-                            <input type="hidden" name="discount" id="discount"
-                                   value="{{ old('discount', $isEdit ? $salesOrder->discount : 0) }}">
+                                   oninput="formatNumberInput(this, 'diskon')">
+                            <input type="hidden" name="diskon" id="diskon"
+                                   value="{{ old('diskon', $isEdit ? $salesOrder->diskon : 0) }}">
                         </div>
                     </div>
                     <div class="summary-row total-row">
@@ -318,15 +389,6 @@
                 </div>
             </div>
 
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom py-3">
-                    <span class="fw-semibold">Terms & Conditions</span>
-                </div>
-                <div class="card-body">
-                    <textarea name="notes" class="form-control form-control-sm" rows="6"
-                              placeholder="Syarat & ketentuan...">{{ old('notes', $isEdit ? $salesOrder->notes : '') }}</textarea>
-                </div>
-            </div>
 
             <div class="d-grid gap-2">
                 <button type="submit" class="btn btn-primary d-flex align-items-center justify-content-center gap-2">
@@ -353,48 +415,105 @@
 @push('scripts')
 <script>
 /* ── seed data ── */
-@if($copyQuote)
-const initItems      = @json($copyItems);
-const initLabors     = @json($copyLabors);
-const initOtherCosts = @json($copyOtherCosts);
-@else
-const initItems      = @json($oldItems);
-const initLabors     = @json($oldLabors);
-const initOtherCosts = @json($oldOtherCosts);
-@endif
-let iIdx = 0, lIdx = 0, oIdx = 0;
+@php
+    // Prioritas: old() > copyQuote > salesOrder (edit) > kosong
+    $hasOld = old('_token') !== null; // Ada old data berarti form pernah di-submit
+    if ($hasOld) {
+        // Gunakan data dari old() (form pernah di-submit, validasi gagal)
+        $seedItems = $oldItems;
+        $seedLabors = $oldLabors;
+        $seedOtherCosts = $oldOtherCosts;
+    } elseif ($copyQuote) {
+        // Gunakan data dari quotation (copy dari quotation, belum pernah submit)
+        $seedItems = $copyItems;
+        $seedLabors = $copyLabors;
+        $seedOtherCosts = $copyOtherCosts;
+    } elseif ($isEdit && isset($salesOrder)) {
+        // Gunakan data dari salesOrder (mode edit, belum pernah submit form ini)
+        $seedItems = $oldItems;      // $oldItems sudah di-set dari $salesOrder->items->load('materials')
+        $seedLabors = $oldLabors;    // $oldLabors sudah di-set dari $salesOrder->labors
+        $seedOtherCosts = $oldOtherCosts; // $oldOtherCosts sudah di-set dari $salesOrder->otherCosts
+    } else {
+        // Kosong (form baru, bukan copy, bukan edit)
+        $seedItems = [];
+        $seedLabors = [];
+        $seedOtherCosts = [];
+    }
+@endphp
+const initItems      = @json($seedItems);
+const initLabors     = @json($seedLabors);
+const initOtherCosts = @json($seedOtherCosts);
 
-const fmt = n => 'Rp ' + Math.round(n).toLocaleString('id-ID');
-const esc = s => String(s ?? '').replace(/"/g,'"').replace(/</g,'<');
+/* ══ Index counters ══════════════════════════════════════ */
+let iIdx = 0; // product card index
+let lIdx = 0; // labor row index
+let oIdx = 0; // other cost row index
+
+/* ══ Helper functions ════════════════════════════════════ */
+function esc(str) {
+    const div = document.createElement('div');
+    div.textContent = String(str ?? '');
+    return div.innerHTML;
+}
+function fmt(n) {
+    return 'Rp ' + (parseFloat(n) || 0).toLocaleString('id-ID', {minimumFractionDigits:0, maximumFractionDigits:0});
+}
 
 /* ══ Auto-load from Master Client via AJAX ═══════════════ */
-document.getElementById('client-select')?.addEventListener('change', async function() {
-    const opt = this.options[this.selectedIndex];
-    const val = opt.value;
-    if (!val) return;
+const clientSelectEl = document.querySelector('select[name="id_client"]');
+if (clientSelectEl) {
+    clientSelectEl.addEventListener('change', async function() {
+        const val = this.value;
+        if (!val) {
+            // Clear display fields when no client selected
+            document.getElementById('nama_kontak_display').value = '';
+            document.getElementById('email_display').value = '';
+            document.getElementById('alamat_display').value = '';
+            return;
+        }
 
-    const url = this.dataset.urlTemplate.replace('__ID__', val);
+        const url = this.dataset.urlTemplate?.replace('__ID__', val);
+        if (!url) return;
 
-    try {
-        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-        if (!res.ok) throw new Error('Failed to load client data');
-        const data = await res.json();
+        try {
+            const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+            if (!res.ok) throw new Error('Failed to load client data');
+            const data = await res.json();
 
-        document.getElementById('client_company').value = data.nama_perusahaan || '';
-        document.getElementById('client_name').value    = data.nama_kontak || '';
-        document.getElementById('client_email').value   = data.email || '';
-        document.getElementById('client_address').value = data.alamat_pengiriman_perusahaan || '';
-        document.getElementById('client_attention').value = data.attn || '';
-        document.getElementById('client_cc').value        = data.cc || '';
-    } catch (err) {
-        console.error(err);
-    }
-});
+            document.getElementById('nama_kontak_display').value = data.nama_kontak || '';
+            document.getElementById('email_display').value = data.email_perusahaan || '';
+            document.getElementById('alamat_display').value = data.alamat_perusahaan || '';
+        } catch (err) {
+            console.error(err);
+        }
+    });
+}
 
 /* ══ Auto-load from Quotation via AJAX ═══════════════════ */
-document.getElementById('quotation_id')?.addEventListener('change', async function() {
+document.getElementById('nomor_quotation')?.addEventListener('change', async function() {
     const opt = this.options[this.selectedIndex];
-    if (!opt.value) return;
+    if (!opt.value) {
+        // Clear all fields when no quotation selected
+        document.getElementById('nama_project').value = '';
+        document.getElementById('keterangan').value = '';
+        document.getElementById('nama_kontak_display').value = '';
+        document.getElementById('email_display').value = '';
+        document.getElementById('alamat_display').value = '';
+        document.querySelector('select[name="id_client"]').value = '';
+        
+        // Clear items, labors, other costs
+        document.getElementById('items-container').innerHTML = '';
+        document.getElementById('labors-tbody').innerHTML = '';
+        document.getElementById('other-costs-tbody').innerHTML = '';
+        iIdx = 0; lIdx = 0; oIdx = 0;
+        
+        // Reset discount
+        document.getElementById('diskon').value = 0;
+        document.getElementById('discount-display').value = '0';
+        
+        recalc();
+        return;
+    }
 
     const url = this.dataset.urlTemplate.replace('__ID__', opt.value);
 
@@ -403,32 +522,51 @@ document.getElementById('quotation_id')?.addEventListener('change', async functi
         if (!res.ok) throw new Error('Failed to load quotation data');
         const data = await res.json();
 
-        // Fill info fields
-        document.getElementById('quote_number').value        = data.quote_number || '';
-        document.getElementById('project_name').value       = data.project_name || '';
-        document.getElementById('customer_id').value        = data.customer_id || '';
-        document.getElementById('client_name').value        = data.client_name || '';
-        document.getElementById('client_company').value     = data.client_company || '';
-        document.getElementById('client_attention').value   = data.client_attention || '';
-        document.getElementById('client_cc').value          = data.client_cc || '';
-        document.getElementById('client_email').value       = data.client_email || '';
-        document.getElementById('client_address').value     = data.client_address || '';
-        document.getElementById('description_of_work').value = data.description_of_work || '';
-        // document.getElementById('nomor_po').value            = data.nomor_po || '';
+        console.log('Quotation data loaded:', data);
 
-        // Fill discount
-        const discountEl        = document.getElementById('discount');
-        const discountDisplayEl = document.getElementById('discount-display');
-        if (discountEl && discountDisplayEl) {
-            discountEl.value = data.discount ?? 0;
-            discountDisplayEl.value = parseFloat(data.discount || 0).toLocaleString('id-ID');
+        // Fill info fields
+        document.getElementById('nama_project').value        = data.nama_project || '';
+        document.getElementById('keterangan').value          = data.keterangan || '';
+        
+        // Set client dropdown and auto-fill client fields
+        const clientId = data.id_client || data.id_customer;
+        if (clientId) {
+            const clientSelect = document.querySelector('select[name="id_client"]');
+            if (clientSelect) {
+                clientSelect.value = clientId;
+                
+                // Directly fill client display fields from quotation data
+                document.getElementById('nama_kontak_display').value = data.nama_kontak || '';
+                document.getElementById('email_display').value = data.email_perusahaan || '';
+                document.getElementById('alamat_display').value = data.alamat_perusahaan || '';
+            }
         }
 
-        // Clear & load items
+        // Fill discount
+        const discountEl        = document.getElementById('diskon');
+        const discountDisplayEl = document.getElementById('discount-display');
+        if (discountEl && discountDisplayEl) {
+            discountEl.value = data.diskon ?? 0;
+            discountDisplayEl.value = parseFloat(data.diskon || 0).toLocaleString('id-ID');
+        }
+
+        // Clear & load items with materials
         document.getElementById('items-container').innerHTML = '';
         iIdx = 0;
+        mIdx = {}; // Reset material index
         if (data.items && data.items.length) {
-            data.items.forEach(it => addProductCard(it));
+            data.items.forEach(it => {
+                // Map quotation item structure to sales order item structure
+                const itemData = {
+                    material_name: it.material_name || it.product_name || '',
+                    description: it.description || '',
+                    unit: it.unit || it.satuan || 'Unit',
+                    qty: it.qty || 1,
+                    unit_price: it.unit_price || 0,
+                    materials: it.materials || []
+                };
+                addProductCard(itemData);
+            });
         }
 
         // Clear & load labors
@@ -454,9 +592,10 @@ document.getElementById('quotation_id')?.addEventListener('change', async functi
             }));
         }
 
+        // Recalculate all totals
         recalc();
     } catch (err) {
-        console.error(err);
+        console.error('Error loading quotation:', err);
         alert('Gagal memuat data quotation. Silakan coba lagi.');
     }
 });
@@ -532,7 +671,7 @@ function addProductCard(item = {}) {
     container.appendChild(card);
     renumberProducts();
     recalc();
-    card.querySelector('.item-input')?.focus();
+    //card.querySelector('.item-input')?.focus();
 }
 function removeProduct(btn) {
     btn.closest('.product-card').remove();
@@ -579,6 +718,7 @@ function updateMatRow(el) {
     const price = parseFloat(tr.querySelector('.mat-price')?.value) || 0;
     const lastTd = tr.querySelectorAll('td');
     lastTd[lastTd.length - 2].textContent = fmt(qty * price);
+    recalc();
 }
 function removeMaterialRow(btn) {
     const card = btn.closest('.product-card');
@@ -686,15 +826,15 @@ function reorderNums(tbodyId, prefix) {
 }
 
 function recalc() {
-    let mat = 0, lab = 0, oth = 0;
+    let prod = 0, mat = 0, lab = 0, oth = 0;
 
-    // Product subtotal (qty * unit_price)
+    // Product subtotal (qty * unit_price) - this is the PRODUCTION cost
     document.querySelectorAll('#items-container .product-card').forEach(card => {
-        mat += (parseFloat(card.querySelector('.item-qty')?.value)   || 0)
+        prod += (parseFloat(card.querySelector('.item-qty')?.value)   || 0)
              * (parseFloat(card.querySelector('.item-price')?.value) || 0);
     });
 
-    // Material subtotals
+    // Material subtotals - materials are ADDITIONAL costs inside products
     document.querySelectorAll('#items-container .mat-qty').forEach(el => {
         const tr = el.closest('tr');
         const qty   = parseFloat(el.value) || 0;
@@ -711,25 +851,26 @@ function recalc() {
         oth += (parseFloat(tr.querySelector('.oc-qty')?.value)  || 0)
              * (parseFloat(tr.querySelector('.oc-rate')?.value) || 0);
     });
-    const sub   = mat + lab + oth;
-    const discount = parseFloat(document.getElementById('discount')?.value) || 0;
+    const sub   = prod + mat + lab + oth;
+    const discount = parseFloat(document.getElementById('diskon')?.value) || 0;
     
     // Perhitungan: Diskon dikurangi SEBELUM pajak
     const taxableBase = Math.max(sub - discount, 0);  // Dasar pengenaan pajak (tidak boleh negatif)
-    const tax   = taxableBase * ((parseFloat(document.getElementById('tax_percentage').value) || 0) / 100);
+    const tax   = taxableBase * ((parseFloat(document.getElementById('pajak').value) || 0) / 100);
     const total = taxableBase + tax;
 
-    document.getElementById('disp-mat').textContent = fmt(mat);
+    const prodAndMat = prod + mat;
+    document.getElementById('disp-mat').textContent = fmt(prodAndMat);
     document.getElementById('disp-lab').textContent = fmt(lab);
     document.getElementById('disp-oth').textContent = fmt(oth);
-    document.getElementById('sum-mat').textContent  = fmt(mat);
+    document.getElementById('sum-mat').textContent  = fmt(prodAndMat);
     document.getElementById('sum-lab').textContent  = fmt(lab);
     document.getElementById('sum-oth').textContent  = fmt(oth);
     document.getElementById('sum-sub').textContent  = fmt(sub);
     document.getElementById('sum-tax').textContent  = fmt(tax);
     document.getElementById('sum-total').textContent= fmt(total);
 
-    document.getElementById('h-mat').value   = mat.toFixed(2);
+    document.getElementById('h-mat').value   = prodAndMat.toFixed(2);
     document.getElementById('h-lab').value   = lab.toFixed(2);
     document.getElementById('h-oth').value   = oth.toFixed(2);
     document.getElementById('h-sub').value   = sub.toFixed(2);
@@ -737,33 +878,71 @@ function recalc() {
     document.getElementById('h-total').value = total.toFixed(2);
 }
 
+/* ══ Edit mode flag ═══════════════════════════════════ */
+const isEditMode = @json($isEdit ?? false);
+
 /* ══ Boot ═══════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
-    (initItems.length  ? initItems  : [{}]).forEach(i => addProductCard(i));
-    (initLabors.length ? initLabors : [{}]).forEach(l => addLaborRow(l));
-    (initOtherCosts.length ? initOtherCosts : []).forEach(c => addOtherCostRow(c));
+    // Items: always seed from data; if empty in create mode, add one blank card
+    if (initItems.length) {
+        initItems.forEach(i => addProductCard(i));
+    } else if (!isEditMode) {
+        addProductCard();
+    }
+
+    // Labors: seed from data; if empty in create mode, add one blank row
+    if (initLabors.length) {
+        initLabors.forEach(l => addLaborRow(l));
+    } else if (!isEditMode) {
+        addLaborRow();
+    }
+
+    // Other costs: seed from data only
+    if (initOtherCosts.length) {
+        initOtherCosts.forEach(c => addOtherCostRow(c));
+    }
 
     document.getElementById('btn-add-item').addEventListener('click',   () => addProductCard());
-    document.getElementById('btn-add-item-2').addEventListener('click', () => addProductCard());
     document.getElementById('btn-add-labor').addEventListener('click',  () => addLaborRow());
-    document.getElementById('btn-add-labor-2').addEventListener('click',() => addLaborRow());
     document.getElementById('btn-add-other-cost').addEventListener('click',  () => addOtherCostRow());
-    document.getElementById('btn-add-other-cost-2').addEventListener('click',() => addOtherCostRow());
-    document.getElementById('tax_percentage').addEventListener('input', recalc);
+    document.getElementById('pajak').addEventListener('input', recalc);
+    
+    // Bind discount display input to recalc
+    const discountDisplayInput = document.getElementById('discount-display');
+    if (discountDisplayInput) {
+        discountDisplayInput.addEventListener('input', function() {
+            formatNumberInput(this, 'diskon');
+        });
+    }
 
     // Format discount initial value
-    const discountEl = document.getElementById('discount');
+    const discountEl = document.getElementById('diskon');
     const discountDisplayEl = document.getElementById('discount-display');
     if (discountEl && discountDisplayEl) {
         discountDisplayEl.value = parseFloat(discountEl.value || 0).toLocaleString('id-ID');
     }
+    
+    // Add form submit confirmation
+    const form = document.getElementById('so-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const soNumber = document.querySelector('input[name="nomor_salesorder"]')?.value || '';
+        });
+    }
+
+    // ══ Hitung ulang total saat halaman dibuka ══
+    // Panggil recalc() setelah semua data seed selesai di-generate
+    recalc();
 });
 
 // Number formatting helper
 function formatNumberInput(el, hiddenId) {
     let val = el.value.replace(/[^0-9]/g, '');
     if (val === '') val = '0';
-    document.getElementById(hiddenId).value = parseFloat(val);
+    const hiddenEl = document.getElementById(hiddenId);
+    if (hiddenEl) {
+        hiddenEl.value = parseFloat(val);
+    }
     el.value = parseFloat(val).toLocaleString('id-ID');
     recalc();
 }

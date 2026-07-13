@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Edit Status Produksi ' . $production->production_number)
+@section('title', 'Edit Status Produksi ' . $production->nomor_produksi)
 @section('breadcrumb', 'Edit Status Produksi')
 
 @push('styles')
@@ -17,7 +17,7 @@
     <div>
         <h4 class="fw-bold mb-1">Edit Status Produksi</h4>
         <p class="text-muted mb-0" style="font-size:13px">
-            No. Produksi: <span class="fw-semibold">{{ $production->production_number }}</span>
+            No. Produksi: <span class="fw-semibold">{{ $production->nomor_produksi }}</span>
         </p>
     </div>
     <a href="{{ route('admin.productions.index') }}" class="btn btn-outline-secondary d-flex align-items-center gap-2">
@@ -35,28 +35,28 @@
                 <table class="table table-sm" style="font-size:13px;">
                     <tr>
                         <td class="text-muted" style="width:140px;">No. Produksi</td>
-                        <td class="fw-semibold">{{ $production->production_number }}</td>
+                        <td class="fw-semibold">{{ $production->nomor_produksi }}</td>
                     </tr>
                     <tr>
                         <td class="text-muted">Ref. SO</td>
-                        <td>{{ $production->so_number }}</td>
+                        <td>{{ $production->nomor_salesorder }}</td>
                     </tr>
                     <tr>
                         <td class="text-muted">Project</td>
-                        <td>{{ $production->project_name ?? '-' }}</td>
+                        <td>{{ $production->salesOrder->nama_project ?? '-' }}</td>
                     </tr>
                     <tr>
                         <td class="text-muted">Klien</td>
-                        <td>{{ $production->client_company ?? '-' }}</td>
+                        <td>{{ $production->salesOrder->client->nama_perusahaan ?? '-' }}</td>
                     </tr>
                     <tr>
-                        <td class="text-muted">Tanggal</td>
-                        <td>{{ $production->date->format('d M Y') }}</td>
+                        <td class="text-muted">Tanggal Mulai</td>
+                        <td>{{ $production->tanggal_mulai->format('d M Y') }}</td>
                     </tr>
-                    @if($production->target_date)
+                    @if($production->estimasi_selesai)
                     <tr>
-                        <td class="text-muted">Target Selesai</td>
-                        <td>{{ $production->target_date->format('d M Y') }}</td>
+                        <td class="text-muted">Estimasi Selesai</td>
+                        <td>{{ $production->estimasi_selesai->format('d M Y') }}</td>
                     </tr>
                     @endif
                     <tr>
@@ -69,7 +69,7 @@
                                     'completed' => ['completed', 'Completed'],
                                     'cancelled' => ['cancelled', 'Cancelled'],
                                 ];
-                                $s = $statusMap[$production->status] ?? ['planned', '-'];
+                                $s = $statusMap[$production->status_produksi] ?? ['planned', '-'];
                             @endphp
                             <span class="badge badge-{{ $s[0] }}">{{ $s[1] }}</span>
                         </td>
@@ -91,17 +91,17 @@
 
                     <div class="mb-3">
                         <label class="form-label fw-semibold" style="font-size:13px">Status <span class="text-danger">*</span></label>
-                        <select name="status" class="form-select" required>
+                        <select name="status_produksi" class="form-select" required>
                             @foreach(['planned'=>'Planned','in_progress'=>'In Progress','completed'=>'Completed','cancelled'=>'Cancelled'] as $v=>$l)
-                                <option value="{{ $v }}" {{ old('status', $production->status) === $v ? 'selected' : '' }}>{{ $l }}</option>
+                                <option value="{{ $v }}" {{ old('status_produksi', $production->status_produksi) === $v ? 'selected' : '' }}>{{ $l }}</option>
                             @endforeach
                         </select>
-                        @error('status')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                        @error('status_produksi')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:13px">Catatan</label>
-                        <textarea name="notes" class="form-control" rows="3" placeholder="Catatan update status...">{{ old('notes', $production->notes) }}</textarea>
+                        <label class="form-label fw-semibold" style="font-size:13px">Keterangan</label>
+                        <textarea name="keterangan" class="form-control" rows="3" placeholder="Catatan update status...">{{ old('keterangan', $production->keterangan) }}</textarea>
                     </div>
 
                     <div class="d-grid gap-2">

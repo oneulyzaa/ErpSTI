@@ -51,11 +51,12 @@ class Quotation extends Model
      */
     public function staff()
     {
-        return $this->belongsTo(User::class, 'id_staff');
+        return $this->belongsTo(User::class, 'id');
     }
 
     /**
      * Relasi dengan Customer/Client
+     * FK id_client di quotations mereferensi kolom id_customer di customers
      */
     public function client()
     {

@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Detail ' . $deliveryOrder->do_number)
+@section('title', 'Detail ' . $deliveryOrder->nomor_deliveryorder)
 @section('breadcrumb', 'Detail Delivery Order')
 
 @push('styles')
@@ -22,16 +22,16 @@
 <div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
     <div>
         <div class="d-flex align-items-center gap-2 mb-1">
-            <h4 class="fw-bold mb-0" style="font-family:monospace">{{ $deliveryOrder->do_number }}</h4>
+            <h4 class="fw-bold mb-0" style="font-family:monospace">{{ $deliveryOrder->nomor_deliveryorder }}</h4>
             <span class="badge badge-{{ $s[0] }} rounded-pill px-2 py-1">{{ $s[1] }}</span>
         </div>
         <p class="text-muted mb-0" style="font-size:13px">
-            Tanggal DO: {{ $deliveryOrder->date->format('d M Y') }}
-            @if($deliveryOrder->delivery_date)
-                &nbsp;·&nbsp; Pengiriman: {{ $deliveryOrder->delivery_date->format('d M Y') }}
+            Tanggal DO: {{ $deliveryOrder->tanggal_pembuatan->format('d M Y') }}
+            @if($deliveryOrder->tanggal_pengiriman)
+                &nbsp;·&nbsp; Pengiriman: {{ $deliveryOrder->tanggal_pengiriman->format('d M Y') }}
             @endif
-            @if($deliveryOrder->so_number)
-                &nbsp;·&nbsp; Ref. SO: {{ $deliveryOrder->so_number }}
+            @if($deliveryOrder->nomor_salesorder)
+                &nbsp;·&nbsp; Ref. SO: {{ $deliveryOrder->nomor_salesorder }}
             @endif
             @if($deliveryOrder->nomor_po)
                 &nbsp;·&nbsp; Nomor PO: {{ $deliveryOrder->nomor_po }}
@@ -76,37 +76,35 @@
                     </div>
                     <div class="col-12 col-sm-6 p-4">
                         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:10px;">Kepada</div>
-                        <div class="fw-bold" style="font-size:15px">{{ $deliveryOrder->client_company }}</div>
+                        <div class="fw-bold" style="font-size:15px">{{ $deliveryOrder->client->nama_perusahaan ?? '-' }}</div>
                         <div class="text-muted mt-1" style="font-size:13px;line-height:1.8;">
-                            @if($deliveryOrder->client_attention)Attn: {{ $deliveryOrder->client_attention }}<br>@endif
-                            @if($deliveryOrder->client_cc)CC: {{ $deliveryOrder->client_cc }}<br>@endif
-                            Kontak: {{ $deliveryOrder->client_name }}<br>
-                            @if($deliveryOrder->client_email){{ $deliveryOrder->client_email }}@endif
+                            @if($deliveryOrder->client->nama_kontak)Attn: {{ $deliveryOrder->client->nama_kontak }}<br>@endif
+                            @if($deliveryOrder->client->email_perusahaan){{ $deliveryOrder->client->email_perusahaan }}@endif
                         </div>
                     </div>
                 </div>
-                @if($deliveryOrder->project_name)
+                @if($deliveryOrder->nama_project)
                 <div class="p-4 border-top bg-light">
                     <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:6px;">Nama Project</div>
-                    <div style="font-size:14px;font-weight:600;">{{ $deliveryOrder->project_name }}</div>
+                    <div style="font-size:14px;font-weight:600;">{{ $deliveryOrder->nama_project }}</div>
                 </div>
                 @endif
-                @if($deliveryOrder->destination_address)
+                @if($deliveryOrder->client->alamat_perusahaan)
                 <div class="p-4 border-top bg-light">
                     <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:6px;">Alamat Tujuan</div>
-                    <div style="font-size:14px;white-space:pre-line;">{{ $deliveryOrder->destination_address }}</div>
+                    <div style="font-size:14px;white-space:pre-line;">{{ $deliveryOrder->client->alamat_perusahaan }}</div>
                 </div>
                 @endif
-                @if($deliveryOrder->description)
+                @if($deliveryOrder->keterangan)
                 <div class="p-4 border-top bg-light">
-                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:6px;">Deskripsi</div>
-                    <div style="font-size:14px;">{{ $deliveryOrder->description }}</div>
+                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:6px;">Keterangan</div>
+                    <div style="font-size:14px;">{{ $deliveryOrder->keterangan }}</div>
                 </div>
                 @endif
-                @if($deliveryOrder->so_number)
+                @if($deliveryOrder->nomor_salesorder)
                 <div class="p-4 border-top">
                     <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:6px;">Referensi Sales Order</div>
-                    <div style="font-size:14px;font-family:monospace;font-weight:600;">{{ $deliveryOrder->so_number }}</div>
+                    <div style="font-size:14px;font-family:monospace;font-weight:600;">{{ $deliveryOrder->nomor_salesorder }}</div>
                 </div>
                 @endif
             </div>
@@ -133,12 +131,23 @@
                         @foreach($deliveryOrder->items as $i => $item)
                         <tr>
                             <td class="text-center text-muted" style="font-family:monospace;font-size:12px;">{{ $i+1 }}</td>
-                            <td class="fw-semibold">{{ $item->item_name }}</td>
-                            <td class="text-muted">{{ $item->description ?: '-' }}</td>
-                            <td class="text-center">{{ $item->unit }}</td>
-                            <td class="text-end" style="font-family:monospace;">{{ number_format($item->qty, 2, ',', '.') }}</td>
+                            <td class="fw-semibold">{{ $item->nama_item }}</td>
+                            <td class="text-muted">{{ $item->deskripsi_item ?: '-' }}</td>
+                            <td class="text-center">{{ $item->satuan }}</td>
+                            <td class="text-end" style="font-family:monospace;">{{ number_format($item->jumlah_item, 2, ',', '.') }}</td>
                         </tr>
-                        
+                        @if($item->materials->count())
+                        <tr class="table-light">
+                            <td colspan="5" class="ps-4">
+                                <div style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:4px;">Material:</div>
+                                @foreach($item->materials as $m => $mat)
+                                <div style="font-size:12px;color:#475569;">
+                                    {{ $m+1 }}. {{ $mat->nama_material }} — {{ number_format($mat->jumlah_material, 2, ',', '.') }} {{ $mat->satuan_material }}
+                                </div>
+                                @endforeach
+                            </td>
+                        </tr>
+                        @endif
                         @endforeach
                     </tbody>
                     <tfoot class="table-light">
@@ -146,10 +155,10 @@
                             <td colspan="4" class="text-end fw-semibold" style="font-size:12px;">Total Item</td>
                             <td class="text-end fw-bold" style="font-family:monospace;">{{ $deliveryOrder->items->count() }}</td>
                         </tr>
-                        {{-- <tr>
+                        <tr>
                             <td colspan="4" class="text-end fw-semibold" style="font-size:12px;">Total Qty</td>
-                            <td class="text-end fw-bold" style="font-family:monospace;">{{ number_format($deliveryOrder->items->sum('qty'), 2, ',', '.') }}</td>
-                        </tr> --}}
+                            <td class="text-end fw-bold" style="font-family:monospace;">{{ number_format($deliveryOrder->items->sum('jumlah_item'), 2, ',', '.') }}</td>
+                        </tr>
                     </tfoot>
                 </table>
             </div>
@@ -159,12 +168,6 @@
 
     {{-- RIGHT --}}
     <div class="col-12 col-xl-4">
-        @if($deliveryOrder->notes)
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-bottom py-3"><span class="fw-semibold">Catatan</span></div>
-            <div class="card-body" style="font-size:13px;white-space:pre-line;">{{ $deliveryOrder->notes }}</div>
-        </div>
-        @endif
         <div class="card border-0 shadow-sm mt-3">
             <div class="card-footer bg-white border-top">
                 <a href="{{ route('admin.delivery-orders.pdf', $deliveryOrder) }}" target="_blank"

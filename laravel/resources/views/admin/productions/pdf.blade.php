@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Rencana Produksi {{ $production->production_number }}</title>
+    <title>Rencana Produksi {{ $production->nomor_produksi }}</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -179,8 +179,9 @@
             font-size: 7.5px;
             color: #555;
             line-height: 1.6;
-            border-top: 1px solid #dde3ec;
-            padding-top: 8px;
+            border: 1px solid #dde3ec;
+            padding: 8px;
+            padding-top:2px
         }
 
         .signature-wrap {
@@ -225,13 +226,14 @@
                 <td class="title-cell">
                     <div class="doc-title">RENCANA PRODUKSI</div>
                     <table class="meta-table">
-                        <tr><td class="meta-label">No.</td><td class="meta-value">{{ $production->production_number }}</td></tr>
-                        <tr><td class="meta-label">Tanggal</td><td class="meta-value">{{ $production->date->format('d M Y') }}</td></tr>
-                        @if($production->target_date)
-                        <tr><td class="meta-label">Target</td><td class="meta-value">{{ $production->target_date->format('d M Y') }}</td></tr>
+                        <tr><td class="meta-label">No.</td><td class="meta-value">{{ $production->nomor_produksi }}</td></tr>
+                        <tr><td class="meta-label">Tanggal</td><td class="meta-value">{{ $production->tanggal_mulai->format('d M Y') }}</td></tr>
+                        @if($production->estimasi_selesai)
+                        <tr><td class="meta-label">Target</td><td class="meta-value">{{ $production->estimasi_selesai->format('d M Y') }}</td></tr>
                         @endif
-                        <tr><td class="meta-label">Status</td><td class="meta-value">{{ ucfirst(str_replace('_',' ',$production->status)) }}</td></tr>
-                        <tr><td class="meta-label">Ref. SO</td><td class="meta-value">{{ $production->so_number ?: '-' }}</td></tr>
+                        <tr><td class="meta-label">Status</td><td class="meta-value">{{ ucfirst(str_replace('_',' ',$production->status_produksi)) }}</td></tr>
+                        <tr><td class="meta-label">Ref. SO</td><td class="meta-value">{{ $production->nomor_salesorder ?: '-' }}</td></tr>
+                        <tr><td class="meta-label">Nomor PO</td><td class="meta-value">{{ $production->salesOrder->nomor_po ?: '-' }}</td></tr>
                     </table>
                 </td>
             </tr>
@@ -244,9 +246,9 @@
             <tr>
                 <td class="info-divider" style="width:50%;">
                     <div class="info-lbl">Project</div>
-                    <div class="info-val">{{ $production->project_name ?: '-' }}</div>
+                    <div class="info-val">{{ $production->salesOrder->nama_project ?: '-' }}</div>
                     <div class="info-sub" style="margin-top:2px;">
-                        Klien: {{ $production->client_company ?: '-' }}
+                        Klien: {{ $production->salesOrder->client->nama_perusahaan ?? '-' }}
                     </div>
                 </td>
                 <td style="width:50%;">
@@ -258,22 +260,14 @@
                     </div>
                 </td>
             </tr>
-            @if($production->notes)
-            <tr>
-                <td colspan="2" class="info-sep">
-                    <div class="info-lbl">Catatan</div>
-                    <div class="info-sub">{{ $production->notes }}</div>
-                </td>
-            </tr>
-            @endif
         </table>
 
         {{-- ═══ PRODUCTS ═══ --}}
         @foreach($production->items as $pi => $product)
         <div class="product-block">
             <div class="product-header">
-                {{ $loop->iteration }}. {{ $product->product_name }}
-                <span class="qty-info">Qty: {{ number_format($product->product_qty, 2) }} {{ $product->unit }} | {{ ucfirst(str_replace('_', ' ', $product->status)) }}</span>
+                {{ $loop->iteration }}. {{ $product->nama_item }}
+                <span class="qty-info">Qty: {{ number_format($product->jumlah_item, 2) }} {{ $product->satuan }} | {{ ucfirst(str_replace('_', ' ', $product->status)) }}</span>
             </div>
 
             @if($product->materials->isNotEmpty())
@@ -290,17 +284,13 @@
                     @foreach($product->materials as $mi => $mat)
                     <tr class="{{ $mi % 2 === 0 ? 'row-odd' : 'row-even' }}">
                         <td>{{ $loop->iteration }}</td>
-                        <td><strong>{{ $mat->nama_bahan_baku }}</strong></td>
-                        <td style="text-align:center;">{{ $mat->satuan }}</td>
-                        <td style="text-align:right;">{{ number_format($mat->qty_required, 2, ',', '.') }}</td>
+                        <td><strong>{{ $mat->nama_material }}</strong></td>
+                        <td style="text-align:center;">{{ $mat->satuan_material }}</td>
+                        <td style="text-align:right;">{{ number_format($mat->jumlah_material, 2, ',', '.') }}</td>
                     </tr>
                     @endforeach
                 </tbody>
             </table>
-            {{-- @else
-            <div style="padding:6px 8px;font-size:8px;color:#888;font-style:italic;">
-                Belum ada bahan baku yang ditentukan.
-            </div> --}}
             @endif
         </div>
         @endforeach
@@ -322,10 +312,10 @@
         </table>
 
         {{-- ═══ FOOTER ═══ --}}
-        @if($production->notes)
+        @if($production->keterangan)
         <div class="footer-note">
-            <strong>Catatan:</strong><br>
-            {!! nl2br(e($production->notes)) !!}
+            <strong>Keterangan:</strong><br>
+            {!! nl2br(e($production->keterangan)) !!}
         </div>
         @endif
 

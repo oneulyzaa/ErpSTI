@@ -3,7 +3,24 @@
 @php
     $isEdit      = isset($deliveryOrder);
     $action      = $isEdit ? route('admin.delivery-orders.update', $deliveryOrder) : route('admin.delivery-orders.store');
-    $oldItems    = old('items',  $isEdit ? $deliveryOrder->items->toArray()  : []);
+    $oldItems    = old('items', $isEdit ? $deliveryOrder->items->map(function($it) {
+        return [
+            'nama_item'       => $it->nama_item,
+            'deskripsi_item'  => $it->deskripsi_item,
+            'satuan'          => $it->satuan,
+            'jumlah_item'     => $it->jumlah_item,
+            'harga_item'      => $it->harga_item,
+            'materials'       => $it->materials->map(function($m) {
+                return [
+                    'id_material'      => $m->id_material,
+                    'nama_material'    => $m->nama_material,
+                    'satuan_material'  => $m->satuan_material,
+                    'jumlah_material'  => $m->jumlah_material,
+                    'harga_material'   => $m->harga_material,
+                ];
+            })->toArray(),
+        ];
+    })->toArray() : []);
 @endphp
 
 @section('title', $isEdit ? 'Edit Delivery Order' : 'Buat Delivery Order Baru')
@@ -98,25 +115,23 @@
                     <div class="row g-3 mb-3">
                         <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">No. DO <span class="text-danger">*</span></label>
-                            <input type="text" name="do_number"
-                                   class="form-control form-control-sm @error('do_number') is-invalid @enderror"
-                                   value="{{ old('do_number', $isEdit ? $deliveryOrder->do_number : $doNumber) }}" required>
-                            @error('do_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <input type="text" name="nomor_deliveryorder"
+                                   class="form-control form-control-sm @error('nomor_deliveryorder') is-invalid @enderror"
+                                   value="{{ old('nomor_deliveryorder', $isEdit ? $deliveryOrder->nomor_deliveryorder : $doNumber) }}" required>
+                            @error('nomor_deliveryorder')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">Referensi Sales Order</label>
-                            <select name="sales_order_id" id="sales_order_id" class="form-select form-select-sm"
+                            <select name="nomor_salesorder" id="nomor_salesorder" class="form-select form-select-sm"
                                     data-url-template="{{ route('admin.delivery-orders.so-data', ['salesOrder' => '__ID__']) }}">
                                 <option value="">-- Pilih SO (opsional) --</option>
                                 @foreach($salesOrders as $so)
-                                    <option value="{{ $so->id }}"
-                                        {{ old('sales_order_id', ($isEdit ? $deliveryOrder->sales_order_id : ($copySo?->id ?? ''))) == $so->id ? 'selected' : '' }}>
-                                        {{ $so->so_number }} — {{ $so->client_company }}
+                                    <option value="{{ $so->nomor_salesorder }}"
+                                        {{ old('nomor_salesorder', ($isEdit ? $deliveryOrder->nomor_salesorder : '')) == $so->nomor_salesorder ? 'selected' : '' }}>
+                                        {{ $so->nomor_salesorder }} — {{ $so->client->nama_perusahaan ?? '-' }}
                                     </option>
                                 @endforeach
                             </select>
-                            <input type="hidden" name="so_number" id="so_number"
-                                   value="{{ old('so_number', $isEdit ? $deliveryOrder->so_number : '') }}">
                         </div>
                          <div class="col-12 col-sm-4">
                              <label class="form-label fw-semibold" style="font-size:13px">Nomor PO</label>
@@ -128,8 +143,8 @@
                      <div class="row g-3 mb-3">
                          <div class="col-12 col-sm-6">
                              <label class="form-label fw-semibold" style="font-size:13px">Nama Project</label>
-                             <input type="text" name="project_name" id="project_name" class="form-control form-control-sm"
-                                    value="{{ old('project_name', $isEdit ? $deliveryOrder->project_name : '') }}"
+                             <input type="text" name="nama_project" id="nama_project" class="form-control form-control-sm"
+                                    value="{{ old('nama_project', $isEdit ? $deliveryOrder->nama_project : '') }}"
                                     placeholder="Auto-load dari SO">
                          </div>
                          <div class="col-12 col-sm-6">
@@ -145,32 +160,28 @@
                     <div class="row g-3 mb-4">
                         <div class="col-12 col-sm-6">
                             <label class="form-label fw-semibold" style="font-size:13px">Tanggal DO <span class="text-danger">*</span></label>
-                            <input type="date" name="date" class="form-control form-control-sm @error('date') is-invalid @enderror"
-                                   value="{{ old('date', $isEdit ? $deliveryOrder->date->format('Y-m-d') : now()->format('Y-m-d')) }}" required>
-                            @error('date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <input type="date" name="tanggal_pembuatan" class="form-control form-control-sm @error('tanggal_pembuatan') is-invalid @enderror"
+                                   value="{{ old('tanggal_pembuatan', $isEdit ? $deliveryOrder->tanggal_pembuatan->format('Y-m-d') : now()->format('Y-m-d')) }}" required>
+                            @error('tanggal_pembuatan')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-12 col-sm-6">
                             <label class="form-label fw-semibold" style="font-size:13px">Tanggal Pengiriman</label>
-                            <input type="date" name="delivery_date" class="form-control form-control-sm"
-                                   value="{{ old('delivery_date', $isEdit && $deliveryOrder->delivery_date ? $deliveryOrder->delivery_date->format('Y-m-d') : '') }}">
+                            <input type="date" name="tanggal_pengiriman" class="form-control form-control-sm"
+                                   value="{{ old('tanggal_pengiriman', $isEdit && $deliveryOrder->tanggal_pengiriman ? $deliveryOrder->tanggal_pengiriman->format('Y-m-d') : '') }}">
                         </div>
                     </div>
 
                     <div class="section-label">Pilih Perusahaan (dari Master Client)</div>
                     <div class="row g-3 mb-4">
                         <div class="col-12">
-                            <select name="client_id" id="client-select" class="form-select form-select-sm"
+                            <select name="id_client" id="client-select" class="form-select form-select-sm"
                                     data-url-template="{{ route('admin.delivery-orders.client-data', ['client' => '__ID__']) }}">
                                 <option value="">-- Pilih Perusahaan (opsional) --</option>
                                 @isset($clients)
                                     @foreach($clients as $c)
                                         <option value="{{ $c->id }}"
-                                            data-nama="{{ $c->nama_perusahaan }}"
-                                            data-kontak="{{ $c->nama_kontak_perusahaan }}"
-                                            data-email="{{ $c->email_perusahaan }}"
-                                            data-alamat="{{ $c->alamat_pengiriman_perusahaan }}"
-                                            {{ old('client_id', $isEdit ? ($deliveryOrder->client_id ?? '') : '') == $c->id ? 'selected' : '' }}>
-                                            {{ $c->id_perusahaan }} — {{ $c->nama_perusahaan }}
+                                            {{ old('id_client', $isEdit ? ($deliveryOrder->id_client ?? '') : '') == $c->id ? 'selected' : '' }}>
+                                            {{ $c->id_perusahaan ?? $c->id }} — {{ $c->nama_perusahaan }}
                                         </option>
                                     @endforeach
                                 @endisset
@@ -178,46 +189,39 @@
                         </div>
                     </div>
 
-                    <div class="section-label">Info Klien</div>
+                    <div class="section-label">Info Klien <span class="text-muted" style="font-size:10px;text-transform:none;font-weight:400;">(auto-fill dari master client)</span></div>
                     <div class="row g-3 mb-3">
                         <div class="col-12 col-sm-6">
                             <label class="form-label fw-semibold" style="font-size:13px">Perusahaan</label>
-                            <input type="text" name="client_company" id="client_company" class="form-control form-control-sm"
-                                   value="{{ old('client_company', $isEdit ? $deliveryOrder->client_company : '') }}"
-                                   placeholder="Auto-load dari SO">
+                            <input type="text" id="display_client_company" class="form-control form-control-sm" readonly placeholder="Auto-load dari client">
                         </div>
                         <div class="col-12 col-sm-6">
                             <label class="form-label fw-semibold" style="font-size:13px">Nama Kontak</label>
-                            <input type="text" name="client_name" id="client_name" class="form-control form-control-sm"
-                                   value="{{ old('client_name', $isEdit ? $deliveryOrder->client_name : '') }}"
-                                   placeholder="Auto-load dari SO">
+                            <input type="text" id="display_client_name" class="form-control form-control-sm" readonly placeholder="Auto-load dari client">
                         </div>
                         <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">Attn</label>
-                            <input type="text" name="client_attention" id="client_attention" class="form-control form-control-sm"
-                                   value="{{ old('client_attention', $isEdit ? $deliveryOrder->client_attention : '') }}">
+                            <input type="text" id="display_client_attn" class="form-control form-control-sm" readonly>
                         </div>
                         <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">CC</label>
-                            <input type="text" name="client_cc" id="client_cc" class="form-control form-control-sm"
-                                   value="{{ old('client_cc', $isEdit ? $deliveryOrder->client_cc : '') }}">
+                            <input type="text" id="display_client_cc" class="form-control form-control-sm" readonly>
                         </div>
                         <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">Email</label>
-                            <input type="email" name="client_email" id="client_email" class="form-control form-control-sm"
-                                   value="{{ old('client_email', $isEdit ? $deliveryOrder->client_email : '') }}">
+                            <input type="email" id="display_client_email" class="form-control form-control-sm" readonly>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label fw-semibold" style="font-size:13px">Alamat Tujuan</label>
-                        <textarea name="destination_address" id="destination_address" class="form-control form-control-sm" rows="2"
-                                  placeholder="Alamat pengiriman...">{{ old('destination_address', $isEdit ? $deliveryOrder->destination_address : '') }}</textarea>
+                        <textarea id="display_client_address" class="form-control form-control-sm" rows="2" readonly
+                                  placeholder="Alamat pengiriman dari master client..."></textarea>
                     </div>
                     <div>
-                        <label class="form-label fw-semibold" style="font-size:13px">Deskripsi</label>
-                        <textarea name="description" id="description" class="form-control form-control-sm" rows="2"
-                                  placeholder="Deskripsi pengiriman...">{{ old('description', $isEdit ? $deliveryOrder->description : '') }}</textarea>
+                        <label class="form-label fw-semibold" style="font-size:13px">Keterangan</label>
+                        <textarea name="keterangan" id="keterangan" class="form-control form-control-sm" rows="2"
+                                  placeholder="Keterangan pengiriman...">{{ old('keterangan', $isEdit ? $deliveryOrder->keterangan : '') }}</textarea>
                     </div>
                 </div>
             </div>
@@ -259,16 +263,6 @@
                 </div>
             </div>
 
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom py-3">
-                    <span class="fw-semibold">Catatan</span>
-                </div>
-                <div class="card-body">
-                    <textarea name="notes" class="form-control form-control-sm" rows="6"
-                              placeholder="Catatan pengiriman...">{{ old('notes', $isEdit ? $deliveryOrder->notes : '') }}</textarea>
-                </div>
-            </div>
-
             <div class="d-grid gap-2">
                 <button type="submit" class="btn btn-primary d-flex align-items-center justify-content-center gap-2">
                     <i class="bi bi-check-lg"></i>
@@ -289,12 +283,22 @@ const initItems = @json($oldItems);
 let iIdx = 0, mIdx = {};
 
 const esc = s => String(s ?? '').replace(/"/g,'"').replace(/</g,'<');
+const fmtRp = v => 'Rp ' + (parseFloat(v) || 0).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 
 /* ══ Auto-load from Master Client via AJAX ═══════════════ */
 document.getElementById('client-select')?.addEventListener('change', async function() {
     const opt = this.options[this.selectedIndex];
     const val = opt.value;
-    if (!val) return;
+    if (!val) {
+        // Clear display fields
+        document.getElementById('display_client_company').value = '';
+        document.getElementById('display_client_name').value    = '';
+        document.getElementById('display_client_email').value   = '';
+        document.getElementById('display_client_address').value = '';
+        document.getElementById('display_client_attn').value    = '';
+        document.getElementById('display_client_cc').value      = '';
+        return;
+    }
 
     const url = this.dataset.urlTemplate.replace('__ID__', val);
 
@@ -303,22 +307,24 @@ document.getElementById('client-select')?.addEventListener('change', async funct
         if (!res.ok) throw new Error('Failed to load client data');
         const data = await res.json();
 
-        document.getElementById('client_company').value   = data.nama_perusahaan || '';
-        document.getElementById('client_name').value      = data.nama_kontak || '';
-        document.getElementById('client_email').value     = data.email || '';
-        document.getElementById('destination_address').value = data.alamat_pengiriman_perusahaan || '';
-        document.getElementById('client_attention').value = data.attn || '';
-        document.getElementById('client_cc').value        = data.cc || '';
+        document.getElementById('display_client_company').value = data.nama_perusahaan || '';
+        document.getElementById('display_client_name').value    = data.nama_kontak || '';
+        document.getElementById('display_client_email').value   = data.email || '';
+        document.getElementById('display_client_address').value = data.alamat || '';
+        document.getElementById('display_client_attn').value    = data.attn || '';
+        document.getElementById('display_client_cc').value      = data.cc || '';
     } catch (err) {
         console.error(err);
     }
 });
 
 /* ══ Auto-load from Sales Order via AJAX ═══════════════════ */
-document.getElementById('sales_order_id')?.addEventListener('change', async function() {
+document.getElementById('nomor_salesorder')?.addEventListener('change', async function() {
     const opt = this.options[this.selectedIndex];
     if (!opt.value) return;
 
+    // Use the SO's id for the AJAX URL (we need to find the id from nomor_salesorder)
+    // The route expects a SalesOrder model binding, so we pass the nomor_salesorder
     const url = this.dataset.urlTemplate.replace('__ID__', opt.value);
 
     try {
@@ -327,16 +333,28 @@ document.getElementById('sales_order_id')?.addEventListener('change', async func
         const data = await res.json();
 
         // Fill info fields
-         document.getElementById('so_number').value          = data.so_number || '';
-         document.getElementById('nomor_po').value           = data.nomor_po || '';
-         document.getElementById('project_name').value       = data.project_name || '';
-         document.getElementById('client_name').value        = data.client_name || '';
-        document.getElementById('client_company').value     = data.client_company || '';
-        document.getElementById('client_attention').value   = data.client_attention || '';
-        document.getElementById('client_cc').value          = data.client_cc || '';
-        document.getElementById('client_email').value       = data.client_email || '';
-        document.getElementById('destination_address').value = data.client_address || '';
-        document.getElementById('description').value        = data.description || '';
+        document.getElementById('nomor_po').value     = data.nomor_po || '';
+        document.getElementById('nama_project').value  = data.nama_project || '';
+
+        // Fill client display fields
+        if (data.id_client) {
+            // Load client data
+            const clientUrl = document.getElementById('client-select').dataset.urlTemplate.replace('__ID__', data.id_client);
+            try {
+                const cRes = await fetch(clientUrl, { headers: { 'Accept': 'application/json' } });
+                if (cRes.ok) {
+                    const cData = await cRes.json();
+                    document.getElementById('display_client_company').value = cData.nama_perusahaan || '';
+                    document.getElementById('display_client_name').value    = cData.nama_kontak || '';
+                    document.getElementById('display_client_email').value   = cData.email || '';
+                    document.getElementById('display_client_address').value = cData.alamat || '';
+                    document.getElementById('display_client_attn').value    = cData.attn || '';
+                    document.getElementById('display_client_cc').value      = cData.cc || '';
+                    // Also set the client select
+                    document.getElementById('client-select').value = data.id_client;
+                }
+            } catch(e) { console.error(e); }
+        }
 
         // Clear & load items with materials
         document.getElementById('items-container').innerHTML = '';
@@ -344,11 +362,12 @@ document.getElementById('sales_order_id')?.addEventListener('change', async func
         mIdx = {};
         if (data.items && data.items.length) {
             data.items.forEach(it => addProductCard({
-                item_name: it.item_name ?? '',
-                description: it.description ?? '',
-                unit: it.unit ?? 'Unit',
-                qty: it.qty ?? 1,
-                materials: it.materials ?? [],
+                nama_item:       it.nama_item ?? '',
+                deskripsi_item:  it.deskripsi_item ?? '',
+                satuan:          it.satuan ?? 'Unit',
+                jumlah_item:     it.jumlah_item ?? 1,
+                harga_item:      it.harga_item ?? 0,
+                materials:       it.materials ?? [],
             }));
         }
 
@@ -363,7 +382,8 @@ document.getElementById('sales_order_id')?.addEventListener('change', async func
 function createProductCard(item = {}) {
     const pIdx = iIdx++;
     mIdx['p' + pIdx] = 0;
-    const qty = parseFloat(item.qty ?? 1) || 0;
+    const qty   = parseFloat(item.jumlah_item ?? 1) || 0;
+    const price = parseFloat(item.harga_item ?? 0) || 0;
 
     const div = document.createElement('div');
     div.className = 'product-card';
@@ -373,10 +393,10 @@ function createProductCard(item = {}) {
         <div class="product-card-header">
             <span class="card-num">${pIdx + 1}</span>
             <div style="flex:1; display:flex; gap:8px; flex-wrap:wrap;">
-                <input type="text" name="items[${pIdx}][item_name]" class="item-input" placeholder="Nama item *" value="${esc(item.item_name)}" style="flex:2;min-width:140px;" required>
-                <input type="text" name="items[${pIdx}][description]" class="item-input" placeholder="Deskripsi" value="${esc(item.description)}" style="flex:2;min-width:140px;">
-                <input type="text" name="items[${pIdx}][unit]" class="item-input" placeholder="Satuan" value="${esc(item.unit ?? 'Unit')}" style="flex:0 0 70px;text-align:center;" required>
-                <input type="number" name="items[${pIdx}][qty]" class="item-input item-qty" min="0" step="any" value="${qty}" style="flex:0 0 80px;text-align:right;" required>
+                <input type="text" name="items[${pIdx}][nama_item]" class="item-input" placeholder="Nama item *" value="${esc(item.nama_item)}" style="flex:2;min-width:140px;" required>
+                <input type="text" name="items[${pIdx}][deskripsi_item]" class="item-input" placeholder="Deskripsi" value="${esc(item.deskripsi_item)}" style="flex:2;min-width:140px;">
+                <input type="text" name="items[${pIdx}][satuan]" class="item-input" placeholder="Satuan" value="${esc(item.satuan ?? 'Unit')}" style="flex:0 0 70px;text-align:center;" required>
+                <input type="number" name="items[${pIdx}][jumlah_item]" class="item-input item-qty" min="0" step="any" value="${qty}" style="flex:0 0 80px;text-align:right;" required>
             </div>
             <button type="button" class="btn-remove-row" onclick="removeProduct(this)" title="Hapus item"><i class="bi bi-x-lg"></i></button>
         </div>
@@ -394,8 +414,6 @@ function createProductCard(item = {}) {
                         <th>Nama Material</th>
                         <th style="width:60px;">Satuan</th>
                         <th style="width:70px;text-align:right;">Qty</th>
-                        <th style="width:100px;text-align:right;">Harga Satuan</th>
-                        <th style="width:100px;text-align:right;">Subtotal</th>
                         <th style="width:28px;"></th>
                     </tr>
                 </thead>
@@ -418,11 +436,11 @@ function addProductCard(item = {}) {
     if (item.materials && item.materials.length) {
         const pIdx = card.dataset.pIdx;
         item.materials.forEach(mat => addMaterialRow(card.querySelector('.btn-add-mat'), {
-            asset_id: mat.asset_id ?? '',
-            material_name: mat.material_name ?? '',
-            qty_required: mat.qty_required ?? 0,
-            satuan: mat.satuan ?? 'pcs',
-            unit_price: mat.unit_price ?? 0,
+            id_material:      mat.id_material ?? '',
+            nama_material:    mat.nama_material ?? '',
+            satuan_material:  mat.satuan_material ?? 'pcs',
+            jumlah_material:  mat.jumlah_material ?? 0,
+            harga_material:   mat.harga_material ?? 0,
         }));
     }
 }
@@ -461,17 +479,14 @@ function createMaterialRow(pIdx, mat = {}) {
     tr.innerHTML = `
         <td style="text-align:center;font-family:monospace;color:#94a3b8;">${mSeq + 1}</td>
         <td>
-            <input type="text" name="items[${pIdx}][materials][${mSeq}][material_name]" class="mat-input-sm" value="${esc(mat.material_name)}" placeholder="Nama material" required>
-            <input type="hidden" name="items[${pIdx}][materials][${mSeq}][asset_id]" value="${esc(mat.asset_id ?? '')}">
+            <input type="text" name="items[${pIdx}][materials][${mSeq}][nama_material]" class="mat-input-sm" value="${esc(mat.nama_material)}" placeholder="Nama material" required>
+            <input type="hidden" name="items[${pIdx}][materials][${mSeq}][id_material]" value="${esc(mat.id_material ?? '')}">
         </td>
-        <td><input type="text" name="items[${pIdx}][materials][${mSeq}][satuan]" class="mat-input-sm" value="${esc(mat.satuan ?? 'pcs')}" style="text-align:center;"></td>
-        <td><input type="number" name="items[${pIdx}][materials][${mSeq}][qty_required]" class="mat-input-sm mat-qty" min="0" step="any" value="${parseFloat(mat.qty_required ?? 0) || 0}" style="text-align:right;" required></td>
-        <td><input type="number" name="items[${pIdx}][materials][${mSeq}][unit_price]" class="mat-input-sm mat-price" min="0" step="any" value="${parseFloat(mat.unit_price ?? 0) || 0}" style="text-align:right;"></td>
-        <td style="text-align:right;font-weight:600;color:#1B5DBC;font-family:monospace;">${((parseFloat(mat.qty_required) || 0) * (parseFloat(mat.unit_price) || 0)).toLocaleString('id-ID')}</td>
+        <td><input type="text" name="items[${pIdx}][materials][${mSeq}][satuan_material]" class="mat-input-sm" value="${esc(mat.satuan_material ?? 'pcs')}" style="text-align:center;"></td>
+        <td><input type="number" name="items[${pIdx}][materials][${mSeq}][jumlah_material]" class="mat-input-sm mat-qty" min="0" step="any" value="${parseFloat(mat.jumlah_material ?? 0) || 0}" style="text-align:right;" required></td>
         <td><button type="button" class="btn-remove-mat" onclick="removeMaterialRow(this)"><i class="bi bi-x"></i></button></td>
     `;
-    tr.querySelector('.mat-qty')?.addEventListener('input', function() { updateMatRow(this); recalc(); });
-    tr.querySelector('.mat-price')?.addEventListener('input', function() { updateMatRow(this); recalc(); });
+    tr.querySelector('.mat-qty')?.addEventListener('input', function() { recalc(); });
     return tr;
 }
 
@@ -485,13 +500,6 @@ function addMaterialRow(btn, mat = {}) {
     recalc();
 }
 
-function updateMatRow(el) {
-    const tr = el.closest('tr');
-    const qty = parseFloat(tr.querySelector('.mat-qty')?.value) || 0;
-    const price = parseFloat(tr.querySelector('.mat-price')?.value) || 0;
-    const tds = tr.querySelectorAll('td');
-    tds[tds.length - 2].textContent = (qty * price).toLocaleString('id-ID');
-}
 
 function removeMaterialRow(btn) {
     const card = btn.closest('.product-card');
@@ -510,13 +518,15 @@ function renumberMaterials(card) {
 function recalc() {
     let totalQty = 0;
     let totalItems = 0;
+
     document.querySelectorAll('#items-container .product-card').forEach(card => {
-        totalQty += parseFloat(card.querySelector('.item-qty')?.value) || 0;
+        const qty   = parseFloat(card.querySelector('.item-qty')?.value) || 0;
+        totalQty += qty;
         totalItems++;
     });
 
-    document.getElementById('sum-items').textContent = totalItems;
-    document.getElementById('sum-qty').textContent   = totalQty.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+    document.getElementById('sum-items').textContent      = totalItems;
+    document.getElementById('sum-qty').textContent         = totalQty.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
 
 /* ══ Boot ═══════════════════════════════════════════════ */

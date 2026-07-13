@@ -20,6 +20,7 @@ class SalesOrder extends Model
         'nomor_salesorder',
         'id_staff',
         'id_client',
+        'nomor_quotation',
         'nama_project',
         'nomor_po',
         'tanggal_pembuatan',
@@ -52,7 +53,7 @@ class SalesOrder extends Model
      */
     public function staff(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'id_staff');
+        return $this->belongsTo(User::class, 'id');
     }
 
     /**
@@ -62,6 +63,14 @@ class SalesOrder extends Model
     public function client(): BelongsTo
     {
         return $this->belongsTo(ClientModel::class, 'id_client', 'id');
+    }
+
+    /**
+     * Relasi dengan Quotation
+     */
+    public function quotation(): BelongsTo
+    {
+        return $this->belongsTo(Quotation::class, 'nomor_quotation', 'nomor_quotation');
     }
 
     /**

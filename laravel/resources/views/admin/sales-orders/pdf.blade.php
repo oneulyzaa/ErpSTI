@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Sales Order {{ $salesOrder->so_number }}</title>
+    <title>Sales Order {{ $salesOrder->nomor_salesorder }}</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -274,13 +274,10 @@
                 <td class="title-cell">
                     <div class="doc-title">SALES ORDER</div>
                     <table class="meta-table">
-                        <tr><td class="meta-label">No. SO</td><td class="meta-value">{{ $salesOrder->so_number }}</td></tr>
-                        <tr><td class="meta-label">Tanggal</td><td class="meta-value">{{ $salesOrder->date->format('d M Y') }}</td></tr>
+                        <tr><td class="meta-label">No. SO</td><td class="meta-value">{{ $salesOrder->nomor_salesorder }}</td></tr>
+                        <tr><td class="meta-label">Tanggal</td><td class="meta-value">{{ $salesOrder->tanggal_pembuatan->format('d M Y') }}</td></tr>
                         @if($salesOrder->nomor_po)
                         <tr><td class="meta-label">Nomor PO</td><td class="meta-value">{{ $salesOrder->nomor_po }}</td></tr>
-                        @endif
-                        @if($salesOrder->delivery_date)
-                        <tr><td class="meta-label">Pengiriman</td><td class="meta-value">{{ $salesOrder->delivery_date->format('d M Y') }}</td></tr>
                         @endif
                         <tr><td class="meta-label">Status</td><td class="meta-value">{{ ucfirst(str_replace('_',' ',$salesOrder->status)) }}</td></tr>
                     </table>
@@ -295,13 +292,11 @@
             <tr>
                 <td class="client-divider" style="width:50%;">
                     <div class="client-lbl">Kepada</div>
-                    <div class="client-val">{{ $salesOrder->client_company }}</div>
+                    <div class="client-val">{{ $salesOrder->client->nama_perusahaan ?? '-' }}</div>
                     <div class="client-sub" style="margin-top:2px;">
-                        Kontak: {{ $salesOrder->client_name }}<br>
-                        @if($salesOrder->client_attention)Attn: {{ $salesOrder->client_attention }}<br>@endif
-                        @if($salesOrder->client_cc)CC: {{ $salesOrder->client_cc }}<br>@endif
-                        @if($salesOrder->client_email){{ $salesOrder->client_email }}@endif
-                        @if($salesOrder->client_address)<br>{!! nl2br(e($salesOrder->client_address)) !!}@endif
+                        Kontak: {{ $salesOrder->client->nama_kontak ?? '-' }}<br>
+                        @if($salesOrder->client->email_perusahaan){{ $salesOrder->client->email_perusahaan }}@endif
+                        @if($salesOrder->client->alamat_perusahaan)<br>{!! nl2br(e($salesOrder->client->alamat_perusahaan)) !!}@endif
                     </div>
                 </td>
                 <td style="width:50%;">
@@ -313,27 +308,27 @@
                     </div>
                 </td>
             </tr>
-            @if($salesOrder->project_name)
+            @if($salesOrder->nama_project)
             <tr>
                 <td colspan="2" class="client-sep">
                     <div class="client-lbl">Nama Project</div>
-                    <div class="client-val">{{ $salesOrder->project_name }}</div>
+                    <div class="client-val">{{ $salesOrder->nama_project }}</div>
                 </td>
             </tr>
             @endif
-            @if($salesOrder->quote_number)
+@if($salesOrder->nomor_quotation)
+<tr>
+    <td colspan="2" class="client-sep">
+        <div class="client-lbl">Referensi Quotation</div>
+        <div class="client-sub" style="font-family:monospace;">{{ $salesOrder->nomor_quotation }}</div>
+    </td>
+</tr>
+@endif
+            @if($salesOrder->keterangan)
             <tr>
                 <td colspan="2" class="client-sep">
-                    <div class="client-lbl">Referensi Quotation</div>
-                    <div class="client-sub" style="font-family:monospace;">{{ $salesOrder->quote_number }}</div>
-                </td>
-            </tr>
-            @endif
-            @if($salesOrder->description_of_work)
-            <tr>
-                <td colspan="2" class="client-sep">
-                    <div class="client-lbl">Deskripsi Pekerjaan</div>
-                    <div class="client-sub">{{ $salesOrder->description_of_work }}</div>
+                    <div class="client-lbl">Keterangan</div>
+                    <div class="client-sub">{{ $salesOrder->keterangan }}</div>
                 </td>
             </tr>
             @endif
@@ -358,27 +353,43 @@
                 <tr class="{{ $i % 2 === 0 ? 'row-odd' : 'row-even' }}">
                     <td>{{ $i + 1 }}</td>
                     <td>
-                        <div style="font-weight:bold;">{{ $item->material_name }}</div>
+                        <div style="font-weight:bold;">{{ $item->nama_item }}</div>
                         @if($item->description)
-                            <div style="font-size:7px;color:#666;">{{ $item->description }}</div>
+                            <div style="font-size:7px;color:#666;">{{ $item->deksripsi_item }}</div>
                         @endif
                     </td>
-                    <td style="text-align:right;">{{ number_format($item->qty, 2, ',', '.') }}</td>
-                    <td style="text-align:center;">{{ $item->unit }}</td>
-                    <td style="text-align:center;">&nbsp;{{ floatval($item->unit_price) > 0 ? 'Rp '.number_format($item->unit_price, 0, ',', '.') : '-' }}</td>
-                    @if($item->materials && $item->materials->count())
-                    &nbsp;
-                    <td style="text-align:right;">Rp {{ number_format($item->materials_subtotal, 0, ',', '.') }}</td>
-                    @else
-                    <td style="text-align:right;">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</td>
-                    @endif
+                    <td style="text-align:right;">{{ number_format($item->jumlah_item) }}</td>
+                    <td style="text-align:center;">{{ $item->satuan }}</td>
+                    <td style="text-align:center;">
+                        {{-- cek jika item ini punya tidak punya material, maka harga satuan dari item tersebut --}}
+                        @if($item->materials && $item->materials->count())
+                            - 
+                        @else
+                            {{ floatval($item->harga_item) > 0 ? 'Rp '.number_format($item->harga_item, 0, ',', '.') : '-' }}
+                        @endif
+                    </td>
+                    <td style="text-align:right;">
+                        @php
+                            if($item->materials->count() > 1){
+                                $subtotal = 0;
+                                foreach($item->materials as $material){
+                                    $subtotal += $material->jumlah_material * $material->harga_material;
+                                    // echo $material->harga_material;
+                                }
+                            }
+                            else{
+                                $subtotal = $item->harga_item * $item->jumlah_item;
+                            }
+                        @endphp 
+                        {{ 'Rp '.number_format($subtotal, 0, ',', '.') }}
+                    </td>
                 </tr>
                 @endforeach
             </tbody>
             <tfoot>
                 <tr class="total-mat-row">
-                    <td colspan="5" style="text-align:right;">Total Produksi</td>
-                    <td style="text-align:right;">Rp {{ number_format($salesOrder->subtotal_material, 0, ',', '.') }}</td>
+                    <td colspan="5" style="text-align:right;">Total Produksi + Material</td>
+                    <td style="text-align:right;">Rp {{ number_format($salesOrder->subtotal_produksi + $salesOrder->subtotal_material, 0, ',', '.') }}</td>
                 </tr>
             </tfoot>
         </table>
@@ -402,11 +413,11 @@
                 @foreach($salesOrder->labors as $i => $labor)
                 <tr class="{{ $i % 2 === 0 ? 'row-odd' : 'row-even' }}">
                     <td>{{ $i + 1 }}</td>
-                    <td><strong>{{ $labor->labor_name }}</strong></td>
-                    <td style="text-align:center;">{{ $labor->mp }}</td>
-                    <td style="text-align:center;">{{ number_format($labor->days, 0) }}</td>
-                    <td style="text-align:right;">Rp {{ number_format($labor->rate, 0, ',', '.') }}</td>
-                    <td style="text-align:right;">Rp {{ number_format($labor->subtotal, 0, ',', '.') }}</td>
+                    <td><strong>{{ $labor->nama_labor }}</strong></td>
+                    <td style="text-align:center;">{{ $labor->jumlah_sdm }}</td>
+                    <td style="text-align:center;">{{ number_format($labor->jumlah_hari, 0) }}</td>
+                    <td style="text-align:right;">Rp {{ number_format($labor->rate_hari, 0) }}</td>
+                    <td style="text-align:right;">Rp {{ number_format($labor->rate_hari * $labor->jumlah_hari, 0, ',', '.') }}</td>
                 </tr>
                 @endforeach
             </tbody>
@@ -431,72 +442,78 @@
                 <tr>
                     <th class="col-lno">#</th>
                     <th class="th-left col-lab">Nama Biaya</th>
-                    <th class="th-center col-mp">Qty</th>
-                    <th class="th-right col-rate">Rate</th>
-                    <th class="th-right col-lsub">Subtotal</th>
+                    {{-- <th class="th-center col-mp">Qty</th>
+                    <th class="th-right col-rate">Rate</th> --}}
+                    <th class="th-right col-lsub">Biaya</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($otherCosts as $i => $cost)
                 <tr class="{{ $i % 2 === 0 ? 'row-odd' : 'row-even' }}">
                     <td>{{ $i + 1 }}</td>
-                    <td><strong>{{ $cost->cost_name }}</strong></td>
-                    <td style="text-align:center;">{{ number_format($cost->qty, 2, ',', '.') }}</td>
-                    <td style="text-align:center;">&nbsp;{{ floatval($cost->unit_price) > 0 ? 'Rp '.number_format($cost->unit_price, 0, ',', '.') : '-' }}</td>
-                    <td style="text-align:right;">Rp {{ number_format($cost->subtotal, 0, ',', '.') }}</td>
+                    <td><strong>{{ $cost->nama_biaya }}</strong></td>
+                    <td style="text-align:right;">Rp {{ number_format($cost->jumlah_biaya, 0, ',', '.') }}</td>
                 </tr>
                 @endforeach
             </tbody>
             <tfoot>
                 <tr class="total-lab-row">
-                    <td colspan="4" style="text-align:right;">Total Biaya Lain-Lain</td>
-                    <td style="text-align:right;">Rp {{ number_format($totalOth, 0, ',', '.') }}</td>
+                    <td colspan="2" style="text-align:right;">Total Biaya Lain-Lain</td>
+                    <td style="text-align:right;">Rp {{ number_format($salesOrder->subtotal_lainlain, 0) }}</td>
                 </tr>
             </tfoot>
         </table>
         @endif
 
+        @php
+            $subtotal = $salesOrder->subtotal_produksi + $salesOrder->subtotal_material + $salesOrder->subtotal_labor + $salesOrder->subtotal_lainlain - $salesOrder->diskon;
+            $pajakAmount = $subtotal * ($salesOrder->pajak / 100);
+        @endphp
         {{-- ═══ SUMMARY ═══ --}}
         <table class="summary-wrap">
             <tr>
                 <td class="summary-label">Total Produksi</td>
+                <td class="summary-value">Rp {{ number_format($salesOrder->subtotal_produksi, 0, ',', '.') }}</td>
+            </tr>
+            <tr>
+                <td class="summary-label">Total Material</td>
                 <td class="summary-value">Rp {{ number_format($salesOrder->subtotal_material, 0, ',', '.') }}</td>
             </tr>
             <tr>
                 <td class="summary-label">Total Labor</td>
                 <td class="summary-value">Rp {{ number_format($salesOrder->subtotal_labor, 0, ',', '.') }}</td>
             </tr>
-            @if($totalOth > 0)
+            @if($salesOrder->subtotal_lainlain > 0)
             <tr>
                 <td class="summary-label">Total Biaya Lain-Lain</td>
-                <td class="summary-value">Rp {{ number_format($totalOth, 0, ',', '.') }}</td>
+                <td class="summary-value">Rp {{ number_format($salesOrder->subtotal_lainlain, 0, ',', '.') }}</td>
+            </tr>
+            @endif
+            @if($salesOrder->diskon > 0)
+            <tr>
+                <td class="summary-label">Diskon</td>
+                <td class="summary-value">Rp {{ number_format($salesOrder->diskon, 0, ',', '.') }}</td>
             </tr>
             @endif
             <tr>
                 <td class="summary-label">Subtotal</td>
-                <td class="summary-value">Rp {{ number_format($salesOrder->subtotal, 0, ',', '.') }}</td>
+                <td class="summary-value">Rp {{ number_format($subtotal, 0, ',', '.') }}</td>
             </tr>
             <tr>
-                <td class="summary-label">PPN ({{ number_format($salesOrder->tax_percentage, 0) }}%)</td>
-                <td class="summary-value">Rp {{ number_format($salesOrder->tax_amount, 0, ',', '.') }}</td>
+                <td class="summary-label">PPN ({{ number_format($salesOrder->pajak, 0) }}%)</td>
+                <td class="summary-value">Rp {{ number_format($pajakAmount, 0, ',', '.') }}</td>
             </tr>
-            @if($salesOrder->discount > 0)
-            <tr>
-                <td class="summary-label">Diskon</td>
-                <td class="summary-value">Rp {{ number_format($salesOrder->discount, 0, ',', '.') }}</td>
-            </tr>
-            @endif
             <tr class="summary-total">
-                <td>TOTAL</td>
-                <td class="summary-value">Rp {{ number_format($salesOrder->total, 0, ',', '.') }}</td>
+                <td>GRAND TOTAL</td>
+                <td class="summary-value">Rp {{ number_format($salesOrder->grandtotal, 0, ',', '.') }}</td>
             </tr>
         </table>
 
         {{-- ═══ FOOTER / NOTES ═══ --}}
-        @if($salesOrder->notes)
+        @if($salesOrder->keterangan)
         <div class="footer-note">
-            <strong>Terms & Conditions:</strong><br>
-            {!! nl2br(e($salesOrder->notes)) !!}
+            <strong>Keterangan:</strong><br>
+            {!! nl2br(e($salesOrder->keterangan)) !!}
         </div>
         @endif
 

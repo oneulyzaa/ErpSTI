@@ -106,12 +106,12 @@
                 @endphp
                 <tr>
                     <td>{{ $loop->iteration }}</td>
-                    <td class="so-no">{{ $so->so_number }}</td>
+                    <td class="so-no">{{ $so->nomor_salesorder }}</td>
                     <td>{{ $so->nomor_po ?: '-' }}</td>
-                    <td>{{ $so->project_name ?: '-' }}</td>
-                    <td>{{ $so->client_name }}</td>
-                    <td>{{ $so->date->format('d M Y') }}</td>
-                    <td class="text-end">{{ number_format($so->total,0,',','.') }}</td>
+                    <td>{{ $so->nama_project ?: '-' }}</td>
+                    <td>{{ $so->client->nama_perusahaan ?? '-' }}</td>
+                    <td>{{ $so->tanggal_pembuatan->format('d M Y') }}</td>
+                    <td class="text-end">{{ number_format($so->grandtotal,0,',','.') }}</td>
                     <td><span class="badge badge-{{ $s[0] }}">{{ $s[1] }}</span></td>
                     <td class="text-center table-actions">
                         <a href="{{ route('admin.sales-orders.show', $so) }}" class="btn btn-info btn-sm"><i class="bi bi-eye"></i></a>

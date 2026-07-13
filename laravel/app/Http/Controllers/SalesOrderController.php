@@ -11,12 +11,13 @@ use App\Models\ClientModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Auth;
 
 class SalesOrderController extends Controller
 {
     // ─── Default labor list ───────────────────────────────────────────────────
     private array $defaultLabors = [
-        ['labor_name' => 'Mechanical Design', 'mp' =>  1, 'days' => 1, 'rate' => 1500000],
+        ['labor_name' => 'Mechanical Design', 'mp' => 1, 'days' => 1, 'rate' => 1500000],
         ['labor_name' => 'Electrical Design', 'mp' => 1, 'days' => 1, 'rate' => 1500000],
         ['labor_name' => 'Assembling', 'mp' => 2, 'days' => 1, 'rate' => 1000000],
         ['labor_name' => 'Wiring', 'mp' => 2, 'days' => 1, 'rate' => 1000000],
@@ -31,15 +32,17 @@ class SalesOrderController extends Controller
     // ─── List ────────────────────────────────────────────────────────────────
     public function index(Request $request)
     {
-        $query = SalesOrder::with('items', 'labors')->latest();
+        $query = SalesOrder::with('items', 'labors', 'client')->latest();
 
         if ($request->filled('search')) {
             $s = $request->search;
             $query->where(function ($q) use ($s) {
-                $q->where('so_number', 'like', "%$s%")
-                    ->orWhere('client_name', 'like', "%$s%")
-                    ->orWhere('client_company', 'like', "%$s%")
-                    ->orWhere('project_name', 'like', "%$s%");
+                $q->where('nomor_salesorder', 'like', "%$s%")
+                    ->orWhere('nama_project', 'like', "%$s%")
+                    ->orWhereHas('client', function ($cq) use ($s) {
+                        $cq->where('nama_perusahaan', 'like', "%$s%")
+                            ->orWhere('nama_kontak', 'like', "%$s%");
+                    });
             });
         }
         if ($request->filled('status')) {
@@ -63,50 +66,63 @@ class SalesOrderController extends Controller
     // ─── Store ────────────────────────────────────────────────────────────────
     public function store(Request $request)
     {
-        $validated = $this->validateSalesOrder($request);
-        $validated = $this->resolveClientData($validated);
+        // return response()->json($request->all());
+        try {
+            $validated = $this->validateSalesOrder($request);
+            $validated = $this->resolveClientData($validated);
 
-        DB::transaction(function () use ($validated, $request) {
-            $discount = (float) ($validated['discount'] ?? 0);
-            [$subMat, $subLab, $subOth, $subtotal, $taxAmount, $total] = $this->calculateTotals(
-                $request->items ?? [],
-                $request->labors ?? [],
-                $request->other_costs ?? [],
-                $validated['tax_percentage'],
-                $discount
-            );
+            DB::transaction(function () use ($validated, $request) {
+                $diskon = (float) ($validated['diskon'] ?? 0);
+                [$subProd, $subMat, $subLab, $subOth, $subtotal, $pajakAmount, $grandtotal] = $this->calculateTotals(
+                    $request->items ?? [],
+                    $request->labors ?? [],
+                    $request->other_costs ?? [],
+                    $validated['pajak'],
+                    $diskon
+                );
 
-            $salesOrder = SalesOrder::create(array_merge($validated, [
-                'discount' => $discount,
-                'subtotal_material' => $subMat,
-                'subtotal_labor' => $subLab,
-                'subtotal_other_cost' => $subOth,
-                'subtotal' => $subtotal,
-                'tax_amount' => $taxAmount,
-                'total' => $total,
-            ]));
+                $salesOrder = SalesOrder::create(array_merge($validated, [
+                    'nomor_quotation' => $validated['nomor_quotation'],
+                    'diskon' => $diskon,
+                    'subtotal_produksi' => $subProd,
+                    'subtotal_material' => $subMat,
+                    'subtotal_labor' => $subLab,
+                    'subtotal_lainlain' => $subOth,
+                    'pajak' => $validated['pajak'],
+                    'grandtotal' => $grandtotal,
+                    'id_staff' => Auth::user()->id
+                ]));
 
-            $this->syncItems($salesOrder, $request->items ?? []);
-            $this->syncLabors($salesOrder, $request->labors ?? []);
-            $this->syncOtherCosts($salesOrder, $request->other_costs ?? []);
-        });
+                $this->syncItems($salesOrder, $request->items ?? []);
+                $this->syncLabors($salesOrder, $request->labors ?? []);
+                $this->syncOtherCosts($salesOrder, $request->other_costs ?? []);
+            });
 
-        return redirect()->route('admin.sales-orders.index')
-            ->with('success', 'Sales Order berhasil dibuat.');
+            return redirect()->route('admin.sales-orders.index')
+                ->with('success', 'Sales Order berhasil dibuat.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()
+                ->withErrors($e->validator)
+                ->withInput();
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Gagal membuat Sales Order: ' . $e->getMessage())
+                ->withInput();
+        }
     }
 
     // ─── Show ─────────────────────────────────────────────────────────────────
     public function show(SalesOrder $salesOrder)
     {
-        $salesOrder->load('items', 'labors', 'otherCosts', 'quotation');
+        $salesOrder->load('items', 'items.materials', 'labors', 'otherCosts', 'quotation');
         return view('admin.sales-orders.show', compact('salesOrder'));
     }
 
     // ─── Edit ─────────────────────────────────────────────────────────────────
     public function edit(SalesOrder $salesOrder)
     {
-        $salesOrder->load('items', 'labors', 'otherCosts');
-        $soNumber = $salesOrder->so_number;
+        $salesOrder->load('items.materials', 'labors', 'otherCosts');
+        $soNumber = $salesOrder->nomor_salesorder;
         $defaultLabors = $this->defaultLabors;
         $quotations = Quotation::whereIn('status', ['approved', 'sent'])->latest()->get();
         $clients = ClientModel::all();
@@ -116,36 +132,46 @@ class SalesOrderController extends Controller
     // ─── Update ───────────────────────────────────────────────────────────────
     public function update(Request $request, SalesOrder $salesOrder)
     {
-        $validated = $this->validateSalesOrder($request, $salesOrder->id);
-        $validated = $this->resolveClientData($validated);
+        try {
+            $validated = $this->validateSalesOrder($request, $salesOrder->nomor_salesorder);
+            $validated = $this->resolveClientData($validated);
 
-        DB::transaction(function () use ($validated, $request, $salesOrder) {
-            $discount = (float) ($validated['discount'] ?? 0);
-            [$subMat, $subLab, $subOth, $subtotal, $taxAmount, $total] = $this->calculateTotals(
-                $request->items ?? [],
-                $request->labors ?? [],
-                $request->other_costs ?? [],
-                $validated['tax_percentage'],
-                $discount
-            );
+            DB::transaction(function () use ($validated, $request, $salesOrder) {
+                $diskon = (float) ($validated['diskon'] ?? 0);
+                [$subProd, $subMat, $subLab, $subOth, $subtotal, $pajakAmount, $grandtotal] = $this->calculateTotals(
+                    $request->items ?? [],
+                    $request->labors ?? [],
+                    $request->other_costs ?? [],
+                    $validated['pajak'],
+                    $diskon
+                );
 
-            $salesOrder->update(array_merge($validated, [
-                'discount' => $discount,
-                'subtotal_material' => $subMat,
-                'subtotal_labor' => $subLab,
-                'subtotal_other_cost' => $subOth,
-                'subtotal' => $subtotal,
-                'tax_amount' => $taxAmount,
-                'total' => $total,
-            ]));
+                $salesOrder->update(array_merge($validated, [
+                    'diskon' => $diskon,
+                    'subtotal_produksi' => $subProd,
+                    'subtotal_material' => $subMat,
+                    'subtotal_labor' => $subLab,
+                    'subtotal_lainlain' => $subOth,
+                    'pajak' => $validated['pajak'],
+                    'grandtotal' => $grandtotal,
+                ]));
 
-            $this->syncItems($salesOrder, $request->items ?? []);
-            $this->syncLabors($salesOrder, $request->labors ?? []);
-            $this->syncOtherCosts($salesOrder, $request->other_costs ?? []);
-        });
+                $this->syncItems($salesOrder, $request->items ?? []);
+                $this->syncLabors($salesOrder, $request->labors ?? []);
+                $this->syncOtherCosts($salesOrder, $request->other_costs ?? []);
+            });
 
-        return redirect()->route('admin.sales-orders.show', $salesOrder)
-            ->with('success', 'Sales Order berhasil diperbarui.');
+            return redirect()->route('admin.sales-orders.show', $salesOrder)
+                ->with('success', 'Sales Order berhasil diperbarui.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()
+                ->withErrors($e->validator)
+                ->withInput();
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Gagal memperbarui Sales Order: ' . $e->getMessage())
+                ->withInput();
+        }
     }
 
     // ─── Delete ───────────────────────────────────────────────────────────────
@@ -159,7 +185,7 @@ class SalesOrderController extends Controller
     // ─── PDF ──────────────────────────────────────────────────────────────────
     public function pdf(SalesOrder $salesOrder)
     {
-        $salesOrder->load('items', 'labors', 'otherCosts');
+        $salesOrder->load('items', 'items.materials', 'labors', 'otherCosts', 'quotation');
 
         $logoPath = public_path('assets/gambar/logo-sti.png');
         $logoBase64 = '';
@@ -173,7 +199,7 @@ class SalesOrderController extends Controller
             ->setOption('isHtml5ParserEnabled', true)
             ->setOption('isRemoteEnabled', false);
 
-        $filename = 'SalesOrder-' . $salesOrder->so_number . '.pdf';
+        $filename = 'SalesOrder-' . $salesOrder->nomor_salesorder . '.pdf';
         return $pdf->stream($filename);
     }
 
@@ -202,79 +228,98 @@ class SalesOrderController extends Controller
 
         $client = $quotation->client;
 
+        // Map items to match SalesOrder item structure
+        $items = $quotation->items->map(function ($item) {
+            return [
+                'material_name' => $item->nama_item,
+                'description' => $item->deskripsi_item,
+                'qty' => $item->jumlah_item,
+                'unit' => $item->satuan,
+                'unit_price' => $item->harga_item,
+                'materials' => $item->materials->map(function ($mat) {
+                    return [
+                        'material_name' => $mat->nama_material,
+                        'satuan' => $mat->satuan_material,
+                        'qty_required' => $mat->jumlah_material,
+                        'unit_price' => $mat->harga_material,
+                        'asset_id' => $mat->id_material,
+                    ];
+                })->toArray(),
+            ];
+        })->toArray();
+
+        // Map labors
+        $labors = $quotation->labors->map(function ($labor) {
+            return [
+                'labor_name' => $labor->nama_labor ?? '',
+                'mp' => $labor->jumlah_sdm ?? 1,
+                'days' => $labor->jumlah_hari ?? 1,
+                'rate' => $labor->rate_hari ?? 0,
+            ];
+        })->toArray();
+
+        // Map other costs
+        // QuotationOtherCost only has nama_biaya and jumlah_biaya (no qty/rate separation)
+        $otherCosts = $quotation->otherCosts->map(function ($cost) {
+            return [
+                'cost_name' => $cost->nama_biaya ?? '',
+                'qty' => 1,
+                'rate' => $cost->jumlah_biaya ?? 0,
+            ];
+        })->toArray();
+
         return response()->json([
-            'client_id' => $client?->id ?? $quotation->client_id,
-            'customer_id' => $client?->id_perusahaan ?? $quotation->customer_id,
-            'project_name' => $quotation->project_name,
-            'quote_number' => $quotation->quote_number,
-            'client_name' => $client?->nama_kontak_perusahaan ?? $quotation->client_name,
-            'client_company' => $client?->nama_perusahaan ?? $quotation->client_company,
-            'client_attention' => $quotation->client_attention,
-            'client_cc' => $quotation->client_cc,
-            'client_email' => $client?->email_perusahaan ?? $quotation->client_email,
-            'client_address' => $client?->alamat_pengiriman_perusahaan ?? $quotation->client_address,
-            'description_of_work' => $quotation->description_of_work,
-            'discount' => $quotation->discount,
-            'items' => $quotation->items->toArray(),
-            'labors' => $quotation->labors->toArray(),
-            'other_costs' => $quotation->otherCosts->toArray(),
+            'id_client' => $quotation->id_client,
+            'id_customer' => $client?->id_customer ?? null,
+            'nama_project' => $quotation->nama_project,
+            'nomor_quotation' => $quotation->nomor_quotation,
+            'nama_kontak' => $client?->nama_kontak ?? null,
+            'nama_perusahaan' => $client?->nama_perusahaan ?? null,
+            'email_perusahaan' => $client?->email_perusahaan ?? null,
+            'alamat_perusahaan' => $client?->alamat_perusahaan ?? null,
+            'diskon' => $quotation->diskon,
+            'keterangan' => $quotation->keterangan,
+            'items' => $items,
+            'labors' => $labors,
+            'other_costs' => $otherCosts,
         ]);
     }
 
     // ─── AJAX: Get Client Data from master client ─────────────────────
-    public function getClientData(ClientModel $client)
+    public function getClientData($id_client)
     {
+        $client = ClientModel::where('id', $id_client)->first();
         return response()->json([
-            'id' => $client->id,
+            'id_customer' => $client->id_customer,
             'nama_perusahaan' => $client->nama_perusahaan,
-            'nama_kontak' => $client->nama_kontak_perusahaan,
-            'email' => $client->email_perusahaan,
-            'alamat_pengiriman_perusahaan' => $client->alamat_pengiriman_perusahaan,
-            'attn' => $client->attn,
-            'cc' => $client->cc,
+            'nama_kontak' => $client->nama_kontak,
+            'email_perusahaan' => $client->email_perusahaan,
+            'alamat_perusahaan' => $client->alamat_perusahaan,
         ]);
     }
 
     // ─── Helpers ──────────────────────────────────────────────────────────────
     private function resolveClientData(array $data): array
     {
-        if (!empty($data['client_id'])) {
-            $client = ClientModel::find($data['client_id']);
-            if ($client) {
-                $data['client_name'] = $data['client_name'] ?: ($client->nama_kontak_perusahaan ?: $client->nama_perusahaan);
-                $data['client_company'] = $data['client_company'] ?: $client->nama_perusahaan;
-                $data['client_email'] = $data['client_email'] ?: $client->email_perusahaan;
-                $data['client_address'] = $data['client_address'] ?: $client->alamat_pengiriman_perusahaan;
-                $data['client_attention'] = $data['client_attention'] ?: $client->attn;
-                $data['client_cc'] = $data['client_cc'] ?: $client->cc;
-            }
-        }
+        // Client data is now resolved via id_client relationship
+        // No additional client fields to resolve in sales_orders table
         return $data;
     }
 
-    private function validateSalesOrder(Request $request, ?int $ignoreId = null): array
+    private function validateSalesOrder(Request $request, ?string $ignoreId = null): array
     {
         return $request->validate([
-            'so_number' => 'required|string|unique:sales_orders,so_number' . ($ignoreId ? ",$ignoreId" : ''),
-            'project_name' => 'nullable|string|max:255',
-            'client_id' => 'nullable|exists:clients,id',
-            'quotation_id' => 'nullable|exists:quotations,id',
-            'quote_number' => 'nullable|string|max:255',
+            'nomor_salesorder' => 'required|string|unique:sales_orders,nomor_salesorder' . ($ignoreId ? ",$ignoreId,nomor_salesorder" : ''),
+            'nama_project' => 'nullable|string|max:255',
+            'id_client' => 'nullable|exists:customers,id',
+            'nomor_quotation' => 'nullable|string|max:255',
             'nomor_po' => 'nullable|string|max:255',
-            'date' => 'required|date',
-            'delivery_date' => 'nullable|date|after_or_equal:date',
+            'tanggal_pembuatan' => 'required|date',
             'customer_id' => 'nullable|string|max:100',
-            'client_name' => 'nullable|string|max:255',
-            'client_company' => 'nullable|string|max:255',
-            'client_attention' => 'nullable|string|max:255',
-            'client_cc' => 'nullable|string|max:255',
-            'client_email' => 'nullable|email|max:255',
-            'client_address' => 'nullable|string|max:255',
-            'description_of_work' => 'nullable|string',
-            'discount' => 'nullable|numeric|min:0',
-            'tax_percentage' => 'required|numeric|min:0|max:100',
+            'keterangan' => 'nullable|string',
+            'diskon' => 'nullable|numeric|min:0',
+            'pajak' => 'required|numeric|min:0|max:100',
             'status' => 'required|in:draft,confirmed,in_progress,completed,cancelled',
-            'notes' => 'nullable|string',
             'items' => 'nullable|array',
             'items.*.material_name' => 'required_with:items|string|max:255',
             'items.*.unit' => 'required_with:items|string|max:50',
@@ -297,19 +342,30 @@ class SalesOrderController extends Controller
         ]);
     }
 
-    private function calculateTotals(array $items, array $labors, array $otherCosts = [], float $taxPct = 0, float $discount = 0): array
+    private function calculateTotals(array $items, array $labors, array $otherCosts = [], float $pajakPct = 0, float $diskon = 0): array
     {
-        $subMat = collect($items)->sum(function ($i) {
-            $itemSub = ($i['qty'] ?? 0) * ($i['unit_price'] ?? 0);
-            $matSub = collect($i['materials'] ?? [])->sum(fn($m) => ($m['qty_required'] ?? 0) * ($m['unit_price'] ?? 0));
-            return $itemSub + $matSub;
+        // Production subtotal (qty * unit_price) - this is the PRODUCTION cost
+        $subProd = collect($items)->sum(function ($i) {
+            return ($i['qty'] ?? 0) * ($i['unit_price'] ?? 0);
         });
+
+        // Material subtotal - materials are ADDITIONAL costs inside products
+        $subMat = collect($items)->sum(function ($i) {
+            return collect($i['materials'] ?? [])->sum(fn($m) => ($m['qty_required'] ?? 0) * ($m['unit_price'] ?? 0));
+        });
+
         $subLab = collect($labors)->sum(fn($l) => ($l['mp'] ?? 0) * ($l['days'] ?? 0) * ($l['rate'] ?? 0));
         $subOth = collect($otherCosts)->sum(fn($c) => ($c['qty'] ?? 0) * ($c['rate'] ?? 0));
-        $subtotal = $subMat + $subLab + $subOth - $discount;
-        $taxAmount = $subtotal * ($taxPct / 100);
-        $total = $subtotal + $taxAmount;
-        return [$subMat, $subLab, $subOth, $subtotal, $taxAmount, $total];
+
+        // Subtotal before discount
+        $subtotal = $subProd + $subMat + $subLab + $subOth;
+
+        // Discount is applied before tax
+        $taxableBase = max($subtotal - $diskon, 0);
+        $pajakAmount = $taxableBase * ($pajakPct / 100);
+        $grandtotal = $taxableBase + $pajakAmount;
+
+        return [$subProd, $subMat, $subLab, $subOth, $subtotal, $pajakAmount, $grandtotal];
     }
 
     private function syncItems(SalesOrder $salesOrder, array $items): void
@@ -319,14 +375,13 @@ class SalesOrderController extends Controller
             if (empty($item['material_name']))
                 continue;
             $soItem = SalesOrderItem::create([
-                'sales_order_id' => $salesOrder->id,
-                'sort_order' => $i + 1,
-                'material_name' => $item['material_name'],
-                'description' => $item['description'] ?? null,
-                'unit' => $item['unit'] ?? 'Unit',
-                'qty' => $item['qty'],
-                'unit_price' => $item['unit_price'],
-                'subtotal' => ($item['qty'] ?? 0) * ($item['unit_price'] ?? 0),
+                'nomor_salesorder' => $salesOrder->nomor_salesorder,
+                'nama_item' => $item['material_name'],
+                'deskripsi_item' => $item['description'] ?? null,
+                'satuan' => $item['unit'] ?? 'Unit',
+                'jumlah_item' => $item['qty'],
+                'harga_item' => $item['unit_price'],
+                // 'subtotal' => ($item['qty'] ?? 0) * ($item['unit_price'] ?? 0),
             ]);
 
             if (!empty($item['materials'])) {
@@ -334,14 +389,12 @@ class SalesOrderController extends Controller
                     if (empty($mat['material_name']))
                         continue;
                     \App\Models\SalesOrderItemMaterial::create([
-                        'sales_order_item_id' => $soItem->id,
-                        'asset_id' => $mat['asset_id'] ?? null,
-                        'material_name' => $mat['material_name'],
-                        'qty_required' => $mat['qty_required'] ?? 0,
-                        'satuan' => $mat['satuan'] ?? 'pcs',
-                        'unit_price' => $mat['unit_price'] ?? 0,
-                        'subtotal' => ($mat['qty_required'] ?? 0) * ($mat['unit_price'] ?? 0),
-                        'sort_order' => $m + 1,
+                        'id_item' => $soItem->id_item,
+                        'id_material' => $mat['asset_id'] ?? null,
+                        'nama_material' => $mat['material_name'],
+                        'jumlah_material' => $mat['qty_required'] ?? 0,
+                        'satuan_material' => $mat['satuan'] ?? 'pcs',
+                        'harga_material' => $mat['unit_price'] ?? 0,
                     ]);
                 }
             }
@@ -354,15 +407,13 @@ class SalesOrderController extends Controller
         foreach ($labors as $i => $labor) {
             if (empty($labor['labor_name']))
                 continue;
-            $sub = ($labor['mp'] ?? 0) * ($labor['days'] ?? 0) * ($labor['rate'] ?? 0);
+            // $sub = ($labor['mp'] ?? 0) * ($labor['days'] ?? 0) * ($labor['rate'] ?? 0);
             SalesOrderLabor::create([
-                'sales_order_id' => $salesOrder->id,
-                'sort_order' => $i + 1,
-                'labor_name' => $labor['labor_name'],
-                'mp' => $labor['mp'] ?? 1,
-                'days' => $labor['days'] ?? 1,
-                'rate' => $labor['rate'] ?? 0,
-                'subtotal' => $sub,
+                'nomor_salesorder' => $salesOrder->nomor_salesorder,
+                'nama_labor' => $labor['labor_name'],
+                'jumlah_sdm' => $labor['mp'] ?? 1,
+                'jumlah_hari' => $labor['days'] ?? 1,
+                'rate_hari' => $labor['rate'] ?? 0,
             ]);
         }
     }
@@ -373,13 +424,12 @@ class SalesOrderController extends Controller
         foreach ($otherCosts as $i => $cost) {
             if (empty($cost['cost_name']))
                 continue;
+            $qty = (float) ($cost['qty'] ?? 1);
+            $rate = (float) ($cost['rate'] ?? 0);
             SalesOrderOtherCost::create([
-                'sales_order_id' => $salesOrder->id,
-                'sort_order' => $i + 1,
-                'cost_name' => $cost['cost_name'],
-                'qty' => $cost['qty'] ?? 1,
-                'rate' => $cost['rate'] ?? 0,
-                'subtotal' => ($cost['qty'] ?? 1) * ($cost['rate'] ?? 0),
+                'nomor_salesorder' => $salesOrder->nomor_salesorder,
+                'nama_biaya' => $cost['cost_name'],
+                'jumlah_biaya' => $qty * $rate,
             ]);
         }
     }

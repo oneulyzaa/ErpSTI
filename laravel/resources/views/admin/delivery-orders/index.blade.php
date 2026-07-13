@@ -105,11 +105,11 @@
                 @endphp
                 <tr>
                     <td>{{ $loop->iteration }}</td>
-                    <td class="do-no">{{ $do->do_number }}</td>
-                    <td>{{ $do->so_number ?: '-' }}</td>
-                    <td>{{ $do->client_name ?: '-' }}</td>
-                    <td>{{ $do->client_company }}</td>
-                    <td>{{ $do->date->format('d M Y') }}</td>
+                    <td class="do-no">{{ $do->nomor_deliveryorder }}</td>
+                    <td>{{ $do->nomor_salesorder ?: '-' }}</td>
+                    <td>{{ $do->client->nama_kontak ?? '-' }}</td>
+                    <td>{{ $do->client->nama_perusahaan ?? '-' }}</td>
+                    <td>{{ $do->tanggal_pembuatan ? $do->tanggal_pembuatan->format('d M Y') : '-' }}</td>
                     <td><span class="badge badge-{{ $s[0] }}">{{ $s[1] }}</span></td>
                     <td class="text-center table-actions">
                         <a href="{{ route('admin.delivery-orders.show', $do) }}" class="btn btn-info btn-sm"><i class="bi bi-eye"></i></a>

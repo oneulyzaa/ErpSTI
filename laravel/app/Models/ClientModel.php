@@ -30,7 +30,7 @@ class ClientModel extends Model
      */
     public function quotations()
     {
-        return $this->hasMany(Quotation::class, 'id_client', 'id_customer');
+        return $this->hasMany(Quotation::class, 'id_client', 'id');
     }
 
     /**

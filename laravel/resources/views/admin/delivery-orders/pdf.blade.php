@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Delivery Order {{ $deliveryOrder->do_number }}</title>
+    <title>Delivery Order {{ $deliveryOrder->nomor_deliveryorder }}</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -196,13 +196,13 @@
                 <td class="title-cell">
                     <div class="doc-title">DELIVERY ORDER</div>
                     <table class="meta-table">
-                        <tr><td class="meta-label">No. DO</td><td class="meta-value">{{ $deliveryOrder->do_number }}</td></tr>
-                        <tr><td class="meta-label">Tanggal</td><td class="meta-value">{{ $deliveryOrder->date->format('d M Y') }}</td></tr>
-                        @if($deliveryOrder->delivery_date)
-                        <tr><td class="meta-label">Pengiriman</td><td class="meta-value">{{ $deliveryOrder->delivery_date->format('d M Y') }}</td></tr>
+                        <tr><td class="meta-label">No. DO</td><td class="meta-value">{{ $deliveryOrder->nomor_deliveryorder }}</td></tr>
+                        <tr><td class="meta-label">Tanggal</td><td class="meta-value">{{ $deliveryOrder->tanggal_pembuatan->format('d M Y') }}</td></tr>
+                        @if($deliveryOrder->tanggal_pengiriman)
+                        <tr><td class="meta-label">Pengiriman</td><td class="meta-value">{{ $deliveryOrder->tanggal_pengiriman->format('d M Y') }}</td></tr>
                         @endif
-                        @if($deliveryOrder->so_number)
-                        <tr><td class="meta-label">Ref. SO</td><td class="meta-value">{{ $deliveryOrder->so_number }}</td></tr>
+                        @if($deliveryOrder->nomor_salesorder)
+                        <tr><td class="meta-label">Ref. SO</td><td class="meta-value">{{ $deliveryOrder->nomor_salesorder }}</td></tr>
                         @endif
                         @if($deliveryOrder->nomor_po)
                         <tr>
@@ -223,12 +223,10 @@
             <tr>
                 <td class="client-divider" style="width:50%;">
                     <div class="client-lbl">Kepada</div>
-                    <div class="client-val">{{ $deliveryOrder->client_company }}</div>
+                    <div class="client-val">{{ $deliveryOrder->client->nama_perusahaan ?? '-' }}</div>
                     <div class="client-sub" style="margin-top:1px;">
-                        Kontak: {{ $deliveryOrder->client_name }}<br>
-                        @if($deliveryOrder->client_attention)Attn: {{ $deliveryOrder->client_attention }}<br>@endif
-                        @if($deliveryOrder->client_cc)CC: {{ $deliveryOrder->client_cc }}<br>@endif
-                        @if($deliveryOrder->client_email){{ $deliveryOrder->client_email }}@endif
+                        Kontak: {{ $deliveryOrder->client->nama_kontak ?? '-' }}<br>
+                        @if($deliveryOrder->client->email_perusahaan){{ $deliveryOrder->client->email_perusahaan }}@endif
                     </div>
                 </td>
                 <td style="width:50%;">
@@ -240,27 +238,27 @@
                     </div>
                 </td>
             </tr>
-            @if($deliveryOrder->destination_address)
+            @if($deliveryOrder->client->alamat_perusahaan)
             <tr>
                 <td colspan="2" class="client-sep">
                     <div class="client-lbl">Alamat Tujuan</div>
-                    <div class="client-sub">{{ $deliveryOrder->destination_address }}</div>
+                    <div class="client-sub">{{ $deliveryOrder->client->alamat_perusahaan }}</div>
                 </td>
             </tr>
             @endif
-             @if($deliveryOrder->description)
+             @if($deliveryOrder->keterangan)
              <tr>
                  <td colspan="2" class="client-sep">
-                     <div class="client-lbl">Deskripsi</div>
-                     <div class="client-sub">{{ $deliveryOrder->description }}</div>
+                     <div class="client-lbl">Keterangan</div>
+                     <div class="client-sub">{{ $deliveryOrder->keterangan }}</div>
                  </td>
              </tr>
              @endif
-             @if($deliveryOrder->project_name)
+             @if($deliveryOrder->nama_project)
              <tr>
                  <td colspan="2" class="client-sep">
                      <div class="client-lbl">Nama Project</div>
-                     <div class="client-val">{{ $deliveryOrder->project_name }}</div>
+                     <div class="client-val">{{ $deliveryOrder->nama_project }}</div>
                  </td>
              </tr>
              @endif
@@ -281,12 +279,12 @@
                 <tr class="{{ $i % 2 === 0 ? 'row-odd' : 'row-even' }}">
                     <td style="text-align:center;">{{ $i + 1 }}</td>
                     <td>
-                        <div style="font-weight:bold;">{{ $item->item_name }}</div>
-                        @if($item->description)
-                            <div style="font-size:6.5px;color:#666;">{{ $item->description }}</div>
+                        <div style="font-weight:bold;">{{ $item->nama_item }}</div>
+                        @if($item->deskripsi_item)
+                            <div style="font-size:6.5px;color:#666;">{{ $item->deskripsi_item }}</div>
                         @endif
                     </td>
-                    <td style="text-align:right;">{{ number_format($item->qty, 2, ',', '.') }}</td>
+                    <td style="text-align:right;">{{ number_format($item->jumlah_item, 2, ',', '.') }}</td>
                 </tr>
                 @endforeach
             </tbody>
@@ -298,10 +296,10 @@
         </table>
 
         {{-- ═══ FOOTER / NOTES ═══ --}}
-        @if($deliveryOrder->notes)
+        @if($deliveryOrder->keterangan)
         <div class="footer-note">
             <strong>Catatan:</strong><br>
-            {!! nl2br(e($deliveryOrder->notes)) !!}
+            {!! nl2br(e($deliveryOrder->keterangan)) !!}
         </div>
         @endif
 

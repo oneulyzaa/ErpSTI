@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Detail ' . $salesOrder->so_number)
+@section('title', 'Detail ' . $salesOrder->nomor_salesorder)
 @section('breadcrumb', 'Detail Sales Order')
 
 @push('styles')
@@ -59,21 +59,20 @@
 @php
     $statusMap = ['draft'=>['draft','Draft'],'confirmed'=>['confirmed','Confirmed'],'in_progress'=>['in_progress','In Progress'],'completed'=>['completed','Completed'],'cancelled'=>['cancelled','Cancelled']];
     $s = $statusMap[$salesOrder->status] ?? ['draft','-'];
+    $itemProduksi = 0;
+    $itemSubtotal = 0;
 @endphp
 
 <div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
     <div>
         <div class="d-flex align-items-center gap-2 mb-1">
-            <h4 class="fw-bold mb-0" style="font-family:monospace">{{ $salesOrder->so_number }}</h4>
+            <h4 class="fw-bold mb-0" style="font-family:monospace">{{ $salesOrder->nomor_salesorder }}</h4>
             <span class="badge badge-{{ $s[0] }} rounded-pill px-2 py-1">{{ $s[1] }}</span>
         </div>
         <p class="text-muted mb-0" style="font-size:13px">
-            Tanggal SO: {{ $salesOrder->date->format('d M Y') }}
+            Tanggal SO: {{ $salesOrder->tanggal_pembuatan->format('d M Y') }}
             @if($salesOrder->nomor_po)
                 &nbsp;·&nbsp; Nomor PO: {{ $salesOrder->nomor_po }}
-            @endif
-            @if($salesOrder->delivery_date)
-                &nbsp;·&nbsp; Pengiriman: {{ $salesOrder->delivery_date->format('d M Y') }}
             @endif
         </p>
     </div>
@@ -115,34 +114,32 @@
                     </div>
                     <div class="col-12 col-sm-6 p-4">
                         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:10px;">Kepada</div>
-                        <div class="fw-bold" style="font-size:15px">{{ $salesOrder->client_company }}</div>
+                        <div class="fw-bold" style="font-size:15px">{{ $salesOrder->client->nama_perusahaan ?? '-' }}</div>
                         <div class="text-muted mt-1" style="font-size:13px;line-height:1.8;">
-                            @if($salesOrder->client_attention)Attn: {{ $salesOrder->client_attention }}<br>@endif
-                            @if($salesOrder->client_cc)CC: {{ $salesOrder->client_cc }}<br>@endif
-                            Kontak: {{ $salesOrder->client_name }}<br>
-                            @if($salesOrder->client_email){{ $salesOrder->client_email }}@endif
-                            @if($salesOrder->client_address)<br>{!! nl2br(e($salesOrder->client_address)) !!}@endif
+                            Kontak: {{ $salesOrder->client->nama_kontak ?? '-' }}<br>
+                            @if($salesOrder->client->email_perusahaan){{ $salesOrder->client->email_perusahaan }}@endif
+                            @if($salesOrder->client->alamat_perusahaan)<br>{!! nl2br(e($salesOrder->client->alamat_perusahaan)) !!}@endif
                         </div>
                     </div>
                 </div>
-                @if($salesOrder->project_name)
+                @if($salesOrder->nama_project)
                 <div class="p-4 border-top bg-light">
                     <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:6px;">Nama Project</div>
-                    <div style="font-size:14px;font-weight:600;">{{ $salesOrder->project_name }}</div>
+                    <div style="font-size:14px;font-weight:600;">{{ $salesOrder->nama_project }}</div>
                 </div>
                 @endif
-                @if($salesOrder->description_of_work)
+                @if($salesOrder->keterangan)
                 <div class="p-4 border-top bg-light">
-                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:6px;">Description of Work</div>
-                    <div style="font-size:14px;">{{ $salesOrder->description_of_work }}</div>
+                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:6px;">Keterangan</div>
+                    <div style="font-size:14px;">{{ $salesOrder->keterangan }}</div>
                 </div>
                 @endif
-                @if($salesOrder->quote_number)
-                <div class="p-4 border-top">
-                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:6px;">Referensi Quotation</div>
-                    <div style="font-size:14px;font-family:monospace;font-weight:600;">{{ $salesOrder->quote_number }}</div>
-                </div>
-                @endif
+@if($salesOrder->nomor_quotation)
+<div class="p-4 border-top">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:6px;">Referensi Quotation</div>
+    <div style="font-size:14px;font-family:monospace;font-weight:600;">{{ $salesOrder->nomor_quotation }}</div>
+</div>
+@endif
             </div>
         </div>
 
@@ -154,83 +151,98 @@
             </div>
             <div class="p-0">
                 @foreach($salesOrder->items as $i => $item)
-                <div class="p-3 border-bottom @if(!$loop->last) border-bottom @endif">
-                    <div class="d-flex align-items-start justify-content-between gap-2">
-                        <div>
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="item-no">{{ $i+1 }}</span>
-                                <span class="fw-semibold" style="font-size:14px;">{{ $item->material_name }}</span>
+                    @php 
+                        $itemProduksi = 0;
+                    @endphp
+                    <div class="p-3 border-bottom @if(!$loop->last) border-bottom @endif">
+                        <div class="d-flex align-items-start justify-content-between gap-2">
+                            <div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="item-no" style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;">{{ $i+1 }}</span>
+                                    <span class="fw-semibold" style="font-size:14px;">{{ $item->nama_item }}</span>
+                                </div>
+                                @if($item->description)
+                                    <small class="text-muted d-block ms-5">
+                                        {{ $item->deskripsi_item }}
+                                    </small>
+                                @endif
                             </div>
-                            @if($item->description)
-                            <small class="text-muted d-block ms-5">{{ $item->description }}</small>
-                            @endif
+                            <div class="text-end" style="font-size:13px;">
+                                <span class="text-muted">{{ number_format($item->jumlah_item) }} {{ $item->satuan }}</span>
+                                &nbsp;&nbsp;
+                                @unless($item->materials && $item->materials->count())
+                                x <span>Rp {{ number_format($item->harga_item, 0, ',', '.') }}</span>
+                                &nbsp;=&nbsp;
+                                <span class="fw-bold" style="font-family:monospace;">Rp {{ number_format($item->harga_item * $item->jumlah_item, 0, ',', '.') }}</span>
+                                @endunless
+
+                                {{-- Jika punya materials, tampilkan total materials sebagai subtotal produk --}}
+                                @if($item->materials && $item->materials->count())
+                                    &nbsp;
+                                    <span class="fw-bold" style="font-family:monospace;">
+                                        = Rp {{ number_format($item->materials_subtotal, 0, ',', '.') }}
+                                    </span>
+                                @endif
+                            </div>
                         </div>
 
-                        <div class="text-end" style="font-size:13px;">
-                            <span class="text-muted">{{ number_format($item->qty, 2, ',', '.') }} {{ $item->unit }}</span>
-                            &nbsp;&nbsp;
-                            {{-- Hanya tampilkan unit price & subtotal jika TIDAK punya materials --}}
-                            @unless($item->materials && $item->materials->count())
-                            x <span>Rp {{ number_format($item->unit_price, 0, ',', '.') }}</span>
-                            &nbsp;=&nbsp;
-                            <span class="fw-bold" style="font-family:monospace;">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</span>
-                            @endunless
+                        {{-- Materials under this product --}}
+                        @if($item->materials && $item->materials->count())
+                            @php 
+                                $matSubtotal = 0;
+                            @endphp
+                            <div class="ms-3 mt-3">
+                                <div style="font-size:10.5px;font-weight:700;color:#1B5DBC;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">
+                                    Material
+                                </div>
 
-                            {{-- Jika punya materials, tampilkan total materials sebagai subtotal produk --}}
-                            @if($item->materials && $item->materials->count())
-                            &nbsp;
-                            <span class="fw-bold" style="font-family:monospace;">
-                                = Rp {{ number_format($item->materials_subtotal, 0, ',', '.') }}
-                            </span>
-                            @endif
-                        </div>
+                                <div class="mat-wrap">
+                                    <table class="mat-table">
+                                        <thead>
+                                            <tr>
+                                                <th style="width:28px;">#</th>
+                                                <th>Nama Material</th>
+                                                <th style="width:70px;text-align:center;">Satuan</th>
+                                                <th style="width:80px;text-align:right;">Qty</th>
+                                                <th style="width:130px;text-align:right;">Harga Satuan</th>
+                                                <th style="width:155px;text-align:right;">Subtotal</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($item->materials as $mi => $mat)
+                                            <tr>
+                                                <td class="mat-num text-center text-muted">{{ $mi+1 }}</td>
+                                                <td class="fw-medium">{{ $mat->nama_material }}</td>
+                                                <td class="text-center text-muted">{{ $mat->satuan_material }}</td>
+                                                <td class="mat-num text-end">{{ number_format($mat->jumlah_material) }}</td>
+                                                <td class="mat-num text-end text-muted">Rp {{ number_format($mat->harga_material, 0, ',', '.') }}</td>
+                                                <td class="mat-num text-end fw-semibold">Rp {{ number_format($mat->harga_material * $mat->jumlah_material, 0, ',', '.') }}</td>
+                                            </tr>
+                                            @php 
+                                                $matSubtotal += $mat->harga_material * $mat->jumlah_material;
+                                            @endphp
+                                            @endforeach
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <td colspan="5" class="text-end fw-semibold" style="padding:9px 10px;background:#f8faff;border-top:1.5px solid #e2e8f0;font-size:11.5px;color:#475569;">Subtotal Material</td>
+                                                <td class="mat-num text-end fw-bold" style="padding:9px 10px;background:#f8faff;border-top:1.5px solid #e2e8f0;color:#1B5DBC;">Rp {{ number_format($matSubtotal, 0, ',', '.') }}</td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        @endif
+                        @php 
+                            $itemProduksi += $matSubtotal ?? 0;
+                        @endphp 
                     </div>
-
-                    {{-- Materials under this product --}}
-                    @if($item->materials && $item->materials->count())
-                    <div class="ms-3 mt-3">
-                        <div style="font-size:10.5px;font-weight:700;color:#1B5DBC;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;">Material</div>
-                        <div class="mat-wrap">
-                            <table class="mat-table">
-                                <thead>
-                                    <tr>
-                                        <th style="width:28px;">#</th>
-                                        <th>Nama Material</th>
-                                        <th style="width:70px;text-align:center;">Satuan</th>
-                                        <th style="width:80px;text-align:right;">Qty</th>
-                                        <th style="width:130px;text-align:right;">Harga Satuan</th>
-                                        <th style="width:155px;text-align:right;">Subtotal</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($item->materials as $mi => $mat)
-                                    <tr>
-                                        <td class="mat-num text-center text-muted">{{ $mi+1 }}</td>
-                                        <td class="fw-medium">{{ $mat->material_name }}</td>
-                                        <td class="text-center text-muted">{{ $mat->satuan }}</td>
-                                        <td class="mat-num text-end">{{ number_format($mat->qty_required, 2, ',', '.') }}</td>
-                                        <td class="mat-num text-end text-muted">Rp {{ number_format($mat->unit_price, 0, ',', '.') }}</td>
-                                        <td class="mat-num text-end fw-semibold">Rp {{ number_format($mat->subtotal, 0, ',', '.') }}</td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                                <tfoot>
-                                    <tr>
-                                        <td colspan="5" class="text-end fw-semibold" style="padding:9px 10px;background:#f8faff;border-top:1.5px solid #e2e8f0;font-size:11.5px;color:#475569;">Subtotal Material</td>
-                                        <td class="mat-num text-end fw-bold" style="padding:9px 10px;background:#f8faff;border-top:1.5px solid #e2e8f0;color:#1B5DBC;">Rp {{ number_format($item->materials->sum('subtotal'), 0, ',', '.') }}</td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-                    </div>
-                    @endif
-                </div>
                 @endforeach
 
                 <div class="p-3 bg-light border-top">
                     <div class="d-flex justify-content-between">
-                        <span class="fw-semibold">Total Produksi</span>
-                        <span class="fw-bold" style="font-family:monospace;">Rp {{ number_format($salesOrder->subtotal_material, 0, ',', '.') }}</span>
+                        <span class="fw-semibold">Total Produksi + Material</span>
+                        <span class="fw-bold" style="font-family:monospace;">Rp {{ number_format($salesOrder->subtotal_produksi + $salesOrder->subtotal_material, 0, ',', '.') }}</span>
                     </div>
                 </div>
             </div>
@@ -259,11 +271,11 @@
                         @foreach($salesOrder->labors as $i => $labor)
                         <tr>
                             <td class="text-center text-muted" style="font-family:monospace;font-size:12px;">{{ $i+1 }}</td>
-                            <td class="fw-semibold">{{ $labor->labor_name }}</td>
-                            <td class="text-center" style="font-family:monospace;">{{ $labor->mp }}</td>
-                            <td class="text-center" style="font-family:monospace;">{{ number_format($labor->days, 0) }}</td>
-                            <td class="text-end" style="font-family:monospace;">Rp {{ number_format($labor->rate, 0, ',', '.') }}</td>
-                            <td class="text-end fw-semibold" style="font-family:monospace;">Rp {{ number_format($labor->subtotal, 0, ',', '.') }}</td>
+                            <td class="fw-semibold">{{ $labor->nama_labor }}</td>
+                            <td class="text-center" style="font-family:monospace;">{{ $labor->jumlah_sdm }}</td>
+                            <td class="text-center" style="font-family:monospace;">{{ number_format($labor->jumlah_hari, 0) }}</td>
+                            <td class="text-end" style="font-family:monospace;">Rp {{ number_format($labor->rate_hari, 0, ',', '.') }}</td>
+                            <td class="text-end fw-semibold" style="font-family:monospace;">Rp {{ number_format($labor->jumlah_hari * $labor->rate_hari, 0, ',', '.') }}</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -291,26 +303,22 @@
                         <tr>
                             <th style="width:36px;" class="text-muted fw-semibold" style="font-size:11px">#</th>
                             <th class="text-muted fw-semibold" style="font-size:11px">NAMA BIAYA</th>
-                            <th class="text-muted fw-semibold text-center" style="font-size:11px">QTY</th>
-                            <th class="text-muted fw-semibold text-end" style="font-size:11px">RATE</th>
-                            <th class="text-muted fw-semibold text-end" style="font-size:11px">SUBTOTAL</th>
+                            <th class="text-muted fw-semibold text-end" style="font-size:11px">BIAYA</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($salesOrder->otherCosts as $i => $cost)
                         <tr>
                             <td class="text-center text-muted" style="font-family:monospace;font-size:12px;">{{ $i+1 }}</td>
-                            <td class="fw-semibold">{{ $cost->cost_name }}</td>
-                            <td class="text-center" style="font-family:monospace;">{{ number_format($cost->qty, 2, ',', '.') }}</td>
-                            <td class="text-end" style="font-family:monospace;">Rp {{ number_format($cost->rate, 0, ',', '.') }}</td>
-                            <td class="text-end fw-semibold" style="font-family:monospace;">Rp {{ number_format($cost->subtotal, 0, ',', '.') }}</td>
+                            <td class="fw-semibold">{{ $cost->nama_biaya }}</td>
+                            <td class="text-end fw-semibold" style="font-family:monospace;">Rp {{ number_format($cost->jumlah_biaya, 0, ',', '.') }}</td>
                         </tr>
                         @endforeach
                     </tbody>
                     <tfoot class="table-light">
                         <tr>
-                            <td colspan="4" class="text-end fw-semibold" style="font-size:12px;">Total Biaya Lain-Lain</td>
-                            <td class="text-end fw-bold" style="font-family:monospace;">Rp {{ number_format($salesOrder->subtotal_other_cost, 0, ',', '.') }}</td>
+                            <td colspan="2" class=" fw-semibold" style="font-size:12px;">Total Biaya Lain-Lain</td>
+                            <td class="text-end fw-bold" style="font-family:monospace;">Rp {{ number_format($salesOrder->subtotal_lainlain, 0, ',', '.') }}</td>
                         </tr>
                     </tfoot>
                 </table>
@@ -325,17 +333,21 @@
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white border-bottom py-3"><span class="fw-semibold">Ringkasan</span></div>
             <div class="card-body">
-                <div class="summary-row"><span>Total Produksi</span><span class="summary-val">Rp {{ number_format($salesOrder->subtotal_material, 0, ',', '.') }}</span></div>
+                @php
+                    $subtotal = $salesOrder->subtotal_produksi + $salesOrder->subtotal_material + $salesOrder->subtotal_labor + $salesOrder->subtotal_lainlain - $salesOrder->diskon;
+                    $pajakAmount = $subtotal * ($salesOrder->pajak / 100);
+                @endphp
+                <div class="summary-row"><span>Total Produksi + Material</span><span class="summary-val">Rp {{ number_format($salesOrder->subtotal_produksi + $salesOrder->subtotal_material, 0, ',', '.') }}</span></div>
                 <div class="summary-row"><span>Total Labor</span><span class="summary-val">Rp {{ number_format($salesOrder->subtotal_labor, 0, ',', '.') }}</span></div>
-                @if($salesOrder->subtotal_other_cost > 0)
-                <div class="summary-row"><span>Total Biaya Lain-Lain</span><span class="summary-val">Rp {{ number_format($salesOrder->subtotal_other_cost, 0, ',', '.') }}</span></div>
+                @if($salesOrder->subtotal_lainlain > 0)
+                <div class="summary-row"><span>Total Biaya Lain-Lain</span><span class="summary-val">Rp {{ number_format($salesOrder->subtotal_lainlain, 0, ',', '.') }}</span></div>
                 @endif
-                <div class="summary-row"><span>Subtotal</span><span class="summary-val">Rp {{ number_format($salesOrder->subtotal, 0, ',', '.') }}</span></div>
-                <div class="summary-row"><span>PPN ({{ number_format($salesOrder->tax_percentage, 0) }}%)</span><span class="summary-val">Rp {{ number_format($salesOrder->tax_amount, 0, ',', '.') }}</span></div>
-                @if($salesOrder->discount > 0)
-                <div class="summary-row"><span>Diskon</span><span class="summary-val">Rp {{ number_format($salesOrder->discount, 0, ',', '.') }}</span></div>
+                @if($salesOrder->diskon > 0)
+                <div class="summary-row"><span>Diskon</span><span class="summary-val">Rp {{ number_format($salesOrder->diskon, 0, ',', '.') }}</span></div>
                 @endif
-                <div class="summary-row total-row"><span>TOTAL</span><span class="summary-val">Rp {{ number_format($salesOrder->total, 0, ',', '.') }}</span></div>
+                <div class="summary-row"><span>Subtotal</span><span class="summary-val">Rp {{ number_format($subtotal, 0, ',', '.') }}</span></div>
+                <div class="summary-row"><span>PPN ({{ number_format($salesOrder->pajak, 0) }}%)</span><span class="summary-val">Rp {{ number_format($pajakAmount, 0, ',', '.') }}</span></div>
+                <div class="summary-row total-row"><span>GRAND TOTAL</span><span class="summary-val">Rp {{ number_format($salesOrder->grandtotal, 0, ',', '.') }}</span></div>
             </div>
             <div class="card-footer bg-white border-top">
                 <a href="{{ route('admin.sales-orders.pdf', $salesOrder) }}" target="_blank"
@@ -344,12 +356,6 @@
                 </a>
             </div>
         </div>
-        @if($salesOrder->notes)
-        <div class="card border-0 shadow-sm mt-3">
-            <div class="card-header bg-white border-bottom py-3"><span class="fw-semibold">Terms & Conditions</span></div>
-            <div class="card-body" style="font-size:13px;white-space:pre-line;">{{ $salesOrder->notes }}</div>
-        </div>
-        @endif
     </div>
 </div>
 @endsection

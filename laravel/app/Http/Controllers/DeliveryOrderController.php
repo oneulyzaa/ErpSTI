@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DeliveryOrder;
 use App\Models\DeliveryOrderItem;
+use App\Models\DeliveryOrderItemMaterial;
 use App\Models\SalesOrder;
 use App\Models\ClientModel;
 use Illuminate\Http\Request;
@@ -15,15 +16,15 @@ class DeliveryOrderController extends Controller
     // ─── List ────────────────────────────────────────────────────────────────
     public function index(Request $request)
     {
-        $query = DeliveryOrder::with('items')->latest();
+        $query = DeliveryOrder::with(['items', 'client'])->latest();
 
         if ($request->filled('search')) {
             $s = $request->search;
             $query->where(function ($q) use ($s) {
-                $q->where('do_number', 'like', "%$s%")
-                    ->orWhere('client_name', 'like', "%$s%")
-                    ->orWhere('client_company', 'like', "%$s%")
-                    ->orWhere('so_number', 'like', "%$s%");
+                $q->where('nomor_deliveryorder', 'like', "%$s%")
+                    ->orWhere('nama_project', 'like', "%$s%")
+                    ->orWhere('nomor_salesorder', 'like', "%$s%")
+                    ->orWhere('nomor_po', 'like', "%$s%");
             });
         }
         if ($request->filled('status')) {
@@ -47,35 +48,34 @@ class DeliveryOrderController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'do_number' => 'required|string|unique:delivery_orders,do_number',
-            'client_id' => 'nullable|exists:clients,id',
-            'sales_order_id' => 'nullable|exists:sales_orders,id',
-            'so_number' => 'nullable|string|max:255',
+            'nomor_deliveryorder' => 'required|string|unique:delivery_orders,nomor_deliveryorder',
+            'id_client' => 'nullable|exists:customers,id',
+            'nomor_salesorder' => 'nullable|exists:sales_orders,nomor_salesorder',
             'nomor_po' => 'nullable|string|max:255',
-            'project_name' => 'nullable|string|max:255',
-            'date' => 'required|date',
-            'delivery_date' => 'nullable|date|after_or_equal:date',
-            'client_name' => 'nullable|string|max:255',
-            'client_company' => 'nullable|string|max:255',
-            'client_attention' => 'nullable|string|max:255',
-            'client_cc' => 'nullable|string|max:255',
-            'client_email' => 'nullable|email|max:255',
-            'destination_address' => 'nullable|string',
-            'description' => 'nullable|string',
+            'nama_project' => 'nullable|string|max:255',
+            'tanggal_pembuatan' => 'required|date',
+            'tanggal_pengiriman' => 'nullable|date|after_or_equal:tanggal_pembuatan',
             'status' => 'required|in:draft,confirmed,shipped,delivered,cancelled',
-            'notes' => 'nullable|string',
+            'keterangan' => 'nullable|string',
             'items' => 'nullable|array',
-            'items.*.item_name' => 'required_with:items|string|max:255',
-            'items.*.unit' => 'required_with:items|string|max:50',
-            'items.*.qty' => 'required_with:items|numeric|min:0',
+            'items.*.nama_item' => 'required_with:items|string|max:255',
+            'items.*.deskripsi_item' => 'nullable|string',
+            'items.*.satuan' => 'required_with:items|string|max:50',
+            'items.*.jumlah_item' => 'required_with:items|numeric|min:0',
+            'items.*.harga_item' => 'nullable|numeric|min:0',
             'items.*.materials' => 'nullable|array',
-            'items.*.materials.*.material_name' => 'required_with:items.*.materials|string|max:255',
-            'items.*.materials.*.satuan' => 'nullable|string|max:50',
-            'items.*.materials.*.qty_required' => 'required_with:items.*.materials|numeric|min:0',
-            'items.*.materials.*.unit_price' => 'nullable|numeric|min:0',
+            'items.*.materials.*.id_material' => 'nullable|exists:materials,id_material',
+            'items.*.materials.*.nama_material' => 'required_with:items.*.materials|string|max:255',
+            'items.*.materials.*.satuan_material' => 'nullable|string|max:50',
+            'items.*.materials.*.jumlah_material' => 'required_with:items.*.materials|numeric|min:0',
+            'items.*.materials.*.harga_material' => 'nullable|numeric|min:0',
         ]);
 
-        $validated = $this->resolveClientData($validated);
+        // Set id_staff dari user yang login
+        $validated['id_staff'] = auth()->id();
+
+        if (empty($requset->tanggal_pengiriman))
+            $validated['tanggal_pengiriman'] = now()->addDays(7);
 
         DB::transaction(function () use ($validated, $request) {
             $deliveryOrder = DeliveryOrder::create($validated);
@@ -89,7 +89,7 @@ class DeliveryOrderController extends Controller
     // ─── Show ────────────────────────────────────────────────────────────────
     public function show(DeliveryOrder $deliveryOrder)
     {
-        $deliveryOrder->load('items.materials', 'salesOrder');
+        $deliveryOrder->load('items.materials', 'salesOrder', 'client');
         return view('admin.delivery-orders.show', compact('deliveryOrder'));
     }
 
@@ -97,7 +97,7 @@ class DeliveryOrderController extends Controller
     public function edit(DeliveryOrder $deliveryOrder)
     {
         $deliveryOrder->load('items.materials');
-        $doNumber = $deliveryOrder->do_number;
+        $doNumber = $deliveryOrder->nomor_deliveryorder;
         $salesOrders = SalesOrder::whereIn('status', ['confirmed', 'in_progress', 'completed'])->latest()->get();
         $clients = ClientModel::all();
         return view('admin.delivery-orders.edit', compact('deliveryOrder', 'doNumber', 'salesOrders', 'clients'));
@@ -107,35 +107,28 @@ class DeliveryOrderController extends Controller
     public function update(Request $request, DeliveryOrder $deliveryOrder)
     {
         $validated = $request->validate([
-            'do_number' => 'required|string|unique:delivery_orders,do_number,' . $deliveryOrder->id,
-            'client_id' => 'nullable|exists:clients,id',
-            'sales_order_id' => 'nullable|exists:sales_orders,id',
-            'so_number' => 'nullable|string|max:255',
+            'nomor_deliveryorder' => 'required|string|unique:delivery_orders,nomor_deliveryorder,' . $deliveryOrder->nomor_deliveryorder . ',nomor_deliveryorder',
+            'id_client' => 'nullable|exists:customers,id',
+            'nomor_salesorder' => 'nullable|exists:sales_orders,nomor_salesorder',
             'nomor_po' => 'nullable|string|max:255',
-            'project_name' => 'nullable|string|max:255',
-            'date' => 'required|date',
-            'delivery_date' => 'nullable|date|after_or_equal:date',
-            'client_name' => 'nullable|string|max:255',
-            'client_company' => 'nullable|string|max:255',
-            'client_attention' => 'nullable|string|max:255',
-            'client_cc' => 'nullable|string|max:255',
-            'client_email' => 'nullable|email|max:255',
-            'destination_address' => 'nullable|string',
-            'description' => 'nullable|string',
+            'nama_project' => 'nullable|string|max:255',
+            'tanggal_pembuatan' => 'required|date',
+            'tanggal_pengiriman' => 'nullable|date|after_or_equal:tanggal_pembuatan',
             'status' => 'required|in:draft,confirmed,shipped,delivered,cancelled',
-            'notes' => 'nullable|string',
+            'keterangan' => 'nullable|string',
             'items' => 'nullable|array',
-            'items.*.item_name' => 'required_with:items|string|max:255',
-            'items.*.unit' => 'required_with:items|string|max:50',
-            'items.*.qty' => 'required_with:items|numeric|min:0',
+            'items.*.nama_item' => 'required_with:items|string|max:255',
+            'items.*.deskripsi_item' => 'nullable|string',
+            'items.*.satuan' => 'required_with:items|string|max:50',
+            'items.*.jumlah_item' => 'required_with:items|numeric|min:0',
+            'items.*.harga_item' => 'nullable|numeric|min:0',
             'items.*.materials' => 'nullable|array',
-            'items.*.materials.*.material_name' => 'required_with:items.*.materials|string|max:255',
-            'items.*.materials.*.satuan' => 'nullable|string|max:50',
-            'items.*.materials.*.qty_required' => 'required_with:items.*.materials|numeric|min:0',
-            'items.*.materials.*.unit_price' => 'nullable|numeric|min:0',
+            'items.*.materials.*.id_material' => 'nullable|exists:materials,id_material',
+            'items.*.materials.*.nama_material' => 'required_with:items.*.materials|string|max:255',
+            'items.*.materials.*.satuan_material' => 'nullable|string|max:50',
+            'items.*.materials.*.jumlah_material' => 'required_with:items.*.materials|numeric|min:0',
+            'items.*.materials.*.harga_material' => 'nullable|numeric|min:0',
         ]);
-
-        $validated = $this->resolveClientData($validated);
 
         DB::transaction(function () use ($validated, $request, $deliveryOrder) {
             $deliveryOrder->update($validated);
@@ -157,7 +150,7 @@ class DeliveryOrderController extends Controller
     // ─── PDF ─────────────────────────────────────────────────────────────────
     public function pdf(DeliveryOrder $deliveryOrder)
     {
-        $deliveryOrder->load('items.materials');
+        $deliveryOrder->load('items.materials', 'client');
 
         $logoPath = public_path('assets/gambar/logo-sti.png');
         $logoBase64 = '';
@@ -167,43 +160,38 @@ class DeliveryOrderController extends Controller
 
         $pdf = Pdf::loadView('admin.delivery-orders.pdf', compact('deliveryOrder', 'logoBase64'))
             ->setPaper('a5', 'landscape')
-            // ->setOption('defaultFont', 'DejaVu Sans')
             ->setOption('isHtml5ParserEnabled', true)
             ->setOption('isRemoteEnabled', false);
 
-        $filename = 'DeliveryOrder-' . $deliveryOrder->do_number . '.pdf';
+        $filename = 'DeliveryOrder-' . $deliveryOrder->nomor_deliveryorder . '.pdf';
         return $pdf->stream($filename);
     }
 
     // ─── AJAX: Get SO Data ──────────────────────────────────────────────────
-    public function getSoData(SalesOrder $salesOrder)
+    public function getSoData($nomorSalesorder)
     {
-        $salesOrder->load('items.materials');
+        $salesOrder = SalesOrder::where('nomor_salesorder', $nomorSalesorder)->firstOrFail();
+        $salesOrder->load('items.materials', 'client');
 
         return response()->json([
-            'so_number' => $salesOrder->so_number,
+            'nomor_salesorder' => $salesOrder->nomor_salesorder,
             'nomor_po' => $salesOrder->nomor_po,
-            'project_name' => $salesOrder->project_name,
-            'client_name' => $salesOrder->client_name,
-            'client_company' => $salesOrder->client_company,
-            'client_attention' => $salesOrder->client_attention,
-            'client_cc' => $salesOrder->client_cc,
-            'client_email' => $salesOrder->client_email,
-            'description' => $salesOrder->description_of_work,
+            'nama_project' => $salesOrder->nama_project,
+            'id_client' => $salesOrder->id_client,
             'items' => $salesOrder->items->map(function ($item) {
                 return [
-                    'item_name' => $item->material_name,
-                    'description' => $item->description,
-                    'unit' => $item->unit,
-                    'qty' => $item->qty,
+                    'nama_item' => $item->nama_item,
+                    'deskripsi_item' => $item->deskripsi_item,
+                    'satuan' => $item->satuan,
+                    'jumlah_item' => $item->jumlah_item,
+                    'harga_item' => $item->harga_item,
                     'materials' => $item->materials->map(function ($mat) {
                         return [
-                            'asset_id' => $mat->asset_id,
-                            'material_name' => $mat->material_name,
-                            'qty_required' => $mat->qty_required,
-                            'satuan' => $mat->satuan,
-                            'unit_price' => $mat->unit_price,
-                            'subtotal' => $mat->subtotal,
+                            'id_material' => $mat->id_material,
+                            'nama_material' => $mat->nama_material,
+                            'satuan_material' => $mat->satuan_material,
+                            'jumlah_material' => $mat->jumlah_material,
+                            'harga_material' => $mat->harga_material,
                         ];
                     })->toArray(),
                 ];
@@ -212,64 +200,47 @@ class DeliveryOrderController extends Controller
     }
 
     // ─── AJAX: Get Client Data from master client ──────────────────────────
-    public function getClientData(ClientModel $client)
+    public function getClientData($id_client)
     {
+        $client = ClientModel::where('id', $id_client)->firstOrFail();
         return response()->json([
             'id' => $client->id,
             'nama_perusahaan' => $client->nama_perusahaan,
-            'nama_kontak' => $client->nama_kontak_perusahaan,
+            'nama_kontak' => $client->nama_kontak,
             'email' => $client->email_perusahaan,
-            'alamat_pengiriman_perusahaan' => $client->alamat_pengiriman_perusahaan,
-            'attn' => $client->attn,
-            'cc' => $client->cc,
+            'alamat' => $client->alamat_perusahaan,
+            'attn' => $client->nama_kontak,
+            'cc' => '',
         ]);
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
-    private function resolveClientData(array $data): array
-    {
-        if (!empty($data['client_id'])) {
-            $client = ClientModel::find($data['client_id']);
-            if ($client) {
-                $data['client_name'] = $data['client_name'] ?: ($client->nama_kontak_perusahaan ?: $client->nama_perusahaan);
-                $data['client_company'] = $data['client_company'] ?: $client->nama_perusahaan;
-                $data['client_email'] = $data['client_email'] ?: $client->email_perusahaan;
-                $data['destination_address'] = $data['destination_address'] ?: $client->alamat_pengiriman_perusahaan;
-                $data['client_attention'] = $data['client_attention'] ?: $client->attn;
-                $data['client_cc'] = $data['client_cc'] ?: $client->cc;
-            }
-        }
-        return $data;
-    }
-
     private function syncItems(DeliveryOrder $deliveryOrder, array $items): void
     {
         $deliveryOrder->items()->delete();
         foreach ($items as $i => $item) {
-            if (empty($item['item_name']))
+            if (empty($item['nama_item']))
                 continue;
             $doItem = DeliveryOrderItem::create([
-                'delivery_order_id' => $deliveryOrder->id,
-                'sort_order' => $i + 1,
-                'item_name' => $item['item_name'],
-                'description' => $item['description'] ?? null,
-                'unit' => $item['unit'] ?? 'Unit',
-                'qty' => $item['qty'] ?? 0,
+                'nomor_deliveryorder' => $deliveryOrder->nomor_deliveryorder,
+                'nama_item' => $item['nama_item'],
+                'deskripsi_item' => $item['deskripsi_item'] ?? null,
+                'jumlah_item' => $item['jumlah_item'] ?? 0,
+                'satuan' => $item['satuan'] ?? 'Unit',
+                'harga_item' => $item['harga_item'] ?? 0,
             ]);
 
             if (!empty($item['materials'])) {
                 foreach ($item['materials'] as $m => $mat) {
-                    if (empty($mat['material_name']))
+                    if (empty($mat['nama_material']))
                         continue;
-                    \App\Models\DeliveryOrderItemMaterial::create([
-                        'delivery_order_item_id' => $doItem->id,
-                        'asset_id' => $mat['asset_id'] ?? null,
-                        'material_name' => $mat['material_name'],
-                        'qty_required' => $mat['qty_required'] ?? 0,
-                        'satuan' => $mat['satuan'] ?? 'pcs',
-                        'unit_price' => $mat['unit_price'] ?? 0,
-                        'subtotal' => ($mat['qty_required'] ?? 0) * ($mat['unit_price'] ?? 0),
-                        'sort_order' => $m + 1,
+                    DeliveryOrderItemMaterial::create([
+                        'id_item' => $doItem->id_item,
+                        'id_material' => $mat['id_material'] ?? null,
+                        'nama_material' => $mat['nama_material'],
+                        'jumlah_material' => $mat['jumlah_material'] ?? 0,
+                        'satuan_material' => $mat['satuan_material'] ?? 'pcs',
+                        'harga_material' => $mat['harga_material'] ?? 0,
                     ]);
                 }
             }
