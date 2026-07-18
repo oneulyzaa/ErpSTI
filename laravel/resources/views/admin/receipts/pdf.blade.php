@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Tanda Terima {{ $receipt->receipt_number }}</title>
+    <title>Tanda Terima {{ $receipt->nomor_receipt }}</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -177,6 +177,16 @@
 
     <hr class="divider">
 
+    @php
+        // Ambil data client dari relasi invoice -> salesOrder -> client
+        $client = $receipt->invoice->salesOrder->client ?? null;
+        $companyName = $client->nama_perusahaan ?? '-';
+        $contactName = $client->nama_kontak ?? '-';
+        $contactEmail = $client->email_perusahaan ?? '-';
+        $contactPhone = $client->nomor_telepon ?? '-';
+        $clientAddress = $client->alamat_perusahaan ?? '-';
+    @endphp
+
     {{-- ═══ CLIENT + META ═══ --}}
     <table class="info-wrap">
         <tr>
@@ -185,9 +195,9 @@
                     <tr>
                         <td class="info-client-lbl">Kepada :</td>
                         <td style="color:#111;">
-                            <strong>{{ $receipt->client_company }}</strong><br>
-                            @if($receipt->client_address){!! nl2br(e($receipt->client_address)) !!}<br>@endif
-                            @if($receipt->client_phone)Telp : {{ $receipt->client_phone }}@endif
+                            <strong>{{ $companyName }}</strong><br>
+                            @if($clientAddress && $clientAddress != '-'){!! nl2br(e($clientAddress)) !!}<br>@endif
+                            @if($contactPhone && $contactPhone != '-')Telp : {{ $contactPhone }}@endif
                         </td>
                     </tr>
                 </table>
@@ -196,11 +206,11 @@
                 <table class="meta-table">
                     <tr>
                         <td class="meta-label">Date</td>
-                        <td class="meta-value">{{ $receipt->date->format('d F Y') }}</td>
+                        <td class="meta-value">{{ $receipt->tanggal_bayar->format('d F Y') }}</td>
                     </tr>
                     <tr>
                         <td class="meta-label">Receipt No</td>
-                        <td class="meta-value">{{ $receipt->receipt_number }}</td>
+                        <td class="meta-value">{{ $receipt->nomor_receipt }}</td>
                     </tr>
                     @if($receipt->nomor_po)
                     <tr>
@@ -208,10 +218,10 @@
                         <td class="meta-value">{{ $receipt->nomor_po }}</td>
                     </tr>
                     @endif
-                    @if($receipt->project_name)
+                    @if($receipt->nama_project)
                     <tr>
                         <td class="meta-label">Project</td>
-                        <td class="meta-value">{{ $receipt->project_name }}</td>
+                        <td class="meta-value">{{ $receipt->nama_project }}</td>
                     </tr>
                     @endif
                 </table>
@@ -230,26 +240,17 @@
             </tr>
         </thead>
         <tbody>
-            @forelse($receipt->items ?? [] as $i => $item)
-            <tr>
-                <td class="col-no">{{ $i + 1 }}</td>
-                <td class="col-desc">{{ $item->description ?? '' }}</td>
-                <td class="col-amount">Rp &nbsp;{{ number_format($item->amount, 0, ',', '.') }}</td>
-                <td class="col-remark" style="text-align:center;">{{ $item->remarks ?? '' }}</td>
-            </tr>
-            @empty
             @if($receipt->invoice)
             <tr>
                 <td class="col-no">1</td>
-                <td class="col-desc">Pembayaran Inv No. {{ $receipt->invoice->invoice_number }}</td>
-                <td class="col-amount">Rp &nbsp;{{ number_format($receipt->amount, 0, ',', '.') }}</td>
+                <td class="col-desc">Pembayaran Inv No. {{ $receipt->invoice->nomor_invoice }}</td>
+                <td class="col-amount">Rp &nbsp;{{ number_format($receipt->jumlah_bayar, 0, ',', '.') }}</td>
                 <td class="col-remark"></td>
             </tr>
             @endif
-            @endforelse
 
             {{-- baris kosong pengisi --}}
-            @php $filledRows = max(count($receipt->items ?? []), $receipt->invoice ? 1 : 0); @endphp
+            @php $filledRows = $receipt->invoice ? 1 : 0; @endphp
             @for($e = 0; $e < max(0, 4 - $filledRows); $e++)
             <tr class="empty-row">
                 <td></td><td></td><td></td><td></td>
@@ -257,21 +258,12 @@
             @endfor
         </tbody>
         <tfoot>
-            @if($receipt->discount > 0)
-            <tr class="total-row">
-                <td colspan="2" style="text-align:right;border:1px solid #aaa;">Diskon &nbsp;</td>
-                <td style="text-align:right;border:1px solid #aaa;">
-                    Rp &nbsp;{{ number_format($receipt->discount, 0, ',', '.') }}
-                </td>
-                <td style="border:1px solid #aaa;"></td>
-            </tr>
-            @endif
             <tr class="total-row">
                 <td colspan="2" style="text-align:right;font-weight:bold;border:1px solid #aaa;">
-                    {{ $receipt->discount > 0 ? 'Total Setelah Diskon' : '' }}
+                    Total Pembayaran
                 </td>
                 <td style="text-align:right;font-weight:bold;border:1px solid #aaa;">
-                    Rp &nbsp;{{ number_format($receipt->amount - $receipt->discount, 0, ',', '.') }}
+                    Rp &nbsp;{{ number_format($receipt->jumlah_bayar, 0, ',', '.') }}
                 </td>
                 <td style="border:1px solid #aaa;"></td>
             </tr>
@@ -327,8 +319,8 @@
     {{-- ═══ NOTES ═══ --}}
     <div class="footer-note">
         Ket :<br>
-        @if($receipt->notes)
-            {!! nl2br(e($receipt->notes)) !!}
+        @if($receipt->keterangan)
+            {!! nl2br(e($receipt->keterangan)) !!}
         @else
             Mohon diisi dan di tandatangani payment schedulnya, lalu dikirim kembali melalui :<br>
             Email : finance@stintegrator.com

@@ -22,6 +22,29 @@
 
 @section('content')
 
+{{-- Alert Error Validasi --}}
+@if ($errors->any())
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    <strong>Validasi Gagal!</strong>
+    <ul class="mb-0 mt-2">
+        @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+        @endforeach
+    </ul>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
+
+{{-- Alert Error Store --}}
+@if (session('error'))
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    {{ session('error') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
+
 <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
         <h4 class="fw-bold mb-1">{{ $isEdit ? 'Edit Tanda Terima' : 'Buat Tanda Terima Baru' }}</h4>
@@ -49,25 +72,24 @@
                     <div class="row g-3 mb-3">
                         <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">No. Tanda Terima <span class="text-danger">*</span></label>
-                            <input type="text" name="receipt_number"
-                                   class="form-control form-control-sm @error('receipt_number') is-invalid @enderror"
-                                   value="{{ old('receipt_number', $isEdit ? $receipt->receipt_number : $receiptNumber) }}" required>
-                            @error('receipt_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <input type="text" name="nomor_receipt"
+                                   class="form-control form-control-sm @error('nomor_receipt') is-invalid @enderror"
+                                   value="{{ old('nomor_receipt', $isEdit ? $receipt->nomor_receipt : $receiptNumber) }}" required>
+                            @error('nomor_receipt')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-12 col-sm-4">
-                            <label class="form-label fw-semibold" style="font-size:13px">Referensi Invoice</label>
-                            <select name="invoice_id" id="invoice_id" class="form-select form-select-sm"
-                                    data-url-template="{{ route('admin.receipts.invoice-data', ['invoice' => '__ID__']) }}">
-                                <option value="">-- Pilih Invoice (opsional) --</option>
+                            <label class="form-label fw-semibold" style="font-size:13px">Referensi Invoice <span class="text-danger">*</span></label>
+                            <select name="nomor_invoice" id="nomor_invoice" class="form-select form-select-sm @error('nomor_invoice') is-invalid @enderror"
+                                    data-url-template="{{ route('admin.receipts.invoice-data', ['invoice' => '__ID__']) }}" required>
+                                <option value="">-- Pilih Invoice --</option>
                                 @foreach($invoices as $inv)
-                                    <option value="{{ $inv->id }}"
-                                        {{ old('invoice_id', ($isEdit ? $receipt->invoice_id : '')) == $inv->id ? 'selected' : '' }}>
-                                        {{ $inv->invoice_number }} — {{ $inv->client_company }} (Rp {{ number_format($inv->total, 0, ',', '.') }})
+                                    <option value="{{ $inv->nomor_invoice }}"
+                                        {{ old('nomor_invoice', ($isEdit ? $receipt->nomor_invoice : '')) == $inv->nomor_invoice ? 'selected' : '' }}>
+                                        {{ $inv->nomor_invoice }} — {{ $inv->salesOrder->client->nama_perusahaan ?? '-' }} (Rp {{ number_format($inv->grandtotal, 0, ',', '.') }})
                                     </option>
                                 @endforeach
                             </select>
-                            <input type="hidden" name="invoice_number" id="invoice_number"
-                                   value="{{ old('invoice_number', $isEdit ? $receipt->invoice_number : '') }}">
+                            @error('nomor_invoice')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                          <div class="col-12 col-sm-4">
                              <label class="form-label fw-semibold" style="font-size:13px">Nomor PO</label>
@@ -77,78 +99,33 @@
                          </div>
                          <div class="col-12 col-sm-6">
                              <label class="form-label fw-semibold" style="font-size:13px">Nama Project</label>
-                             <input type="text" name="project_name" id="project_name" class="form-control form-control-sm"
-                                    value="{{ old('project_name', $isEdit ? $receipt->project_name : '') }}"
+                             <input type="text" name="nama_project" id="nama_project" class="form-control form-control-sm"
+                                    value="{{ old('nama_project', $isEdit ? $receipt->nama_project : '') }}"
                                     placeholder="Auto-load dari Invoice">
                          </div>
                          <div class="col-12 col-sm-6">
-                             <label class="form-label fw-semibold" style="font-size:13px">Status <span class="text-danger">*</span></label>
-                            <select name="status" class="form-select form-select-sm" required>
-                                @foreach(['draft'=>'Draft','confirmed'=>'Confirmed','cancelled'=>'Cancelled'] as $v=>$l)
-                                    <option value="{{ $v }}" {{ old('status', $isEdit ? $receipt->status : 'confirmed') === $v ? 'selected' : '' }}>{{ $l }}</option>
+                             <label class="form-label fw-semibold" style="font-size:13px">Metode Pembayaran <span class="text-danger">*</span></label>
+                            <select name="metode_bayar" class="form-select form-select-sm @error('metode_bayar') is-invalid @enderror" required>
+                                @foreach(['cash'=>'Cash / Tunai','transfer'=>'Transfer Bank','cheque'=>'Cek / Giro','other'=>'Lainnya'] as $v=>$l)
+                                    <option value="{{ $v }}" {{ old('metode_bayar', $isEdit ? $receipt->metode_bayar : 'transfer') === $v ? 'selected' : '' }}>{{ $l }}</option>
                                 @endforeach
                             </select>
+                            @error('metode_bayar')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>
                     <div class="row g-3 mb-4">
-                        <div class="col-12 col-sm-4">
-                            <label class="form-label fw-semibold" style="font-size:13px">Tanggal <span class="text-danger">*</span></label>
-                            <input type="date" name="date" class="form-control form-control-sm @error('date') is-invalid @enderror"
-                                   value="{{ old('date', $isEdit ? $receipt->date->format('Y-m-d') : now()->format('Y-m-d')) }}" required>
-                            @error('date')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                        <div class="col-12 col-sm-4">
-                            <label class="form-label fw-semibold" style="font-size:13px">Tanggal Bayar</label>
-                            <input type="date" name="payment_date" class="form-control form-control-sm"
-                                   value="{{ old('payment_date', $isEdit && $receipt->payment_date ? $receipt->payment_date->format('Y-m-d') : now()->format('Y-m-d')) }}">
-                        </div>
-                        <div class="col-12 col-sm-4">
-                            <label class="form-label fw-semibold" style="font-size:13px">Metode Pembayaran <span class="text-danger">*</span></label>
-                            <select name="payment_method" class="form-select form-select-sm" required>
-                                @foreach(['cash'=>'Cash / Tunai','transfer'=>'Transfer Bank','cheque'=>'Cek / Giro','other'=>'Lainnya'] as $v=>$l)
-                                    <option value="{{ $v }}" {{ old('payment_method', $isEdit ? $receipt->payment_method : 'transfer') === $v ? 'selected' : '' }}>{{ $l }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="row g-3 mb-3">
                         <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold" style="font-size:13px">No. Referensi Pembayaran</label>
-                            <input type="text" name="payment_reference" class="form-control form-control-sm"
-                                   value="{{ old('payment_reference', $isEdit ? $receipt->payment_reference : '') }}"
-                                   placeholder="No. referensi dari bank (opsional)">
-                        </div>
-                    </div>
-
-                    <div class="section-label">Info Klien</div>
-                    <div class="row g-3 mb-3">
-                        <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold" style="font-size:13px">Perusahaan</label>
-                            <input type="text" name="client_company" id="client_company" class="form-control form-control-sm"
-                                   value="{{ old('client_company', $isEdit ? $receipt->client_company : '') }}">
-                        </div>
-                        <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold" style="font-size:13px">Nama Kontak</label>
-                            <input type="text" name="client_name" id="client_name" class="form-control form-control-sm"
-                                   value="{{ old('client_name', $isEdit ? $receipt->client_name : '') }}">
-                        </div>
-                        <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold" style="font-size:13px">Attn</label>
-                            <input type="text" name="client_attention" id="client_attention" class="form-control form-control-sm"
-                                   value="{{ old('client_attention', $isEdit ? $receipt->client_attention : '') }}">
-                        </div>
-                        <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold" style="font-size:13px">Email</label>
-                            <input type="email" name="client_email" id="client_email" class="form-control form-control-sm"
-                                   value="{{ old('client_email', $isEdit ? $receipt->client_email : '') }}">
+                            <label class="form-label fw-semibold" style="font-size:13px">Tanggal Bayar <span class="text-danger">*</span></label>
+                            <input type="date" name="tanggal_bayar" class="form-control form-control-sm @error('tanggal_bayar') is-invalid @enderror"
+                                   value="{{ old('tanggal_bayar', $isEdit ? $receipt->tanggal_bayar->format('Y-m-d') : now()->format('Y-m-d')) }}" required>
+                            @error('tanggal_bayar')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-semibold" style="font-size:13px">Deskripsi</label>
-                        <textarea name="description" class="form-control form-control-sm" rows="2"
-                                  placeholder="Keterangan pembayaran...">{{ old('description', $isEdit ? $receipt->description : '') }}</textarea>
+                        <label class="form-label fw-semibold" style="font-size:13px">Keterangan</label>
+                        <textarea name="keterangan" class="form-control form-control-sm" rows="2"
+                                  placeholder="Keterangan pembayaran...">{{ old('keterangan', $isEdit ? $receipt->keterangan : '') }}</textarea>
                     </div>
                 </div>
             </div>
@@ -165,41 +142,19 @@
                 <div class="card-body text-center">
                     <div class="amount-display" id="display-amount">Rp 0</div>
                     <div class="mt-3">
-                        <label class="form-label fw-semibold" style="font-size:13px">Jumlah <span class="text-danger">*</span></label>
-                        <input type="number" name="amount" id="input-amount"
-                               class="form-control form-control-lg text-center fw-bold"
+                        <label class="form-label fw-semibold" style="font-size:13px">Jumlah Bayar <span class="text-danger">*</span></label>
+                        <input type="number" name="jumlah_bayar" id="input-jumlah_bayar"
+                               class="form-control form-control-lg text-center fw-bold @error('jumlah_bayar') is-invalid @enderror"
                                style="font-family:monospace;font-size:20px;color:#1B5DBC;"
-                               value="{{ old('amount', $isEdit ? $receipt->amount : 0) }}" min="0" step="any" required
+                               value="{{ old('jumlah_bayar', $isEdit ? $receipt->jumlah_bayar : 0) }}" min="0" step="any" required
                                oninput="document.getElementById('display-amount').textContent = 'Rp ' + (parseFloat(this.value) || 0).toLocaleString('id-ID', {minimumFractionDigits:0, maximumFractionDigits:2})">
-                    </div>
-                    <div class="mt-3">
-                        <label class="form-label fw-semibold" style="font-size:13px">Diskon</label>
-                        <div class="input-group">
-                            <div class="input-group-text" style="background:#f1f5f9;font-size:13px;">Rp</div>
-                            <input type="text" id="discount-display"
-                                   class="form-control form-control-sm text-center"
-                                   style="font-family:monospace;"
-                                   placeholder="0"
-                                   oninput="formatNumberInput(this, 'input-discount')">
-                            <input type="hidden" name="discount" id="input-discount"
-                                   value="{{ old('discount', $isEdit ? $receipt->discount : 0) }}">
-                        </div>
+                        @error('jumlah_bayar')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="mt-3 text-start" style="font-size:12px;color:#94a3b8;" id="invoice-info">
                         @if($isEdit && $receipt->invoice)
-                        Invoice: {{ $receipt->invoice->invoice_number }} — Total: Rp {{ number_format($receipt->invoice->total, 0, ',', '.') }}
+                        Invoice: {{ $receipt->invoice->nomor_invoice }} — Total: Rp {{ number_format($receipt->invoice->grandtotal, 0, ',', '.') }}
                         @endif
                     </div>
-                </div>
-            </div>
-
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom py-3">
-                    <span class="fw-semibold">Catatan</span>
-                </div>
-                <div class="card-body">
-                    <textarea name="notes" class="form-control form-control-sm" rows="4"
-                              placeholder="Catatan internal...">{{ old('notes', $isEdit ? $receipt->notes : '') }}</textarea>
                 </div>
             </div>
 
@@ -219,57 +174,41 @@
 
 @push('scripts')
 <script>
-// Number formatting helper
-function formatNumberInput(el, hiddenId) {
-    let val = el.value.replace(/[^0-9]/g, '');
-    if (val === '') val = '0';
-    document.getElementById(hiddenId).value = parseFloat(val);
-    el.value = parseFloat(val).toLocaleString('id-ID');
-}
-
-/* ══ Format discount initial value ═══════════════════ */
-document.addEventListener('DOMContentLoaded', () => {
-    const discountEl = document.getElementById('input-discount');
-    const discountDisplayEl = document.getElementById('discount-display');
-    if (discountEl && discountDisplayEl) {
-        discountDisplayEl.value = parseFloat(discountEl.value || 0).toLocaleString('id-ID');
-    }
-});
-
 /* ══ Auto-load from Invoice via AJAX ═══════════════════ */
-        document.getElementById('invoice_id')?.addEventListener('change', async function() {
-    const opt = this.options[this.selectedIndex];
-    if (!opt.value) return;
+document.addEventListener('DOMContentLoaded', function() {
+    const invoiceSelect = document.getElementById('nomor_invoice');
+    if (!invoiceSelect) return;
+    
+    invoiceSelect.addEventListener('change', async function() {
+        const opt = this.options[this.selectedIndex];
+        if (!opt.value) return;
 
-    const url = this.dataset.urlTemplate.replace('__ID__', opt.value);
+        const url = this.dataset.urlTemplate.replace('__ID__', opt.value);
 
-    try {
-        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-        if (!res.ok) throw new Error('Failed to load invoice data');
-        const data = await res.json();
+        try {
+            const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+            if (!res.ok) throw new Error('Failed to load invoice data');
+            const data = await res.json();
 
-        document.getElementById('invoice_number').value   = data.invoice_number || '';
-        document.getElementById('nomor_po').value         = data.nomor_po || '';
-        document.getElementById('project_name').value     = data.project_name || '';
-        document.getElementById('client_name').value      = data.client_name || '';
-        document.getElementById('client_company').value   = data.client_company || '';
-        document.getElementById('client_attention').value = data.client_attention || '';
-        document.getElementById('client_email').value     = data.client_email || '';
+            document.getElementById('nomor_po').value         = data.nomor_po || '';
+            document.getElementById('nama_project').value     = data.nama_project || '';
 
-        document.getElementById('invoice-info').innerHTML =
-            'Invoice: ' + (data.invoice_number || '-') +
-            ' — Total: Rp ' + (data.total || 0).toLocaleString('id-ID', {minimumFractionDigits:0, maximumFractionDigits:2}) +
-            ' | Terbayar: Rp ' + (data.paid_amount || 0).toLocaleString('id-ID', {minimumFractionDigits:0, maximumFractionDigits:2});
+            document.getElementById('invoice-info').innerHTML =
+                'Invoice: ' + (data.nomor_invoice || '-') +
+                ' — Total: Rp ' + (data.total || 0).toLocaleString('id-ID', {minimumFractionDigits:0, maximumFractionDigits:2}) +
+                ' | Terbayar: Rp ' + (data.paid_amount || 0).toLocaleString('id-ID', {minimumFractionDigits:0, maximumFractionDigits:2});
 
-        // Suggest remaining amount
-        const remaining = (data.total || 0) - (data.paid_amount || 0);
-        if (remaining > 0) {
-            document.getElementById('input-amount').value = remaining;
-            document.getElementById('display-amount').textContent = 'Rp ' + remaining.toLocaleString('id-ID', {minimumFractionDigits:0, maximumFractionDigits:2});
+            // Suggest remaining amount
+            const remaining = (data.total || 0) - (data.paid_amount || 0);
+            if (remaining > 0) {
+                document.getElementById('input-jumlah_bayar').value = remaining;
+                document.getElementById('display-amount').textContent = 'Rp ' + remaining.toLocaleString('id-ID', {minimumFractionDigits:0, maximumFractionDigits:2});
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Gagal memuat data Invoice. Silakan coba lagi.');
         }
-    } catch (err) {
-        console.error(err);
-    }
+    });
 });
 </script>
 @endpush

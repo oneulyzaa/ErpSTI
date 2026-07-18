@@ -13,19 +13,17 @@ class ReceiptController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Receipt::latest();
+        // Load relasi invoice -> salesOrder -> client untuk mendapatkan data perusahaan
+        $query = Receipt::with('invoice.salesOrder.client')->latest();
 
         if ($request->filled('search')) {
             $s = $request->search;
             $query->where(function ($q) use ($s) {
-                $q->where('receipt_number', 'like', "%$s%")
-                    ->orWhere('client_name', 'like', "%$s%")
-                    ->orWhere('client_company', 'like', "%$s%")
-                    ->orWhere('invoice_number', 'like', "%$s%");
+                $q->where('nomor_receipt', 'like', "%$s%")
+                    ->orWhere('nama_project', 'like', "%$s%")
+                    ->orWhere('nomor_invoice', 'like', "%$s%")
+                    ->orWhere('nomor_po', 'like', "%$s%");
             });
-        }
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
         }
 
         $receipts = $query->paginate(15)->withQueryString();
@@ -35,57 +33,45 @@ class ReceiptController extends Controller
     public function create()
     {
         $receiptNumber = Receipt::generateReceiptNumber();
-        $invoices = Invoice::whereIn('status', ['sent', 'paid', 'overdue'])->latest()->get();
+        $invoices = Invoice::whereIn('status_pembayaran', ['sent', 'paid', 'overdue'])->latest()->get();
         $clients = ClientModel::all();
         return view('admin.receipts.create', compact('receiptNumber', 'invoices', 'clients'));
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'receipt_number' => 'required|string|unique:receipts,receipt_number',
-            'invoice_id' => 'nullable|exists:invoices,id',
-            'invoice_number' => 'nullable|string|max:255',
-            'nomor_po' => 'nullable|string|max:255',
-            'project_name' => 'nullable|string|max:255',
-            'date' => 'required|date',
-            'payment_date' => 'nullable|date',
-            'client_name' => 'nullable|string|max:255',
-            'client_company' => 'nullable|string|max:255',
-            'client_attention' => 'nullable|string|max:255',
-            'client_email' => 'nullable|email|max:255',
-            'description' => 'nullable|string',
-            'amount' => 'required|numeric|min:0',
-            'subtotal_other_cost' => 'nullable|numeric|min:0',
-            'discount' => 'nullable|numeric|min:0',
-            'payment_method' => 'required|in:cash,transfer,cheque,other',
-            'payment_reference' => 'nullable|string|max:255',
-            'status' => 'required|in:draft,confirmed,cancelled',
-            'notes' => 'nullable|string',
-            'other_costs' => 'nullable|array',
-            'other_costs.*.cost_name' => 'required_with:other_costs|string|max:255',
-            'other_costs.*.qty' => 'required_with:other_costs|numeric|min:0',
-            'other_costs.*.rate' => 'required_with:other_costs|numeric|min:0',
-        ]);
+        try {
+            $validated = $request->validate([
+                'nomor_receipt' => 'required|string|unique:receipts,nomor_receipt',
+                'nomor_invoice' => 'required|exists:invoices,nomor_invoice',
+                'nomor_po' => 'nullable|string|max:255',
+                'nama_project' => 'nullable|string|max:255',
+                'tanggal_bayar' => 'required|date',
+                'metode_bayar' => 'required|in:cash,transfer,cheque,other',
+                'jumlah_bayar' => 'required|numeric|min:0',
+                'keterangan' => 'nullable|string',
+            ]);
 
-        $receipt = Receipt::create($validated);
-        
-        if ($request->filled('other_costs')) {
-            $receipt->setOtherCosts($request->other_costs);
-            $receipt->save();
+            Receipt::create($validated);
+
+            return redirect()->route('admin.receipts.index')
+                ->with('success', 'Tanda Terima berhasil dibuat.');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()
+                ->withErrors($e->validator)
+                ->withInput();
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error creating receipt: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Gagal menyimpan Tanda Terima: ' . $e->getMessage());
         }
-
-        if ($receipt->invoice_id && $receipt->status === 'confirmed') {
-            $this->checkInvoicePaidStatus($receipt->invoice_id);
-        }
-
-        return redirect()->route('admin.receipts.index')
-            ->with('success', 'Tanda Terima berhasil dibuat.');
     }
 
     public function pdf(Receipt $receipt)
     {
-        $receipt->load('invoice');
+        $receipt->load('invoice.salesOrder.client');
 
         $logoPath = public_path('assets/gambar/logo-sti.png');
         $logoBase64 = '';
@@ -98,65 +84,52 @@ class ReceiptController extends Controller
             ->setOption('isHtml5ParserEnabled', true)
             ->setOption('isRemoteEnabled', false);
 
-        $filename = 'TandaTerima-' . $receipt->receipt_number . '.pdf';
+        $filename = 'TandaTerima-' . $receipt->nomor_receipt . '.pdf';
         return $pdf->stream($filename);
     }
 
     public function show(Receipt $receipt)
     {
-        $receipt->load('invoice');
+        $receipt->load('invoice.salesOrder.client');
         return view('admin.receipts.show', compact('receipt'));
     }
 
     public function edit(Receipt $receipt)
     {
-        $receiptNumber = $receipt->receipt_number;
-        $invoices = Invoice::whereIn('status', ['sent', 'paid', 'overdue'])->latest()->get();
-        $clients = ClientModel::all();
-        return view('admin.receipts.edit', compact('receipt', 'receiptNumber', 'invoices', 'clients'));
+        $receiptNumber = $receipt->nomor_receipt;
+        $invoices = Invoice::latest()->get();
+        return view('admin.receipts.edit', compact('receipt', 'receiptNumber', 'invoices'));
     }
 
     public function update(Request $request, Receipt $receipt)
     {
-        $validated = $request->validate([
-            'receipt_number' => 'required|string|unique:receipts,receipt_number,' . $receipt->id,
-            'invoice_id' => 'nullable|exists:invoices,id',
-            'invoice_number' => 'nullable|string|max:255',
-            'nomor_po' => 'nullable|string|max:255',
-            'project_name' => 'nullable|string|max:255',
-            'date' => 'required|date',
-            'payment_date' => 'nullable|date',
-            'client_name' => 'nullable|string|max:255',
-            'client_company' => 'nullable|string|max:255',
-            'client_attention' => 'nullable|string|max:255',
-            'client_email' => 'nullable|email|max:255',
-            'description' => 'nullable|string',
-            'amount' => 'required|numeric|min:0',
-            'subtotal_other_cost' => 'nullable|numeric|min:0',
-            'discount' => 'nullable|numeric|min:0',
-            'payment_method' => 'required|in:cash,transfer,cheque,other',
-            'payment_reference' => 'nullable|string|max:255',
-            'status' => 'required|in:draft,confirmed,cancelled',
-            'notes' => 'nullable|string',
-            'other_costs' => 'nullable|array',
-            'other_costs.*.cost_name' => 'required_with:other_costs|string|max:255',
-            'other_costs.*.qty' => 'required_with:other_costs|numeric|min:0',
-            'other_costs.*.rate' => 'required_with:other_costs|numeric|min:0',
-        ]);
+        try {
+            $validated = $request->validate([
+                'nomor_receipt' => 'required|string|unique:receipts,nomor_receipt,' . $receipt->nomor_receipt . ',nomor_receipt',
+                'nomor_invoice' => 'required|exists:invoices,nomor_invoice',
+                'nomor_po' => 'nullable|string|max:255',
+                'nama_project' => 'nullable|string|max:255',
+                'tanggal_bayar' => 'required|date',
+                'metode_bayar' => 'required|in:cash,transfer,cheque,other',
+                'jumlah_bayar' => 'required|numeric|min:0',
+                'keterangan' => 'nullable|string',
+            ]);
 
-        $receipt->update($validated);
-        
-        if ($request->filled('other_costs')) {
-            $receipt->setOtherCosts($request->other_costs);
-            $receipt->save();
+            $receipt->update($validated);
+
+            return redirect()->route('admin.receipts.show', $receipt)
+                ->with('success', 'Tanda Terima berhasil diperbarui.');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()
+                ->withErrors($e->validator)
+                ->withInput();
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error updating receipt: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Gagal memperbarui Tanda Terima: ' . $e->getMessage());
         }
-
-        if ($receipt->invoice_id) {
-            $this->checkInvoicePaidStatus($receipt->invoice_id);
-        }
-
-        return redirect()->route('admin.receipts.show', $receipt)
-            ->with('success', 'Tanda Terima berhasil diperbarui.');
     }
 
     public function destroy(Receipt $receipt)
@@ -168,16 +141,18 @@ class ReceiptController extends Controller
 
     public function getInvoiceData(Invoice $invoice)
     {
-         return response()->json([
-             'invoice_number' => $invoice->invoice_number,
-             'nomor_po' => $invoice->nomor_po,
-             'project_name' => $invoice->project_name,
-             'client_name' => $invoice->client_name,
-             'client_company' => $invoice->client_company,
-            'client_attention' => $invoice->client_attention,
-            'client_email' => $invoice->client_email,
-            'total' => $invoice->total,
-            'paid_amount' => $invoice->receipts()->where('status', 'confirmed')->sum('amount'),
+        $invoice->load('salesOrder.client');
+        $client = $invoice->salesOrder->client ?? null;
+
+        return response()->json([
+            'nomor_invoice' => $invoice->nomor_invoice,
+            'nomor_po' => $invoice->nomor_po ?? $invoice->salesOrder->nomor_po ?? '',
+            'nama_project' => $invoice->nama_project ?? $invoice->salesOrder->nama_project ?? '',
+            'client_name' => $client->nama_kontak ?? '',
+            'client_company' => $client->nama_perusahaan ?? '',
+            'client_email' => $client->email_perusahaan ?? '',
+            'total' => $invoice->grandtotal,
+            'paid_amount' => $invoice->receipts()->sum('jumlah_bayar'),
         ]);
     }
 
@@ -191,15 +166,5 @@ class ReceiptController extends Controller
         ]);
     }
 
-    private function checkInvoicePaidStatus(int $invoiceId): void
-    {
-        $invoice = Invoice::find($invoiceId);
-        if (!$invoice)
-            return;
-
-        $totalPaid = $invoice->receipts()->where('status', 'confirmed')->sum('amount');
-        if ($totalPaid >= $invoice->total) {
-            $invoice->update(['status' => 'paid']);
-        }
-    }
+    // Method removed - invoice paid status is calculated dynamically
 }
