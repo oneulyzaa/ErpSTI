@@ -167,7 +167,7 @@
                         <div class="col-12 col-sm-6">
                             <label class="form-label fw-semibold" style="font-size:13px">Tanggal Pengiriman</label>
                             <input type="date" name="tanggal_pengiriman" class="form-control form-control-sm"
-                                   value="{{ old('tanggal_pengiriman', $isEdit && $deliveryOrder->tanggal_pengiriman ? $deliveryOrder->tanggal_pengiriman->format('Y-m-d') : '') }}">
+                                   value="{{ old('tanggal_pengiriman', $isEdit && $deliveryOrder->tanggal_pengiriman ? $deliveryOrder->tanggal_pengiriman->format('Y-m-d') : now()->addDays(2)->format('Y-m-d')) }}">
                         </div>
                     </div>
 

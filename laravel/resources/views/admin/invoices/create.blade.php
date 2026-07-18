@@ -3,15 +3,14 @@
 @php
     $isEdit        = isset($invoice);
     $action        = $isEdit ? route('admin.invoices.update', $invoice) : route('admin.invoices.store');
-    // Untuk edit mode, kita tidak lagi menyimpan detail items/labors/otherCosts
-    // Hanya nilai agregat yang disimpan di tabel invoices
-    $oldItems      = [];
-    $oldLabors     = [];
-    $oldOtherCosts = [];
+    // Untuk edit mode, gunakan data dari controller (jika ada) atau fallback ke array kosong
+    $oldItems      = $oldItems ?? [];
+    $oldLabors     = $oldLabors ?? [];
+    $oldOtherCosts = $oldOtherCosts ?? [];
     // Nilai agregat default untuk edit mode (fallback ketika tidak ada detail items)
-    $defaultSubtotal = $isEdit && $invoice->subtotal ? $invoice->subtotal : 0;
+    $defaultSubtotal = $isEdit && $invoice->subtotal_produksi ? $invoice->subtotal_produksi : 0;
     $defaultSubtotalLabor = $isEdit && $invoice->subtotal_labor ? $invoice->subtotal_labor : 0;
-    $defaultSubtotalOther = $isEdit && $invoice->subtotal_other_cost ? $invoice->subtotal_other_cost : 0;
+    $defaultSubtotalOther = $isEdit && $invoice->subtotal_lainlain ? $invoice->subtotal_lainlain : 0;
 @endphp
 
 @section('title', $isEdit ? 'Edit Invoice' : 'Buat Invoice Baru')
@@ -83,6 +82,29 @@
 
 @section('content')
 
+{{-- Alert Error Validasi --}}
+@if ($errors->any())
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    <strong>Validasi Gagal!</strong>
+    <ul class="mb-0 mt-2">
+        @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+        @endforeach
+    </ul>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
+
+{{-- Alert Error Store --}}
+@if (session('error'))
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+    {{ session('error') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+@endif
+
 <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
         <h4 class="fw-bold mb-1">{{ $isEdit ? 'Edit Invoice' : 'Buat Invoice Baru' }}</h4>
@@ -111,60 +133,61 @@
                     <div class="row g-3 mb-3">
                         <div class="col-12 col-sm-4">
                             <label class="form-label fw-semibold" style="font-size:13px">No. Invoice <span class="text-danger">*</span></label>
-                            <input type="text" name="invoice_number"
-                                   class="form-control form-control-sm @error('invoice_number') is-invalid @enderror"
-                                   value="{{ old('invoice_number', $isEdit ? $invoice->invoice_number : $invoiceNumber) }}" required>
-                            @error('invoice_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <input type="text" name="nomor_invoice"
+                                   class="form-control form-control-sm @error('nomor_invoice') is-invalid @enderror"
+                                   value="{{ old('nomor_invoice', $isEdit ? $invoice->nomor_invoice : $invoiceNumber) }}" required>
+                            @error('nomor_invoice')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-12 col-sm-4">
-                            <label class="form-label fw-semibold" style="font-size:13px">Referensi Sales Order</label>
-                            <select name="sales_order_id" id="sales_order_id" class="form-select form-select-sm"
-                                    data-url-template="{{ route('admin.invoices.so-data', ['salesOrder' => '__ID__']) }}">
-                                <option value="">-- Pilih SO (opsional) --</option>
+                            <label class="form-label fw-semibold" style="font-size:13px">Referensi Sales Order <span class="text-danger">*</span></label>
+                            <select name="nomor_salesorder" id="nomor_salesorder" class="form-select form-select-sm @error('nomor_salesorder') is-invalid @enderror"
+                                    data-url-template="{{ route('admin.invoices.so-data', ['salesOrder' => '__ID__']) }}" required>
+                                <option value="">-- Pilih SO --</option>
                                 @foreach($salesOrders as $so)
-                                    <option value="{{ $so->id }}"
-                                        {{ old('sales_order_id', ($isEdit ? $invoice->sales_order_id : '')) == $so->id ? 'selected' : '' }}>
-                                        {{ $so->so_number }} — {{ $so->client_company }}
+                                    <option value="{{ $so->nomor_salesorder }}"
+                                        {{ old('nomor_salesorder', ($isEdit ? $invoice->nomor_salesorder : '')) == $so->nomor_salesorder ? 'selected' : '' }}>
+                                        {{ $so->nomor_salesorder }} — {{ $so->client->nama_perusahaan ?? '-' }}
                                     </option>
                                 @endforeach
                             </select>
-                            <input type="hidden" name="so_number" id="so_number"
-                                   value="{{ old('so_number', $isEdit ? $invoice->so_number : '') }}">
+                            @error('nomor_salesorder')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                          <div class="col-12 col-sm-4">
-                             <label class="form-label fw-semibold" style="font-size:13px">Nomor PO</label>
-                             <input type="text" name="nomor_po" id="nomor_po" class="form-control form-control-sm"
-                                    value="{{ old('nomor_po', $isEdit ? $invoice->nomor_po : '') }}"
+                             <label class="form-label fw-semibold" style="font-size:13px">Referensi PO</label>
+                             <input type="text" name="referensi_po" id="referensi_po" class="form-control form-control-sm"
+                                    value="{{ old('referensi_po', $isEdit ? $invoice->referensi_po : '') }}"
                                     placeholder="Auto-load dari SO">
                          </div>
                      </div>
                      <div class="row g-3 mb-3">
                          <div class="col-12 col-sm-6">
                              <label class="form-label fw-semibold" style="font-size:13px">Nama Project</label>
-                             <input type="text" name="project_name" id="project_name" class="form-control form-control-sm"
-                                    value="{{ old('project_name', $isEdit ? $invoice->project_name : '') }}"
+                             <input type="text" name="nama_project" id="nama_project" class="form-control form-control-sm"
+                                    value="{{ old('nama_project', $isEdit ? $invoice->nama_project : '') }}"
                                     placeholder="Auto-load dari SO">
                          </div>
                          <div class="col-12 col-sm-6">
-                            <label class="form-label fw-semibold" style="font-size:13px">Status <span class="text-danger">*</span></label>
-                            <select name="status" class="form-select form-select-sm" required>
+                            <label class="form-label fw-semibold" style="font-size:13px">Status Pembayaran <span class="text-danger">*</span></label>
+                            <select name="status_pembayaran" class="form-select form-select-sm @error('status_pembayaran') is-invalid @enderror" required>
                                 @foreach(['draft'=>'Draft','sent'=>'Sent','paid'=>'Paid','overdue'=>'Overdue','cancelled'=>'Cancelled'] as $v=>$l)
-                                    <option value="{{ $v }}" {{ old('status', $isEdit ? $invoice->status : 'draft') === $v ? 'selected' : '' }}>{{ $l }}</option>
+                                    <option value="{{ $v }}" {{ old('status_pembayaran', $isEdit ? $invoice->status_pembayaran : 'draft') === $v ? 'selected' : '' }}>{{ $l }}</option>
                                 @endforeach
                             </select>
+                            @error('status_pembayaran')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>
                     <div class="row g-3 mb-4">
                         <div class="col-12 col-sm-6">
                             <label class="form-label fw-semibold" style="font-size:13px">Tanggal Invoice <span class="text-danger">*</span></label>
-                            <input type="date" name="date" class="form-control form-control-sm @error('date') is-invalid @enderror"
-                                   value="{{ old('date', $isEdit ? $invoice->date->format('Y-m-d') : now()->format('Y-m-d')) }}" required>
-                            @error('date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <input type="date" name="tanggal_invoice" class="form-control form-control-sm @error('tanggal_invoice') is-invalid @enderror"
+                                   value="{{ old('tanggal_invoice', $isEdit ? $invoice->tanggal_invoice->format('Y-m-d') : now()->format('Y-m-d')) }}" required>
+                            @error('tanggal_invoice')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                         <div class="col-12 col-sm-6">
                             <label class="form-label fw-semibold" style="font-size:13px">Jatuh Tempo</label>
-                            <input type="date" name="due_date" class="form-control form-control-sm"
-                                   value="{{ old('due_date', $isEdit && $invoice->due_date ? $invoice->due_date->format('Y-m-d') : '') }}">
+                            <input type="date" name="jatuh_tempo" class="form-control form-control-sm"
+                                   value="{{ old('jatuh_tempo', $isEdit && $invoice->jatuh_tempo ? 
+                                   $invoice->jatuh_tempo->format('Y-m-d') : now()->addDays(30)->format('Y-m-d')) }}">
                         </div>
                     </div>
 
@@ -272,7 +295,7 @@
 
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-bottom py-3">
-                    <span class="fw-semibold">Ringkasan Keuangan</span>
+                    <span class="fw-semibold">Ringkasan</span>
                 </div>
                 <div class="card-body">
                     {{-- Total (subtotal produksi + labor + biaya lain-lain) --}}
@@ -292,7 +315,7 @@
                                        style="text-align:right;"
                                        oninput="formatNumberInput(this, 'discount')">
                                 <input type="hidden" name="discount" id="discount"
-                                       value="{{ old('discount', $isEdit ? $invoice->discount : 0) }}">
+                                       value="{{ old('discount', $isEdit ? $invoice->diskon : 0) }}">
                             </div>
                         </div>
                         <span class="summary-val mt-4" id="sum-discount">Rp 0</span>
@@ -310,7 +333,7 @@
                             <div style="font-size:13px;margin-bottom:4px;">PPN (%)</div>
                             <input type="number" name="tax_percentage" id="tax_percentage"
                                    class="form-control form-control-sm" min="0" max="100" step="0.01"
-                                   value="{{ old('tax_percentage', $isEdit ? $invoice->tax_percentage : 11) }}"
+                                   value="{{ old('tax_percentage', $isEdit ? $invoice->pajak : 11) }}"
                                    style="width:80px;">
                         </div>
                         <span class="summary-val mt-4" id="sum-tax">Rp 0</span>
@@ -324,12 +347,13 @@
 
                     {{-- Hidden fields untuk dikirim ke server --}}
                     {{-- Note: discount sudah dikirim oleh input id="discount" di atas, jadi tidak perlu di sini --}}
-                    <input type="hidden" name="subtotal"            id="h-mat">
+                    <input type="hidden" name="subtotal_produksi"   id="h-mat">
+                    <input type="hidden" name="subtotal_material"   id="h-mat2">
                     <input type="hidden" name="subtotal_labor"      id="h-lab">
-                    <input type="hidden" name="subtotal_other_cost" id="h-oth">
+                    <input type="hidden" name="subtotal_lainlain"   id="h-oth">
                     <input type="hidden" name="dpp"                 id="h-dpp">
-                    <input type="hidden" name="tax_amount"          id="h-tax">
-                    <input type="hidden" name="total"               id="h-total">
+                    <input type="hidden" name="pajak"               id="h-tax">
+                    <input type="hidden" name="grandtotal"          id="h-total">
                 </div>
             </div>
 
@@ -348,8 +372,8 @@
                     <span class="fw-semibold">Catatan</span>
                 </div>
                 <div class="card-body">
-                    <textarea name="notes" class="form-control form-control-sm" rows="4"
-                              placeholder="Catatan internal...">{{ old('notes', $isEdit ? $invoice->notes : '') }}</textarea>
+                    <textarea name="keterangan" class="form-control form-control-sm" rows="4"
+                              placeholder="Catatan internal...">{{ old('keterangan', $isEdit ? $invoice->keterangan : '') }}</textarea>
                 </div>
             </div>
 
@@ -383,9 +407,38 @@ const fmt = n => 'Rp ' + Math.round(n).toLocaleString('id-ID');
 const esc = s => String(s ?? '').replace(/"/g,'"').replace(/</g,'<');
 
 /* ══ Auto-load from Sales Order via AJAX ═══════════════════ */
-document.getElementById('sales_order_id')?.addEventListener('change', async function() {
+document.getElementById('nomor_salesorder')?.addEventListener('change', async function() {
     const opt = this.options[this.selectedIndex];
-    if (!opt.value) return;
+    if (!opt.value) {
+        // Clear fields when no SO selected
+        document.getElementById('referensi_po').value = '';
+        document.getElementById('nama_project').value = '';
+        document.getElementById('client_name').value = '';
+        document.getElementById('client_company').value = '';
+        document.getElementById('client_attention').value = '';
+        document.getElementById('client_cc').value = '';
+        document.getElementById('client_email').value = '';
+        document.getElementById('client_address').value = '';
+        document.getElementById('description').value = '';
+        
+        // Clear discount
+        const discountEl = document.getElementById('discount');
+        const discountDisplayEl = document.getElementById('discount-display');
+        if (discountEl && discountDisplayEl) {
+            discountEl.value = 0;
+            discountDisplayEl.value = '0';
+        }
+        
+        // Clear items, labors, other costs
+        document.getElementById('items-container').innerHTML = '';
+        document.getElementById('labors-tbody').innerHTML = '';
+        document.getElementById('other-costs-tbody').innerHTML = '';
+        iIdx = 0; lIdx = 0; oIdx = 0;
+        mIdx = {};
+        
+        recalc();
+        return;
+    }
 
     const url = this.dataset.urlTemplate.replace('__ID__', opt.value);
 
@@ -394,9 +447,11 @@ document.getElementById('sales_order_id')?.addEventListener('change', async func
         if (!res.ok) throw new Error('Failed to load SO data');
         const data = await res.json();
 
-        document.getElementById('so_number').value          = data.so_number || '';
-        document.getElementById('nomor_po').value           = data.nomor_po || '';
-        document.getElementById('project_name').value       = data.project_name || '';
+        console.log('SO data loaded:', data);
+
+        // Fill info fields
+        document.getElementById('referensi_po').value       = data.nomor_po || '';
+        document.getElementById('nama_project').value       = data.project_name || '';
 
         const discountEl = document.getElementById('discount');
         const discountDisplayEl = document.getElementById('discount-display');
@@ -405,6 +460,7 @@ document.getElementById('sales_order_id')?.addEventListener('change', async func
             discountDisplayEl.value = parseFloat(data.discount || 0).toLocaleString('id-ID');
         }
 
+        // Fill client info from SO data
         document.getElementById('client_name').value        = data.client_name || '';
         document.getElementById('client_company').value     = data.client_company || '';
         document.getElementById('client_attention').value   = data.client_attention || '';
@@ -419,7 +475,7 @@ document.getElementById('sales_order_id')?.addEventListener('change', async func
         mIdx = {};
         if (data.items && data.items.length) {
             data.items.forEach(it => addProductCard({
-                item_name: it.item_name ?? '',
+                item_name: it.item_name ?? it.material_name ?? '',
                 description: it.description ?? '',
                 unit: it.unit ?? 'Unit',
                 qty: it.qty ?? 1,
@@ -800,10 +856,11 @@ function recalc() {
     // Update hidden fields untuk dikirim ke server
     // Note: discount sudah dikirim oleh input id="discount", jadi tidak perlu h-discount
     document.getElementById('h-mat').value      = mat.toFixed(2);
+    document.getElementById('h-mat2').value     = '0'; // subtotal_material terpisah (tidak digunakan)
     document.getElementById('h-lab').value      = lab.toFixed(2);
     document.getElementById('h-oth').value      = oth.toFixed(2);
     document.getElementById('h-dpp').value      = dpp.toFixed(2);
-    document.getElementById('h-tax').value      = tax.toFixed(2);
+    document.getElementById('h-tax').value      = taxPct.toFixed(2); // tax_percentage, bukan nominal pajak
     document.getElementById('h-total').value    = Math.max(total, 0).toFixed(2);
 }
 

@@ -1,10 +1,10 @@
-{{-- invoice/pdf.blade.php --}}
+{{-- invoice/pdf-c.blade.php --}}
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Invoice {{ $invoice->invoice_number }}</title>
+    <title>Invoice {{ $invoice->nomor_invoice }}</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -60,7 +60,6 @@
         .meta-value {
             background: #fff;
             min-width: 130px;
-            /* font-family: 'DejaVu Sans Mono', monospace; */
         }
 
         /* ── STATUS BADGES ── */
@@ -73,11 +72,8 @@
             text-transform: uppercase;
             letter-spacing: .5px;
         }
-        /* draft + sent + overdue → Unpaid (amber) */
         .status-unpaid    { background: #fff8e6; color: #a06000; border: 0.5px solid #f0c040; }
-        /* paid → hijau */
         .status-paid      { background: #edf7ed; color: #1e6e2e; border: 0.5px solid #7cc47c; }
-        /* cancelled → abu, coret */
         .status-cancelled { background: #f4f4f4; color: #888; border: 0.5px solid #ccc; text-decoration: line-through; }
 
         /* ── DIVIDER ── */
@@ -121,7 +117,6 @@
             letter-spacing: 1.2px;
             padding: 3.5px 7px;
             margin-bottom: 0;
-            /* color: #fff; */
         }
         .bar-production { background: #ffffff; }
         .bar-labor      { background: #3d3268; }
@@ -169,7 +164,6 @@
         .item-name { font-weight: bold; }
         .item-desc { font-size: 7px; color: #777; margin-top: 1px; }
 
-        /* indikator item akumulasi */
         .accum-hint {
             font-size: 6.5px;
             color: #999;
@@ -272,6 +266,10 @@
     </style>
 </head>
 <body>
+@php
+    $client = $invoice->salesOrder->client ?? null;
+    $so = $invoice->salesOrder;
+@endphp
 <div class="page">
 
     {{-- ═══ HEADER ═══ --}}
@@ -295,40 +293,40 @@
                 <table class="meta-table">
                     <tr>
                         <td class="meta-label">No. Invoice</td>
-                        <td class="meta-value">{{ $invoice->invoice_number }}</td>
+                        <td class="meta-value">{{ $invoice->nomor_invoice }}</td>
                     </tr>
                     <tr>
                         <td class="meta-label">Tanggal</td>
-                        <td class="meta-value">{{ $invoice->date->format('d M Y') }}</td>
+                        <td class="meta-value">{{ $invoice->tanggal_invoice->format('d M Y') }}</td>
                     </tr>
-                    @if($invoice->due_date)
+                    @if($invoice->jatuh_tempo)
                     <tr>
                         <td class="meta-label">Jatuh Tempo</td>
-                        <td class="meta-value">{{ $invoice->due_date->format('d M Y') }}</td>
+                        <td class="meta-value">{{ $invoice->jatuh_tempo->format('d M Y') }}</td>
                     </tr>
                     @endif
-                    @if($invoice->so_number)
+                    @if($invoice->nomor_salesorder)
                     <tr>
                         <td class="meta-label">Ref. SO</td>
-                        <td class="meta-value">{{ $invoice->so_number }}</td>
+                        <td class="meta-value">{{ $invoice->nomor_salesorder }}</td>
                     </tr>
                     @endif
-                    @if($invoice->nomor_po)
+                    @if($invoice->referensi_po)
                     <tr>
-                        <td class="meta-label">Nomor PO</td>
-                        <td class="meta-value">{{ $invoice->nomor_po }}</td>
+                        <td class="meta-label">Referensi PO</td>
+                        <td class="meta-value">{{ $invoice->referensi_po }}</td>
                     </tr>
                     @endif
                     <tr>
                         <td class="meta-label">Status</td>
                         <td class="meta-value">
                             @php
-                                $statusClass = match($invoice->status) {
+                                $statusClass = match($invoice->status_pembayaran) {
                                     'paid'      => 'status-paid',
                                     'cancelled' => 'status-cancelled',
-                                    default     => 'status-unpaid',  // draft, sent, overdue
+                                    default     => 'status-unpaid',
                                 };
-                                $statusLabel = match($invoice->status) {
+                                $statusLabel = match($invoice->status_pembayaran) {
                                     'paid'      => 'Paid',
                                     'cancelled' => 'Cancelled',
                                     default     => 'Unpaid',
@@ -349,12 +347,10 @@
         <tr>
             <td class="client-divider" style="width:50%;">
                 <div class="client-lbl">Kepada</div>
-                <div class="client-val">{{ $invoice->client_company }}</div>
+                <div class="client-val">{{ $client->nama_perusahaan ?? '-' }}</div>
                 <div class="client-sub">
-                    Kontak: {{ $invoice->client_name }}
-                    @if($invoice->client_attention)<br>Attn: {{ $invoice->client_attention }}@endif
-                    @if($invoice->client_cc)<br>CC: {{ $invoice->client_cc }}@endif
-                    @if($invoice->client_email)<br>{{ $invoice->client_email }}@endif
+                    Kontak: {{ $client->nama_kontak ?? '-' }}
+                    @if($client->email_perusahaan)<br>{{ $client->email_perusahaan }}@endif
                 </div>
             </td>
             <td style="width:50%;">
@@ -366,18 +362,17 @@
                 </div>
             </td>
         </tr>
-        @if($invoice->description)
+        @if($invoice->keterangan)
         <tr>
             <td colspan="2" class="client-sep">
-                <div class="client-lbl">Deskripsi Pekerjaan</div>
-                <div class="client-sub">{{ $invoice->description }}</div>
+                <div class="client-lbl">Keterangan</div>
+                <div class="client-sub">{{ $invoice->keterangan }}</div>
             </td>
         </tr>
         @endif
     </table>
 
     {{-- ═══ ITEM PRODUKSI (RINGKAS) ═══ --}}
-    {{-- <div class="section-bar bar-production">Item Produksi</div> --}}
     <table class="item-table">
         <thead>
             <tr>
@@ -393,33 +388,30 @@
             <tr class="row-odd">
                 <td class="th-c" style="color:#999;">1</td>
                 <td>
-                    <div class="item-name">{{ $invoice->project_name ?: 'Project' }}</div>
+                    <div class="item-name">{{ $invoice->nama_project ?: 'Project' }}</div>
                 </td>
                 <td class="th-c">-</td>
                 <td class="th-r">1,00</td>
-                <td class="th-r" style="font-weight:bold;">Rp {{ number_format($invoice->total, 0, ',', '.') }}</td>
-                <td class="th-r" style="font-weight:bold;">Rp {{ number_format($invoice->total, 0, ',', '.') }}</td>
+                <td class="th-r" style="font-weight:bold;">Rp {{ number_format($invoice->grandtotal, 0, ',', '.') }}</td>
+                <td class="th-r" style="font-weight:bold;">Rp {{ number_format($invoice->grandtotal, 0, ',', '.') }}</td>
             </tr>
         </tbody>
         <tfoot>
             <tr class="total-row">
                 <td colspan="5" class="th-r">Amount Total</td>
-                <td class="th-r">Rp {{ number_format($invoice->total, 0, ',', '.') }}</td>
+                <td class="th-r">Rp {{ number_format($invoice->grandtotal, 0, ',', '.') }}</td>
             </tr>
         </tfoot>
     </table>
 
-    
-
     {{-- ═══ BANK + SUMMARY ═══ --}}
-    
     @php
-        // Data rinci items/labors/otherCosts tidak lagi disimpan
-        // Gunakan nilai agregat langsung dari tabel invoices
-        $subtotalAll = ($invoice->subtotal ?? 0) + ($invoice->subtotal_labor ?? 0) + ($invoice->subtotal_other_cost ?? 0);
+        $subtotalAll = ($invoice->subtotal_produksi ?? 0) + ($invoice->subtotal_material ?? 0) + ($invoice->subtotal_labor ?? 0) + ($invoice->subtotal_lainlain ?? 0);
+        $discount = $invoice->diskon ?? 0;
+        $afterDiscount = max($subtotalAll - $discount, 0);
+        $pajakPersen = $invoice->pajak ?? 0;
+        $pajakAmount = $afterDiscount * ($pajakPersen / 100);
     @endphp
-    {{-- <div style="page-break-inside: avoid; margin-top: 70px;"></div> --}}
-    {{-- make div with page-break-inside: avoid;  --}}
     <div style="page-break-inside: avoid;">
     <table style="width:100%;border-collapse:collapse;margin-top:10px;">
         <tr>
@@ -445,31 +437,35 @@
             </td>
 
             {{-- Summary --}}
-            @php
-                $dpp = $subtotalAll - ($invoice->discount ?? 0);
-                $dpp = $subtotalAll * 11/12;
-            @endphp
             <td style="vertical-align:bottom;width:260px;">
                 <table class="summary-table">
                     <tr>
-                        <td class="s-lbl">Total</td>
-                        <td class="s-val">Rp {{ number_format($subtotalAll, 0, ',', '.') }}</td>
+                        <td class="s-lbl">Subtotal Produksi</td>
+                        <td class="s-val">Rp {{ number_format($invoice->subtotal_produksi ?? 0, 0, ',', '.') }}</td>
+                    </tr>
+                    <tr>
+                        <td class="s-lbl">Subtotal Material</td>
+                        <td class="s-val">Rp {{ number_format($invoice->subtotal_material ?? 0, 0, ',', '.') }}</td>
+                    </tr>
+                    <tr>
+                        <td class="s-lbl">Subtotal Labor</td>
+                        <td class="s-val">Rp {{ number_format($invoice->subtotal_labor ?? 0, 0, ',', '.') }}</td>
+                    </tr>
+                    <tr>
+                        <td class="s-lbl">Subtotal Lain-lain</td>
+                        <td class="s-val">Rp {{ number_format($invoice->subtotal_lainlain ?? 0, 0, ',', '.') }}</td>
                     </tr>
                     <tr>
                         <td class="s-lbl">Diskon</td>
-                        <td class="s-val">Rp {{ number_format($invoice->discount ?? 0, 0, ',', '.') }}</td>
+                        <td class="s-val">Rp {{ number_format($discount, 0, ',', '.') }}</td>
                     </tr>
                     <tr>
-                        <td class="s-lbl">Dasar Pengenaan Pajak</td>
-                        <td class="s-val">Rp {{ number_format($dpp ?? 0, 0, ',', '.') }}</td>
-                    </tr>
-                    <tr>
-                        <td class="s-lbl">PPN ({{ number_format($invoice->tax_percentage, 0) }}%)</td>
-                        <td class="s-val">Rp {{ number_format($invoice->tax_amount, 0, ',', '.') }}</td>
+                        <td class="s-lbl">Pajak ({{ number_format($pajakPersen, 0) }}%)</td>
+                        <td class="s-val">Rp {{ number_format($pajakAmount, 0, ',', '.') }}</td>
                     </tr>
                     <tr class="s-total">
-                        <td class="s-lbl" style="font-weight:bold;">Amount Total</td>
-                        <td class="s-val">Rp {{ number_format($invoice->total, 0, ',', '.') }}</td>
+                        <td class="s-lbl" style="font-weight:bold;">Grand Total</td>
+                        <td class="s-val">Rp {{ number_format($invoice->grandtotal ?? 0, 0, ',', '.') }}</td>
                     </tr>
                 </table>
             </td>
@@ -477,18 +473,10 @@
     </table>
 
     {{-- ═══ SYARAT & KETENTUAN ═══ --}}
-    @if($invoice->term_and_condition)
+    @if($invoice->keterangan)
     <div class="footer-note">
-        <strong>Syarat &amp; Ketentuan:</strong><br>
-        {!! nl2br(e($invoice->term_and_condition)) !!}
-    </div>
-    @endif
-
-    {{-- ═══ CATATAN ═══ --}}
-    @if($invoice->notes)
-    <div class="footer-note">
-        <strong>Catatan:</strong><br>
-        {!! nl2br(e($invoice->notes)) !!}
+        <strong>Keterangan:</strong><br>
+        {!! nl2br(e($invoice->keterangan)) !!}
     </div>
     @endif
 

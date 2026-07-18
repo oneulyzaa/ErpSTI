@@ -39,29 +39,72 @@
         ];
     };
 
-    // Load data from database for edit mode - ensure relations are loaded
-    if ($isEdit) {
-        $salesOrder->loadMissing('items.materials');
-        $salesOrder->loadMissing('labors');
-        $salesOrder->loadMissing('otherCosts');
-        
-        $rawItems = $salesOrder->items->map(function($item) {
-            return array_merge($item->toArray(), [
-                'materials' => $item->materials->toArray()
-            ]);
-        })->toArray();
-        $rawLabors = $salesOrder->labors->toArray();
-        $rawOtherCosts = $salesOrder->otherCosts->toArray();
-    } else {
-        $rawItems = [];
-        $rawLabors = [];
-        $rawOtherCosts = [];
-    }
-
-    $oldItems      = old('items',       array_map($mapItemForJs, $rawItems));
-    $oldLabors     = old('labors',      array_map($mapLaborForJs, $rawLabors));
-    $oldOtherCosts = old('other_costs', array_map($mapOtherCostForJs, $rawOtherCosts));
+    // Data untuk edit mode sudah di-pass dari controller sebagai $oldItems, $oldLabors, $oldOtherCosts
+    // Prioritas: old() (jika ada validasi error) > data dari controller (edit mode) > copyQuote > kosong
     $copyQuote    = isset($quotation);
+    
+    // Siapkan data copyQuote jika ada
+    if ($copyQuote) {
+        $quotation->load('items.materials', 'labors', 'otherCosts');
+        $copyItems = $quotation->items->map(function($item) {
+            return [
+                'material_name' => $item->nama_item ?? '',
+                'description'   => $item->deskripsi_item ?? '',
+                'unit'          => $item->satuan ?? 'Unit',
+                'qty'           => (float)($item->jumlah_item ?? 0),
+                'unit_price'    => (float)($item->harga_item ?? 0),
+                'materials'     => $item->materials->map(function($mat) {
+                    return [
+                        'material_name' => $mat->nama_material ?? '',
+                        'satuan'        => $mat->satuan_material ?? 'pcs',
+                        'qty_required'  => (float)($mat->jumlah_material ?? 0),
+                        'unit_price'    => (float)($mat->harga_material ?? 0),
+                        'asset_id'      => $mat->id_material ?? null,
+                    ];
+                })->toArray(),
+            ];
+        })->toArray();
+        $copyLabors = $quotation->labors->map(function($labor) {
+            return [
+                'labor_name' => $labor->nama_labor ?? '',
+                'mp'         => (int)($labor->jumlah_sdm ?? 1),
+                'days'       => (float)($labor->jumlah_hari ?? 1),
+                'rate'       => (float)($labor->rate_hari ?? 0),
+            ];
+        })->toArray();
+        $copyOtherCosts = $quotation->otherCosts->map(function($cost) {
+            return [
+                'cost_name' => $cost->nama_biaya ?? '',
+                'qty'       => 1,
+                'rate'      => (float)($cost->jumlah_biaya ?? 0),
+            ];
+        })->toArray();
+    }
+    
+    // Gunakan old() jika ada (form pernah di-submit dengan error validasi)
+    // Jika tidak ada old(), gunakan data dari controller untuk edit mode
+    // Jika bukan edit mode, gunakan data dari copyQuote
+    if (old('_token') !== null) {
+        // Form pernah di-submit, gunakan old() data
+        $seedItems = old('items', []);
+        $seedLabors = old('labors', []);
+        $seedOtherCosts = old('other_costs', []);
+    } elseif ($isEdit && isset($oldItems)) {
+        // Edit mode: gunakan data dari controller yang sudah di-map
+        $seedItems = $oldItems;
+        $seedLabors = $oldLabors;
+        $seedOtherCosts = $oldOtherCosts;
+    } elseif ($copyQuote) {
+        // Copy from quotation: gunakan data dari quotation
+        $seedItems = $copyItems;
+        $seedLabors = $copyLabors;
+        $seedOtherCosts = $copyOtherCosts;
+    } else {
+        // Create mode kosong
+        $seedItems = [];
+        $seedLabors = [];
+        $seedOtherCosts = [];
+    }
 @endphp
 
 @section('title', $isEdit ? 'Edit Sales Order' : 'Buat Sales Order Baru')
@@ -402,44 +445,12 @@
     </div>
 </form>
 
-@if($copyQuote)
-@php
-    $copyItems      = $quotation->items->load('materials')->toArray();
-    $copyLabors     = $quotation->labors->toArray();
-    $copyOtherCosts = $quotation->otherCosts->toArray();
-@endphp
-@endif
-
 @endsection
 
 @push('scripts')
 <script>
 /* ── seed data ── */
-@php
-    // Prioritas: old() > copyQuote > salesOrder (edit) > kosong
-    $hasOld = old('_token') !== null; // Ada old data berarti form pernah di-submit
-    if ($hasOld) {
-        // Gunakan data dari old() (form pernah di-submit, validasi gagal)
-        $seedItems = $oldItems;
-        $seedLabors = $oldLabors;
-        $seedOtherCosts = $oldOtherCosts;
-    } elseif ($copyQuote) {
-        // Gunakan data dari quotation (copy dari quotation, belum pernah submit)
-        $seedItems = $copyItems;
-        $seedLabors = $copyLabors;
-        $seedOtherCosts = $copyOtherCosts;
-    } elseif ($isEdit && isset($salesOrder)) {
-        // Gunakan data dari salesOrder (mode edit, belum pernah submit form ini)
-        $seedItems = $oldItems;      // $oldItems sudah di-set dari $salesOrder->items->load('materials')
-        $seedLabors = $oldLabors;    // $oldLabors sudah di-set dari $salesOrder->labors
-        $seedOtherCosts = $oldOtherCosts; // $oldOtherCosts sudah di-set dari $salesOrder->otherCosts
-    } else {
-        // Kosong (form baru, bukan copy, bukan edit)
-        $seedItems = [];
-        $seedLabors = [];
-        $seedOtherCosts = [];
-    }
-@endphp
+/* Variabel $seedItems, $seedLabors, $seedOtherCosts sudah di-set di bagian atas (PHP @php block) */
 const initItems      = @json($seedItems);
 const initLabors     = @json($seedLabors);
 const initOtherCosts = @json($seedOtherCosts);

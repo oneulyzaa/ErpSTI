@@ -102,16 +102,18 @@
                         'overdue'   => ['overdue',   'Overdue'],
                         'cancelled' => ['cancelled', 'Cancelled'],
                     ];
-                    $s = $statusMap[$inv->status] ?? ['draft','-'];
+                    $s = $statusMap[$inv->status_pembayaran] ?? ['draft','-'];
+                    $clientName = $inv->salesOrder->client->nama_kontak ?? '-';
+                    $clientCompany = $inv->salesOrder->client->nama_perusahaan ?? '-';
                 @endphp
                 <tr>
                     <td>{{ $loop->iteration }}</td>
-                    <td class="inv-no">{{ $inv->invoice_number }}</td>
-                    <td>{{ $inv->so_number ?: '-' }}</td>
-                    <td>{{ $inv->client_name ?: '-' }}</td>
-                    <td>{{ $inv->client_company }}</td>
-                    <td>{{ $inv->date->format('d M Y') }}</td>
-                    <td class="fw-semibold" style="font-family:monospace">Rp {{ number_format($inv->total, 0, ',', '.') }}</td>
+                    <td class="inv-no">{{ $inv->nomor_invoice }}</td>
+                    <td>{{ $inv->nomor_salesorder ?: '-' }}</td>
+                    <td>{{ $clientName }}</td>
+                    <td>{{ $clientCompany }}</td>
+                    <td>{{ $inv->tanggal_invoice->format('d M Y') }}</td>
+                    <td class="fw-semibold" style="font-family:monospace">Rp {{ number_format($inv->grandtotal, 0, ',', '.') }}</td>
                     <td><span class="badge badge-{{ $s[0] }}">{{ $s[1] }}</span></td>
                     <td class="text-center table-actions">
                         <a href="{{ route('admin.invoices.pdf', $inv) }}" class="btn btn-danger btn-sm" target="_blank" title="Cetak PDF"><i class="bi bi-file-pdf"></i></a>

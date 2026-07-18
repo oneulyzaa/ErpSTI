@@ -126,7 +126,45 @@ class SalesOrderController extends Controller
         $defaultLabors = $this->defaultLabors;
         $quotations = Quotation::whereIn('status', ['approved', 'sent'])->latest()->get();
         $clients = ClientModel::all();
-        return view('admin.sales-orders.edit', compact('salesOrder', 'soNumber', 'defaultLabors', 'quotations', 'clients'));
+
+        // Prepare seed data for edit mode
+        $oldItems = $salesOrder->items->map(function ($item) {
+            return [
+                'material_name' => $item->nama_item,
+                'description' => $item->deskripsi_item,
+                'unit' => $item->satuan,
+                'qty' => $item->jumlah_item,
+                'unit_price' => $item->harga_item,
+                'materials' => $item->materials->map(function ($mat) {
+                    return [
+                        'asset_id' => $mat->id_material,
+                        'material_name' => $mat->nama_material,
+                        'satuan' => $mat->satuan_material,
+                        'qty_required' => $mat->jumlah_material,
+                        'unit_price' => $mat->harga_material,
+                    ];
+                })->toArray(),
+            ];
+        })->toArray();
+
+        $oldLabors = $salesOrder->labors->map(function ($labor) {
+            return [
+                'labor_name' => $labor->nama_labor,
+                'mp' => $labor->jumlah_sdm ?? 1,
+                'days' => $labor->jumlah_hari ?? 1,
+                'rate' => $labor->rate_hari ?? 0,
+            ];
+        })->toArray();
+
+        $oldOtherCosts = $salesOrder->otherCosts->map(function ($cost) {
+            return [
+                'cost_name' => $cost->nama_biaya,
+                'qty' => 1,
+                'rate' => $cost->jumlah_biaya ?? 0,
+            ];
+        })->toArray();
+
+        return view('admin.sales-orders.edit', compact('salesOrder', 'soNumber', 'defaultLabors', 'quotations', 'clients', 'oldItems', 'oldLabors', 'oldOtherCosts'));
     }
 
     // ─── Update ───────────────────────────────────────────────────────────────
