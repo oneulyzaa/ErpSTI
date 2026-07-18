@@ -86,7 +86,7 @@
 
 {{-- ── GRAND TOTAL ─────────────────────────────────────── --}}
 @php
-    $grandTotal = $salesOrders->sum('total');
+    $grandTotal = $salesOrders->sum('grandtotal');
 @endphp
 <div class="grand-total-card mb-4 d-flex align-items-center justify-content-between">
     <div>
@@ -186,30 +186,32 @@
                 @foreach($salesOrders as $so)
                 @php
                     // ── Invoice ──
-                    $invColl = $invoices->get($so->id, collect());
+                    $invColl = $invoices->get($so->nomor_salesorder, collect());
                     $inv     = $invColl->first();
-                    $invStatus = $inv ? $inv->status : '-';
+                    $invStatus = $inv ? $inv->status_pembayaran : '-';
                     $invBadge  = $invStatus === 'paid' ? 'success' :
                                  ($invStatus === 'sent' ? 'primary' :
                                  ($invStatus === 'overdue' ? 'danger' :
                                  ($invStatus === 'draft' ? 'secondary' : 'danger')));
+                    $clientName = $so->client ? $so->client->nama_perusahaan : '-';
+                    $clientContact = $so->client ? $so->client->nama_kontak : '-';
                 @endphp
                 <tr>
                     <td>{{ $loop->iteration + ($salesOrders->currentPage() - 1) * $salesOrders->perPage() }}</td>
                     <td>
-                        <span style="font-family:monospace;color:#1B5DBC;font-weight:600;">{{ $so->so_number }}</span>
+                        <span style="font-family:monospace;color:#1B5DBC;font-weight:600;">{{ $so->nomor_salesorder }}</span>
                     </td>
                     <td>
-                        <div>{{ $so->client_company }}</div>
-                        <div class="text-muted" style="font-size:12px">{{ $so->client_name ?: '-' }}</div>
+                        <div>{{ $clientName }}</div>
+                        <div class="text-muted" style="font-size:12px">{{ $clientContact }}</div>
                     </td>
                     <td>
                         <span style="font-family:monospace;">{{ $so->nomor_po ?: '-' }}</span>
                     </td>
                     <td>
-                        <div class="truncate-text" title="{{ $so->project_name ?: '-' }}">{{ $so->project_name ?: '-' }}</div>
+                        <div class="truncate-text" title="{{ $so->nama_project ?: '-' }}">{{ $so->nama_project ?: '-' }}</div>
                     </td>
-                    <td style="white-space:nowrap;">{{ $so->date->format('d/m/Y') }}</td>
+                    <td style="white-space:nowrap;">{{ $so->tanggal_pembuatan->format('d/m/Y') }}</td>
                     <td>
                         @if($inv)
                             <span class="badge bg-{{ $invBadge }}">{{ ucfirst($invStatus) }}</span>
@@ -218,7 +220,7 @@
                         @endif
                     </td>
                     <td style="font-family:monospace;font-weight:600;text-align:right;">
-                        Rp {{ number_format($so->total, 0, ',', '.') }}
+                        Rp {{ number_format($so->grandtotal, 0, ',', '.') }}
                     </td>
                 </tr>
                 @endforeach

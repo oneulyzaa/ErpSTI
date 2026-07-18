@@ -55,19 +55,20 @@
             @foreach($salesOrders as $so)
             @php
                 $no++;
-                $invColl = $invoices->get($so->id, collect());
+                $invColl = $invoices->get($so->nomor_salesorder, collect());
                 $inv = $invColl->first();
-                $invStatus = $inv ? $inv->status : '-';
+                $invStatus = $inv ? $inv->status_pembayaran : '-';
+                $clientName = $so->client ? $so->client->nama_perusahaan : '-';
             @endphp
             <tr>
                 <td class="center">{{ $no }}</td>
-                <td>{{ $so->so_number }}</td>
-                <td>{{ $so->client_company }}</td>
+                <td>{{ $so->nomor_salesorder }}</td>
+                <td>{{ $clientName }}</td>
                 <td>{{ $so->nomor_po ?: '-' }}</td>
-                <td>{{ $so->project_name ?: '-' }}</td>
-                <td class="center">{{ $so->date->format('d/m/Y') }}</td>
+                <td>{{ $so->nama_project ?: '-' }}</td>
+                <td class="center">{{ $so->tanggal_pembuatan->format('d/m/Y') }}</td>
                 <td class="center">{{ $invStatus !== '-' ? ucfirst($invStatus) : '-' }}</td>
-                <td class="right">{{ number_format($so->total, 0, ',', '.') }}</td>
+                <td class="right">{{ number_format($so->grandtotal, 0, ',', '.') }}</td>
             </tr>
             @endforeach
         </tbody>

@@ -18,15 +18,18 @@ class ReportController extends Controller
         [$query, $dateFrom, $dateTo] = $this->buildSalesQuery($request);
 
         $salesOrders = $query->paginate(20)->withQueryString();
-        $soIds       = $salesOrders->pluck('id');
+        $soNumbers = $salesOrders->pluck('nomor_salesorder');
 
-        // Data invoice per SO
-        $invoices = Invoice::with('receipts')->whereIn('sales_order_id', $soIds)->get()->groupBy('sales_order_id');
+        // Data invoice per SO (grouped by nomor_salesorder)
+        $invoices = Invoice::with('receipts')->whereIn('nomor_salesorder', $soNumbers)->get()->groupBy('nomor_salesorder');
 
         $lists = $this->statusLists();
 
         return view('admin.reports.sales', array_merge(compact(
-            'salesOrders', 'invoices', 'dateFrom', 'dateTo'
+            'salesOrders',
+            'invoices',
+            'dateFrom',
+            'dateTo'
         ), $lists));
     }
 
@@ -36,10 +39,10 @@ class ReportController extends Controller
         [$query, $dateFrom, $dateTo] = $this->buildSalesQuery($request);
 
         $salesOrders = $query->get();
-        $soIds       = $salesOrders->pluck('id');
-        $invoices    = Invoice::with('receipts')->whereIn('sales_order_id', $soIds)->get()->groupBy('sales_order_id');
+        $soNumbers = $salesOrders->pluck('nomor_salesorder');
+        $invoices = Invoice::with('receipts')->whereIn('nomor_salesorder', $soNumbers)->get()->groupBy('nomor_salesorder');
 
-        $grandTotal = $salesOrders->sum('total');
+        $grandTotal = $salesOrders->sum('grandtotal');
 
         $logoPath = public_path('assets/gambar/logo-sti.png');
         $logoBase64 = '';
@@ -48,8 +51,12 @@ class ReportController extends Controller
         }
 
         $pdf = Pdf::loadView('admin.reports.sales_pdf', compact(
-            'salesOrders', 'invoices',
-            'dateFrom', 'dateTo', 'grandTotal', 'logoBase64'
+            'salesOrders',
+            'invoices',
+            'dateFrom',
+            'dateTo',
+            'grandTotal',
+            'logoBase64'
         ))
             ->setPaper('a4', 'landscape')
             ->setOption('defaultFont', 'DejaVu Sans')
@@ -65,14 +72,17 @@ class ReportController extends Controller
         [$query, $dateFrom, $dateTo] = $this->buildSalesQuery($request);
 
         $salesOrders = $query->get();
-        $soIds       = $salesOrders->pluck('id');
-        $invoices    = Invoice::with('receipts')->whereIn('sales_order_id', $soIds)->get()->groupBy('sales_order_id');
+        $soNumbers = $salesOrders->pluck('nomor_salesorder');
+        $invoices = Invoice::with('receipts')->whereIn('nomor_salesorder', $soNumbers)->get()->groupBy('nomor_salesorder');
 
-        $grandTotal = $salesOrders->sum('total');
+        $grandTotal = $salesOrders->sum('grandtotal');
 
         $html = $this->renderExcelHtml(
-            $salesOrders, $invoices,
-            $dateFrom, $dateTo, $grandTotal
+            $salesOrders,
+            $invoices,
+            $dateFrom,
+            $dateTo,
+            $grandTotal
         );
 
         return response($html)
@@ -84,43 +94,43 @@ class ReportController extends Controller
     // ─── Private: Shared query builder ────────────────────────────────────
     private function buildSalesQuery(Request $request): array
     {
-        $query = SalesOrder::with(['client'])->latest('date');
+        $query = SalesOrder::with(['client'])->latest('tanggal_pembuatan');
 
         $dateFrom = $request->input('date_from');
-        $dateTo   = $request->input('date_to');
+        $dateTo = $request->input('date_to');
 
-        if ($dateFrom) $query->whereDate('date', '>=', $dateFrom);
-        if ($dateTo)   $query->whereDate('date', '<=', $dateTo);
+        if ($dateFrom)
+            $query->whereDate('tanggal_pembuatan', '>=', $dateFrom);
+        if ($dateTo)
+            $query->whereDate('tanggal_pembuatan', '<=', $dateTo);
 
         if ($request->filled('invoice_status')) {
-            $query->whereHas('invoices', fn($q) => $q->where('status', $request->invoice_status));
+            $query->whereHas('invoices', fn($q) => $q->where('status_pembayaran', $request->invoice_status));
         }
         if ($request->filled('payment_status')) {
             $query->whereHas('invoices', function ($q) use ($request) {
                 $ps = $request->payment_status;
                 if ($ps === 'paid') {
-                    $q->whereHas('receipts', fn($r) => $r->where('status', 'confirmed'))
-                      ->whereRaw('(SELECT COALESCE(SUM(amount),0) FROM receipts WHERE invoice_id = invoices.id AND status = "confirmed") >= total');
+                    // Lunas: total bayar >= grandtotal
+                    $q->whereHas('receipts')
+                        ->whereRaw('(SELECT COALESCE(SUM(jumlah_bayar),0) FROM receipts WHERE nomor_invoice = invoices.nomor_invoice) >= invoices.grandtotal');
                 } elseif ($ps === 'unpaid') {
-                    $q->where(fn($sub) => $sub
-                        ->whereDoesntHave('receipts', fn($r) => $r->where('status', 'confirmed'))
-                        ->orWhereRaw('(SELECT COALESCE(SUM(amount),0) FROM receipts WHERE invoice_id = invoices.id AND status = "confirmed") < total')
-                    );
+                    // Belum dibayar: tidak ada receipt sama sekali
+                    $q->whereDoesntHave('receipts');
                 } elseif ($ps === 'partial') {
-                    $q->whereHas('receipts', fn($r) => $r->where('status', 'confirmed'))
-                      ->whereRaw('(SELECT COALESCE(SUM(amount),0) FROM receipts WHERE invoice_id = invoices.id AND status = "confirmed") > 0')
-                      ->whereRaw('(SELECT COALESCE(SUM(amount),0) FROM receipts WHERE invoice_id = invoices.id AND status = "confirmed") < total');
+                    // Sebagian: ada receipt tapi total bayar < grandtotal
+                    $q->whereHas('receipts')
+                        ->whereRaw('(SELECT COALESCE(SUM(jumlah_bayar),0) FROM receipts WHERE nomor_invoice = invoices.nomor_invoice) > 0')
+                        ->whereRaw('(SELECT COALESCE(SUM(jumlah_bayar),0) FROM receipts WHERE nomor_invoice = invoices.nomor_invoice) < invoices.grandtotal');
                 }
             });
         }
         if ($request->filled('search')) {
             $s = $request->search;
             $query->where(function ($q) use ($s) {
-                $q->where('so_number', 'like', "%$s%")
-                  ->orWhere('project_name', 'like', "%$s%")
-                  ->orWhere('client_company', 'like', "%$s%")
-                  ->orWhere('client_name', 'like', "%$s%")
-                  ->orWhere('nomor_po', 'like', "%$s%");
+                $q->where('nomor_salesorder', 'like', "%$s%")
+                    ->orWhere('nama_project', 'like', "%$s%")
+                    ->orWhere('nomor_po', 'like', "%$s%");
             });
         }
 
@@ -132,13 +142,16 @@ class ReportController extends Controller
     {
         return [
             'invoiceStatuses' => [
-                'draft' => 'Draft', 'sent' => 'Sent', 'paid' => 'Paid',
-                'overdue' => 'Overdue', 'cancelled' => 'Cancelled',
+                'draft' => 'Draft',
+                'sent' => 'Sent',
+                'paid' => 'Paid',
+                'overdue' => 'Overdue',
+                'cancelled' => 'Cancelled',
             ],
             'paymentStatuses' => [
-                'unpaid'  => 'Belum Dibayar',
+                'unpaid' => 'Belum Dibayar',
                 'partial' => 'Sebagian',
-                'paid'    => 'Lunas',
+                'paid' => 'Lunas',
             ],
         ];
     }
@@ -151,19 +164,21 @@ class ReportController extends Controller
         foreach ($salesOrders as $so) {
             $no++;
 
-            $invColl = $invoices->get($so->id, collect());
-            $inv     = $invColl->first();
-            $invStatus = $inv ? $inv->status : '-';
+            $invColl = $invoices->get($so->nomor_salesorder, collect());
+            $inv = $invColl->first();
+            $invStatus = $inv ? $inv->status_pembayaran : '-';
+
+            $clientName = $so->client ? $so->client->nama_perusahaan : '-';
 
             $rows .= '<tr>';
             $rows .= '<td>' . $no . '</td>';
-            $rows .= '<td>' . $so->so_number . '</td>';
-            $rows .= '<td>' . $so->client_company . '</td>';
+            $rows .= '<td>' . $so->nomor_salesorder . '</td>';
+            $rows .= '<td>' . $clientName . '</td>';
             $rows .= '<td>' . ($so->nomor_po ?: '-') . '</td>';
-            $rows .= '<td>' . ($so->project_name ?: '-') . '</td>';
-            $rows .= '<td>' . $so->date->format('d/m/Y') . '</td>';
+            $rows .= '<td>' . ($so->nama_project ?: '-') . '</td>';
+            $rows .= '<td>' . $so->tanggal_pembuatan->format('d/m/Y') . '</td>';
             $rows .= '<td>' . ($invStatus !== '-' ? $invStatus : '-') . '</td>';
-            $rows .= '<td style="text-align:right;">' . number_format($so->total, 0, ',', '.') . '</td>';
+            $rows .= '<td style="text-align:right;">' . number_format($so->grandtotal, 0, ',', '.') . '</td>';
             $rows .= '</tr>' . "\n";
         }
 
