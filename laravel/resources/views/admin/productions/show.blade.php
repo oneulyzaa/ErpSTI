@@ -113,7 +113,7 @@
                             <td class="text-center text-muted" style="font-family:monospace;">{{ $loop->iteration }}</td>
                             <td class="fw-semibold">{{ $mat->nama_material }}</td>
                             <td class="text-center">{{ $mat->satuan_material }}</td>
-                            <td class="text-end" style="font-family:monospace;">{{ number_format($mat->jumlah_material, 2, ',', '.') }}</td>
+                            <td class="text-end" style="font-family:monospace;">{{ number_format($mat->jumlah_material, 0, ',', '.') }}</td>
                         </tr>
                         @endforeach
                     </tbody>

@@ -130,7 +130,7 @@
                             <td class="fw-semibold">{{ $item->material_name }}</td>
                             <td class="text-muted">{{ $item->description ?: '-' }}</td>
                             <td class="text-center">{{ $item->unit }}</td>
-                            <td class="text-end" style="font-family:monospace;">{{ number_format($item->qty, 2, ',', '.') }}</td>
+                            <td class="text-end" style="font-family:monospace;">{{ number_format($item->qty, 0, ',', '.') }}</td>
                             <td class="text-end" style="font-family:monospace;">Rp {{ number_format($item->unit_price, 0, ',', '.') }}</td>
                             <td class="text-end fw-semibold" style="font-family:monospace;">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</td>
                         </tr>

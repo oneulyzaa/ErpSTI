@@ -506,7 +506,7 @@
                 <td class="col-no mono tc muted" style="font-size:7px;">{{ $row['idx'] }}</td>
                 <td style="padding-left:16px;">{{ $row['data']->nama_material }}</td>
                 <td class="tc">{{ $row['data']->satuan_material }}</td>
-                <td class="tr mono">{{ number_format($row['data']->jumlah_material, 2, ',', '.') }}</td>
+                <td class="tr mono">{{ number_format($row['data']->jumlah_material, 0, ',', '.') }}</td>
                 <td class="tr mono">Rp&nbsp;{{ number_format($row['data']->harga_material, 0, ',', '.') }}</td>
                 <td class="tr mono">Rp&nbsp;{{ number_format($row['subtotal'], 0, ',', '.') }}</td>
             </tr>

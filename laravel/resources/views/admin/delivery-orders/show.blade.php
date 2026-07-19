@@ -134,7 +134,7 @@
                             <td class="fw-semibold">{{ $item->nama_item }}</td>
                             <td class="text-muted">{{ $item->deskripsi_item ?: '-' }}</td>
                             <td class="text-center">{{ $item->satuan }}</td>
-                            <td class="text-end" style="font-family:monospace;">{{ number_format($item->jumlah_item, 2, ',', '.') }}</td>
+                            <td class="text-end" style="font-family:monospace;">{{ number_format($item->jumlah_item, 0, ',', '.') }}</td>
                         </tr>
                         @if($item->materials->count())
                         <tr class="table-light">
@@ -142,7 +142,7 @@
                                 <div style="font-size:11px;font-weight:600;color:#64748b;margin-bottom:4px;">Material:</div>
                                 @foreach($item->materials as $m => $mat)
                                 <div style="font-size:12px;color:#475569;">
-                                    {{ $m+1 }}. {{ $mat->nama_material }} — {{ number_format($mat->jumlah_material, 2, ',', '.') }} {{ $mat->satuan_material }}
+                                    {{ $m+1 }}. {{ $mat->nama_material }} — {{ number_format($mat->jumlah_material, 0, ',', '.') }} {{ $mat->satuan_material }}
                                 </div>
                                 @endforeach
                             </td>
@@ -157,7 +157,7 @@
                         </tr>
                         <tr>
                             <td colspan="4" class="text-end fw-semibold" style="font-size:12px;">Total Qty</td>
-                            <td class="text-end fw-bold" style="font-family:monospace;">{{ number_format($deliveryOrder->items->sum('jumlah_item'), 2, ',', '.') }}</td>
+                            <td class="text-end fw-bold" style="font-family:monospace;">{{ number_format($deliveryOrder->items->sum('jumlah_item'), 0, ',', '.') }}</td>
                         </tr>
                     </tfoot>
                 </table>

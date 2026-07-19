@@ -284,7 +284,7 @@
                             <div style="font-size:6.5px;color:#666;">{{ $item->deskripsi_item }}</div>
                         @endif
                     </td>
-                    <td style="text-align:right;">{{ number_format($item->jumlah_item, 2, ',', '.') }}</td>
+                    <td style="text-align:right;">{{ number_format($item->jumlah_item, 0, ',', '.') }}</td>
                 </tr>
                 @endforeach
             </tbody>

@@ -286,7 +286,7 @@
                         <td>{{ $loop->iteration }}</td>
                         <td><strong>{{ $mat->nama_material }}</strong></td>
                         <td style="text-align:center;">{{ $mat->satuan_material }}</td>
-                        <td style="text-align:right;">{{ number_format($mat->jumlah_material, 2, ',', '.') }}</td>
+                        <td style="text-align:right;">{{ number_format($mat->jumlah_material, 0, ',', '.') }}</td>
                     </tr>
                     @endforeach
                 </tbody>

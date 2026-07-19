@@ -154,7 +154,7 @@
                             @endif
                         </div>
                         <div class="text-end" style="font-size:13px;">
-                            <span class="text-muted">{{ number_format($item->jumlah_item, 2, ',', '.') }} {{ $item->satuan }}</span>
+                            <span class="text-muted">{{ number_format($item->jumlah_item, 0, ',', '.') }} {{ $item->satuan }}</span>
                             &nbsp;&nbsp;
                             {{-- Hanya tampilkan unit price & subtotal jika TIDAK punya materials --}}
                             @unless($item->materials && $item->materials->count())
@@ -198,7 +198,7 @@
                                         <td class="mat-num text-center text-muted">{{ $mi+1 }}</td>
                                         <td class="fw-medium">{{ $mat->nama_material }}</td>
                                         <td class="text-center text-muted">{{ $mat->satuan_material }}</td>
-                                        <td class="mat-num text-end">{{ number_format($mat->jumlah_material, 2, ',', '.') }}</td>
+                                        <td class="mat-num text-end">{{ number_format($mat->jumlah_material, 0, ',', '.') }}</td>
                                         <td class="mat-num text-end text-muted">Rp {{ number_format($mat->harga_material, 0, ',', '.') }}</td>
                                         <td class="mat-num text-end fw-semibold">Rp {{ number_format($matSubtotal, 0, ',', '.') }}</td>
                                     </tr>
