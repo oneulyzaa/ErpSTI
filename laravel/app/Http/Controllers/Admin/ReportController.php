@@ -130,7 +130,9 @@ class ReportController extends Controller
             $query->where(function ($q) use ($s) {
                 $q->where('nomor_salesorder', 'like', "%$s%")
                     ->orWhere('nama_project', 'like', "%$s%")
-                    ->orWhere('nomor_po', 'like', "%$s%");
+                    ->orWhere('nomor_po', 'like', "%$s%")
+
+                    ->orWhereHas('client', fn($q) => $q->where('nama_perusahaan', 'like', "%$s%"));
             });
         }
 
