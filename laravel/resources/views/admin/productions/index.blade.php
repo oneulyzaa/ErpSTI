@@ -20,7 +20,7 @@
         <h4 class="fw-bold mb-1">Rencana Produksi</h4>
         <p class="text-muted mb-0" style="font-size:13px">Kelola bahan baku untuk setiap produk dari Sales Order</p>
     </div>
-    @if(auth()->user()->role === 'gudang')  
+    @if(auth()->user()->akses === 'gudang' || auth()->user()->akses === 'superadmin' )  
     <a href="{{ route('admin.productions.create') }}" class="btn btn-primary d-flex align-items-center gap-2">
         <i class="bi bi-plus-lg"></i> Buat Rencana Produksi
     </a>
