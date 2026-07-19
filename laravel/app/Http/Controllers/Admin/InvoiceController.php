@@ -130,8 +130,9 @@ class InvoiceController extends Controller
             $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
         }
 
+        // return view('admin.invoices.pdf-c', compact('invoice', 'logoBase64'));
         $pdf = Pdf::loadView('admin.invoices.pdf-c', compact('invoice', 'logoBase64'))
-            ->setPaper('a4', 'portrait')
+            ->setPaper('a5', 'landscape')
             ->setOption('defaultFont', 'DejaVu Sans')
             ->setOption('isHtml5ParserEnabled', true)
             ->setOption('isRemoteEnabled', false);

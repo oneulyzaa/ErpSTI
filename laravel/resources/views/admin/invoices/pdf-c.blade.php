@@ -10,7 +10,7 @@
 
         body {
             font-family: 'DejaVu Sans', Arial, sans-serif;
-            font-size: 9px;
+            font-size: 8px;
             color: #1a1a1a;
             background: #fff;
         }
@@ -22,7 +22,7 @@
         .header-wrap td { vertical-align: top; padding: 0; }
 
         .logo-cell { width: 210px; }
-        .logo-cell img { width: 160px; display: block; }
+        .logo-cell img { width: 120px; display: block; }
 
         .company-info {
             font-size: 7.5px;
@@ -35,13 +35,13 @@
         .title-cell { text-align: right; }
 
         .doc-title {
-            font-size: 26px;
+            font-size: 12px;
             font-weight: bold;
             letter-spacing: 4px;
             color: #1B5DBC;
             text-transform: uppercase;
             line-height: 1;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
         }
 
         .meta-table { border-collapse: collapse; margin-left: auto; }
@@ -92,7 +92,7 @@
             margin-bottom: 10px;
         }
         .client-block td {
-            padding: 6px 10px;
+            padding: 4px 4px;
             font-size: 8.5px;
             vertical-align: top;
         }
@@ -115,7 +115,7 @@
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 1.2px;
-            padding: 3.5px 7px;
+            padding: 1.5px 7px;
             margin-bottom: 0;
         }
         .bar-production { background: #ffffff; }
@@ -135,7 +135,7 @@
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: .5px;
-            padding: 3.5px 6px;
+            padding: 1.5px 6px;
             border: 0.5px solid #dcdcdc;
         }
         .item-table th.bar-labor  { background: #3d3268; border-color: #2e2550; }
@@ -143,7 +143,7 @@
 
         .item-table td {
             border: 0.5px solid #dde3ef;
-            padding: 3px 6px;
+            padding: 1.5px 6px;
             font-size: 8px;
             vertical-align: middle;
         }
@@ -204,7 +204,7 @@
             font-weight: bold;
             border-top: 1.5px solid #1e3a5f;
             font-size: 8.5px;
-            padding: 3.5px 6px;
+            padding: 1.5px 6px;
         }
         .total-row.labor td  { background: #ece9f5; border-top-color: #3d3268; }
         .total-row.other td  { background: #e5f0ec; border-top-color: #1e5040; }
@@ -215,7 +215,7 @@
             width: 260px;
         }
         .summary-table td {
-            padding: 3px 8px;
+            padding: 1.5px 8px;
             font-size: 8.5px;
             border: 0.5px solid #d4dae6;
         }
@@ -231,14 +231,14 @@
 
         /* ── BANK INFO ── */
         .bank-table { border-collapse: collapse; border: 0.5px solid #d4dae6; }
-        .bank-table td { padding: 3px 9px; font-size: 8.5px; border-top: 0.5px solid #d4dae6; }
+        .bank-table td { padding: 1.5px 9px; font-size: 7.5px; border-top: 0.5px solid #d4dae6; }
         .bank-table tr:first-child td { border-top: none; }
         .bank-lbl { background: #f2f5fb; color: #555; white-space: nowrap; min-width: 80px; }
         .bank-val { font-family: 'DejaVu Sans Mono', monospace; border-left: 0.5px solid #d4dae6; }
 
         /* ── FOOTER NOTES ── */
         .footer-note {
-            margin-top: 10px;
+            margin-top: 4px;
             font-size: 7.5px;
             color: #555;
             line-height: 1.65;
@@ -247,15 +247,15 @@
         }
 
         /* ── SIGNATURE ── */
-        .signature-wrap { width: 100%; border-collapse: collapse; margin-top: 26px; }
+        .signature-wrap { width: 100%; border-collapse: collapse; margin-top: 16px; }
         .signature-wrap td {
             width: 50%;
             text-align: center;
-            padding: 0 20px;
+            padding: 0 10px;
             font-size: 8.5px;
         }
         .sig-line {
-            margin-top: 78px;
+            margin-top: 8px;
             border-top: 0.5px solid #333;
             width: 160px;
             display: inline-block;
@@ -362,14 +362,14 @@
                 </div>
             </td>
         </tr>
-        @if($invoice->keterangan)
+        {{-- @if($invoice->keterangan)
         <tr>
             <td colspan="2" class="client-sep">
                 <div class="client-lbl">Keterangan</div>
                 <div class="client-sub">{{ $invoice->keterangan }}</div>
             </td>
         </tr>
-        @endif
+        @endif --}}
     </table>
 
     {{-- ═══ ITEM PRODUKSI (RINGKAS) ═══ --}}
@@ -413,8 +413,8 @@
         $pajakPersen = $invoice->pajak ?? 0;
         $pajakAmount = $afterDiscount * ($pajakPersen / 100);
     @endphp
-    <div style="page-break-inside: avoid;">
-    <table style="width:100%;border-collapse:collapse;margin-top:10px;">
+    <div style="page-break-inside:auto">
+    <table style="width:100%;border-collapse:collapse;margin-top:5px;">
         <tr>
             {{-- Informasi Pembayaran --}}
             <td style="vertical-align:bottom;padding-right:14px;">
@@ -465,16 +465,9 @@
         </tr>
     </table>
 
-    {{-- ═══ SYARAT & KETENTUAN ═══ --}}
-    @if($invoice->keterangan)
-    <div class="footer-note">
-        <strong>Keterangan:</strong><br>
-        {!! nl2br(e($invoice->keterangan)) !!}
-    </div>
-    @endif
 
     {{-- ═══ TANDA TANGAN ═══ --}}
-    <table class="signature-wrap" style="width:100%; margin-top:20px;">
+    <table class="signature-wrap" style="width:100%; margin-top:5px;">
         <tr>
             <td style="width:60%;"></td>
 
