@@ -409,6 +409,7 @@
         $subtotalAll = ($invoice->subtotal_produksi ?? 0) + ($invoice->subtotal_material ?? 0) + ($invoice->subtotal_labor ?? 0) + ($invoice->subtotal_lainlain ?? 0);
         $discount = $invoice->diskon ?? 0;
         $afterDiscount = max($subtotalAll - $discount, 0);
+        $dpp = $subtotalAll * 11/12;
         $pajakPersen = $invoice->pajak ?? 0;
         $pajakAmount = $afterDiscount * ($pajakPersen / 100);
     @endphp
@@ -440,31 +441,23 @@
             <td style="vertical-align:bottom;width:260px;">
                 <table class="summary-table">
                     <tr>
-                        <td class="s-lbl">Subtotal Produksi</td>
-                        <td class="s-val">Rp {{ number_format($invoice->subtotal_produksi ?? 0, 0, ',', '.') }}</td>
-                    </tr>
-                    <tr>
-                        <td class="s-lbl">Subtotal Material</td>
-                        <td class="s-val">Rp {{ number_format($invoice->subtotal_material ?? 0, 0, ',', '.') }}</td>
-                    </tr>
-                    <tr>
-                        <td class="s-lbl">Subtotal Labor</td>
-                        <td class="s-val">Rp {{ number_format($invoice->subtotal_labor ?? 0, 0, ',', '.') }}</td>
-                    </tr>
-                    <tr>
-                        <td class="s-lbl">Subtotal Lain-lain</td>
-                        <td class="s-val">Rp {{ number_format($invoice->subtotal_lainlain ?? 0, 0, ',', '.') }}</td>
+                        <td class="s-lbl">Total</td>
+                        <td class="s-val">Rp {{ number_format($subtotalAll ?? 0, 0, ',', '.') }}</td>
                     </tr>
                     <tr>
                         <td class="s-lbl">Diskon</td>
                         <td class="s-val">Rp {{ number_format($discount, 0, ',', '.') }}</td>
                     </tr>
                     <tr>
-                        <td class="s-lbl">Pajak ({{ number_format($pajakPersen, 0) }}%)</td>
+                        <td class="s-lbl">Dasar Pengenaan Pajak</td>
+                        <td class="s-val">Rp {{ number_format($dpp, 0, ',', '.') }}</td>
+                    </tr>
+                    <tr>
+                        <td class="s-lbl">PPN ({{ number_format($pajakPersen, 0) }}%)</td>
                         <td class="s-val">Rp {{ number_format($pajakAmount, 0, ',', '.') }}</td>
                     </tr>
                     <tr class="s-total">
-                        <td class="s-lbl" style="font-weight:bold;">Grand Total</td>
+                        <td class="s-lbl" style="font-weight:bold;">Amount Total</td>
                         <td class="s-val">Rp {{ number_format($invoice->grandtotal ?? 0, 0, ',', '.') }}</td>
                     </tr>
                 </table>

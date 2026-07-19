@@ -171,6 +171,7 @@
                            + ($invoice->subtotal_lainlain ?? 0);
             $discount      = $invoice->diskon ?? 0;
             $afterDiscount = max($subtotalAll - $discount, 0);
+            $dpp = $subtotalAll * 11/12;
             $pajakPersen   = $invoice->pajak ?? 0;
             $pajakAmount   = $afterDiscount * ($pajakPersen / 100);
         @endphp
@@ -194,19 +195,19 @@
 
                 {{-- Setelah Diskon --}}
                 <div class="d-flex justify-content-between align-items-center px-3 py-2" style="border-bottom:1px solid #f1f5f9;">
-                    <span style="font-size:13px;color:#475569;">Setelah Diskon</span>
-                    <span class="total-value" style="font-size:13px;">Rp {{ number_format($afterDiscount, 0, ',', '.') }}</span>
+                    <span style="font-size:13px;color:#475569;">Dasar Pengenaan Pajak</span>
+                    <span class="total-value" style="font-size:13px;">Rp {{ number_format($dpp, 0, ',', '.') }}</span>
                 </div>
 
                 {{-- Pajak --}}
                 <div class="d-flex justify-content-between align-items-center px-3 py-2" style="border-bottom:1px solid #f1f5f9;">
-                    <span style="font-size:13px;color:#475569;">Pajak ({{ $pajakPersen }}%)</span>
+                    <span style="font-size:13px;color:#475569;">Pajak ({{ number_format($pajakPersen, 0, ',', '.') }}%)</span>
                     <span class="total-value" style="font-size:13px;">Rp {{ number_format($pajakAmount, 0, ',', '.') }}</span>
                 </div>
 
                 {{-- Grand Total --}}
                 <div class="d-flex justify-content-between align-items-center px-3 py-3" style="background:#f8faff;border-radius:0 0 .5rem .5rem;">
-                    <strong style="font-size:15px;">Grand Total</strong>
+                    <strong style="font-size:15px;">Amount Total</strong>
                     <strong class="total-value" style="font-size:17px;">Rp {{ number_format($invoice->grandtotal ?? 0, 0, ',', '.') }}</strong>
                 </div>
 
